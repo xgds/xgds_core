@@ -1,0 +1,23 @@
+<div class="controller_div">
+	<a class="btn btn-info" id="playbuttonLink" href="#"
+		onclick="playback.playButtonCallback()"> <i id="playbutton"
+		class="icon-play"></i>
+	</a> <a class="btn btn-info" id="pausebuttonLink" href="#"
+		onclick="playback.pauseButtonCallback()"> <i id="pausebutton"
+		class="icon-pause active"></i>
+	</a>
+	<div id="masterSlider" class="masterSlider"></div>
+	<div id="seekTimeBox">
+		<label for="seekTime">Jump to:</label> <input id="seekTime"
+			type="text" name="text-input" placeholder="HH:MM:SS" class="stylish" />
+		<button type="submit" class="mybutton small" id="seekButton"
+			onclick="playback.seekCallBack()"">Go</button>
+	</div>
+	<div class="float-left">
+		Local Time: <span id="sliderTimeLabel">00:00:00</span>
+	</div>
+	<div class="float-left">
+	<label for="playbackSpeed">Speed:</label> <input id="playbackSpeed"
+			type="text" name="text-input" value="1" />
+	</div>
+</div>
