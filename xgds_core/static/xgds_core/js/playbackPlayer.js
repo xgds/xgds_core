@@ -17,6 +17,7 @@
 $.extend(playback, {
 	listeners: [],
 	playbackSpeed: 1,
+	endTime: undefined,
 	initialize: function(options) {
 		// check for web workers
 		if (!window.Worker) { 
@@ -26,13 +27,18 @@ $.extend(playback, {
 		} 
 		
 		// register start and end time functions
-		if (options.getEndTime){
-			playback.getEndTime = options.endTime;
-		}
 		if (options.getStartTime){
 			playback.getStartTime = options.startTime;
 		}
-		playback.currentTime = moment(playback.getStartTime());
+		playback.startTime = moment(playback.getStartTime());
+		if (options.getEndTime){
+			playback.getEndTime = options.endTime;
+		}
+		var endTime = playback.getEndTime();
+		if (endTime){
+			playback.endTime = moment(endTime);
+		}
+		playback.currentTime = moment(playback.startTime);
 		
 		if (options.slider){
 			playback.setupSlider();
@@ -46,6 +52,7 @@ $.extend(playback, {
 		}
 		playback.setupTimer();
 		playback.setupSpeedInput();
+		playback.setupSeekButton();
 	},
 	
 	addListener: function(listener) {
@@ -111,42 +118,55 @@ $.extend(playback, {
 	 * Updates the player and the slider times based on
 	 * the seek time value specified in the 'seek' text box.
 	 */
-	seekCallBack : function() {
+	seekCallback : function() {
 		var seekTimeStr = $('#seekTime').val();
-		if ((seekTimeStr == null)
-				|| (Object.keys(playback.listeners).length < 1)) {
+		if ((seekTimeStr == null) || (Object.keys(playback.listeners).length < 1)) {
 			return;
 		}
 		playback.seekHelper(seekTimeStr);
 	},
 
 	playButtonCallback : function() {
-		if (playback.playFlag) {
-			return;
-		}
-		playback.playFlag = true;
 		$('#playbutton').addClass("active");
 		$('#pausebutton').removeClass("active");
-
-		playback.startListeners(playback.getCurrentTime());
-		playback.timerWorker.postMessage(['setPaused',false]);
-		playback.timerWorker.postMessage(['runTime']);
+		playback.doPlay();
 	},
 
 	pauseButtonCallback : function() {
+		$('#pausebutton').addClass("active");
+		$('#playbutton').removeClass("active");
+		playback.doPause();
+	}, 
+	
+	doPause: function() {
 		if (!playback.playFlag) {
 			return;
 		}
 		playback.timerWorker.postMessage(['setPaused', true]);
 		playback.playFlag = false;
-		$('#pausebutton').addClass("active");
-		$('#playbutton').removeClass("active");
 		playback.pauseListeners();
-	}, 
+	},
+	
+	doPlay: function() {
+		if (playback.playFlag) {
+			return;
+		}
+		playback.playFlag = true;
+		playback.startListeners(playback.getCurrentTime());
+		playback.timerWorker.postMessage(['setPaused',false]);
+		playback.timerWorker.postMessage(['runTime']);
+	},
 	
 	setPlaybackSpeed: function(speed) {
 		playback.playbackSpeed = speed;
 		playback.timerWorker.postMessage(['setPlaybackSpeed',speed]);
+	},
+	
+	setCurrentTime: function(currentTime){
+		playback.currentTime = moment(currentTime); 
+		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.format()]);
+		playback.updateListeners(playback.currentTime);
 	}
+	
 
 });

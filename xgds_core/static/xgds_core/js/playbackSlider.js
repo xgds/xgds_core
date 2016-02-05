@@ -30,10 +30,13 @@ $.extend(playback, {
 	 * Slider Callback:
 	 * update slider time text when moving slider.
 	 */
-	uponSliderMoveCallBack : function(event, ui) {
+	uponSliderMoveCallback : function(event, ui) {
 		//update slider time label on top
 		playback.movingSlider = true;
-		playback.timerWorker.postMessage(['setPaused',true]);
+		if (playback.playFlag){
+			playback.wasPlaying = true;
+			playback.doPause();
+		}
 		var sliderTime = new Date(ui.value * 1000);
 		playback.setTimeLabel(moment(sliderTime));
 	},
@@ -44,23 +47,24 @@ $.extend(playback, {
 	 *    offset = slider position - start time
 	 *    update the site times to equal slider position.
 	 */
-	uponSliderStopCallBack : function(event, ui) {
+	uponSliderStopCallback : function(event, ui) {
 		var currTime = playback.masterSlider.slider('value'); //in seconds
-		playback.currentTime = moment(new Date(currTime * 1000)); //convert to javascript date
-		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.format()]);
-		playback.timerWorker.postMessage(['setPaused',false]);
-		playback.timerWorker.postMessage(['runTime']);
+		playback.setCurrentTime(moment(new Date(currTime * 1000)));
 		playback.movingSlider = false;
+		if (!playback.playFlag){
+			if (playback.wasPlaying){
+				playback.doPlay();
+				playback.wasPlaying = false;
+			}
+		}
 	},
 
 	// for testing
-	// TODO client page must register this function
 	getStartTime : function() {
 		return moment().utc()
 	},
 
 	// for testing
-	// TODO client page must register this function
 	getEndTime : function() {
 		var nowMoment = moment(moment.now());
 		nowMoment.add(1, 'hour')
@@ -71,15 +75,14 @@ $.extend(playback, {
 	 * initialize master slider with range (start and end time from registered methods)
 	 */
 	setupSlider : function() {
-		var endTime = playback.getEndTime();
-		if (endTime) {
-			var endMoment = moment(endTime);
+		if (playback.endTime != undefined) {
+			var endMoment = moment(playback.endTime);
 			playback.masterSlider = $('#masterSlider').slider({
 				step : 1,
 				min : playback.currentTime.unix(),
 				max : endMoment.unix(),
-				stop : playback.uponSliderStopCallBack,
-				slide : playback.uponSliderMoveCallBack,
+				stop : playback.uponSliderStopCallback,
+				slide : playback.uponSliderMoveCallback,
 				range : 'min'
 			});
 			playback.setTimeLabel(playback.currentTime);
@@ -89,15 +92,21 @@ $.extend(playback, {
 	
 	sliderListener: {
 		lastUpdate: undefined,
-		start: function(currentTime){
+		doSetTime: function(currentTime){
 			playback.sliderListener.lastUpdate = moment(currentTime);
 			playback.setSliderTime(playback.currentTime);
 		},
+		start: function(currentTime){
+			playback.sliderListener.doSetTime(currentTime);
+		},
 		update: function(currentTime){
+			if (playback.sliderListener.lastUpdate === undefined){
+				playback.sliderListener.doSetTime(currentTime);
+				return;
+			}
 			var delta = currentTime.diff(playback.sliderListener.lastUpdate);
 			if (Math.abs(delta) >= 1000) {
-				playback.lastUpdate = moment(currentTime);
-				playback.setSliderTime(playback.currentTime);
+				playback.sliderListener.doSetTime(currentTime);
 			}
 		},
 		pause: function() {

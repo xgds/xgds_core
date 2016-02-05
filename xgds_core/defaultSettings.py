@@ -35,4 +35,4 @@ Don't try to get the value of FOO from django.conf.settings.  That
 settings object will not know about the default value!
 """
 
-xgds_core_BOWER_INSTALLED_APPS = ()
+XGDS_CORE_BOWER_INSTALLED_APPS = ('moment-range',)

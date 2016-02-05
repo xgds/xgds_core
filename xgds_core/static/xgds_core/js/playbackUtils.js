@@ -49,34 +49,42 @@ $.extend(playback, {
 	},
 
 	/**
-	 * Used by both seekCallBack and seekFromUrlOffset
+	 * Used by both seekCallback and seekFromUrlOffset
 	 * to seek all players to given time.
 	 */
 	seekHelper : function(seekTimeStr) {
 		var seekTime = playback.seekTimeParser(seekTimeStr);
-		var seekDateTime = null;
-		//XXX for now assume seek time's date is same as first segment's end date
-		var seekDateTime = new Date(playback.firstSegment.endTime);
-		seekDateTime.setHours(parseInt(seekTime[0]));
-		if (seekTime.length >= 2) {
-			seekDateTime.setMinutes(parseInt(seekTime[1]));
-		} else {
-			seekDateTime.setMinutes(0);
+		
+		if (seekTime != null){
+			var newTime = moment(playback.currentTime); // start with the current date
+			
+			// update the time
+			newTime.hour(seekTime.hour());
+			newTime.minute(seekTime.minute());
+			newTime.second(seekTime.second());
+			
+			// check the time is within range
+			if (playback.endTime != undefined){
+				var range = new DateRange(playback.startTime, playback.endTime);
+				if (range.contains(newTime)) {
+					playback.setCurrentTime(newTime);
+					return;
+				}
+			}
+			alert("Invalid jump to time.");
 		}
-		if (seekTime.length == 3) {
-			seekDateTime.setSeconds(parseInt(seekTime[2]));
-		} else {
-			seekDateTime.setSeconds(0);
-		}
-		playback.seekAllPlayersToTime(seekDateTime);
 	},
 
 	/**
 	 * Helper to parse seektime into hours, minutes, seconds
 	 */
-	seekTimeParser : function(str) {
-		var hmsArray = str.split(':');
-		return hmsArray;
+	seekTimeParser : function(input) {
+		var parsedMoment = moment(input,'hh:mm:ss');
+		if (!parsedMoment.isValid()){
+			return null;
+		} else {
+			return parsedMoment;
+		}
 	},
 
 	padNum : function(num, size) {
@@ -106,6 +114,17 @@ $.extend(playback, {
 				if (!isNaN(newSpeed)){
 					playback.setPlaybackSpeed(newSpeed);
 				}
+			});
+		} catch (e){
+			// pass, may not have the input
+		}
+	},
+	
+	setupSeekButton: function() {
+		try {
+			var seekButton = $("#seekButton");
+			seekButton.on('click', function(e) {
+				playback.seekCallback();
 			});
 		} catch (e){
 			// pass, may not have the input
