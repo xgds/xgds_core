@@ -19,7 +19,13 @@ $.extend(playback, {
 	getPercent : function(width, totalWidth) {
 		return Math.round(width / totalWidth * 100);
 	},
-
+	
+	setSliderTime : function(datetime) {
+		var seconds = datetime.unix();
+		playback.masterSlider.slider('value', seconds);
+		playback.setTimeLabel(datetime);
+	},
+	
 	/**
 	 * Slider Callback:
 	 * update slider time text when moving slider.
@@ -29,7 +35,7 @@ $.extend(playback, {
 		playback.movingSlider = true;
 		playback.timerWorker.postMessage(['setPaused',true]);
 		var sliderTime = new Date(ui.value * 1000);
-		playback.setSliderTimeLabel(moment(sliderTime));
+		playback.setTimeLabel(moment(sliderTime));
 	},
 
 	/**
@@ -49,13 +55,13 @@ $.extend(playback, {
 
 	// for testing
 	// TODO client page must register this function
-	getPlaybackStartTime : function() {
-		return moment.now()
+	getStartTime : function() {
+		return moment().utc()
 	},
 
 	// for testing
 	// TODO client page must register this function
-	getPlaybackEndTime : function() {
+	getEndTime : function() {
 		var nowMoment = moment(moment.now());
 		nowMoment.add(1, 'hour')
 		return nowMoment;
@@ -65,21 +71,37 @@ $.extend(playback, {
 	 * initialize master slider with range (start and end time from registered methods)
 	 */
 	setupSlider : function() {
-		var endTime = playback.getPlaybackEndTime();
-		var endMoment = moment(endTime);
-		var startTime = playback.getPlaybackStartTime();
-		var startMoment = moment(startTime);
-		var duration = endMoment.diff(startMoment, 'seconds')
+		var endTime = playback.getEndTime();
 		if (endTime) {
+			var endMoment = moment(endTime);
 			playback.masterSlider = $('#masterSlider').slider({
 				step : 1,
-				min : startMoment.unix(),
+				min : playback.currentTime.unix(),
 				max : endMoment.unix(),
 				stop : playback.uponSliderStopCallBack,
 				slide : playback.uponSliderMoveCallBack,
 				range : 'min'
 			});
-			playback.setSliderTimeLabel(startMoment);
+			playback.setTimeLabel(playback.currentTime);
+		}
+		playback.addListener(playback.sliderListener);
+	},
+	
+	sliderListener: {
+		lastUpdate: undefined,
+		start: function(currentTime){
+			playback.sliderListener.lastUpdate = moment(currentTime);
+			playback.setSliderTime(playback.currentTime);
+		},
+		update: function(currentTime){
+			var delta = currentTime.diff(playback.sliderListener.lastUpdate);
+			if (Math.abs(delta) >= 1000) {
+				playback.lastUpdate = moment(currentTime);
+				playback.setSliderTime(playback.currentTime);
+			}
+		},
+		pause: function() {
+			// noop
 		}
 	}
 

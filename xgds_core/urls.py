@@ -20,6 +20,4 @@ from django.views.generic.base import TemplateView
 from xgds_core import views
 
 
-urlpatterns = patterns('',
-                       (r'^$', TemplateView.as_view(template_name='xgds_core/index.html'), {}, 'index'),
-                       )
+# urlpatterns = []

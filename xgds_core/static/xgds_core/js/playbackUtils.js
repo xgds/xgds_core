@@ -87,31 +87,31 @@ $.extend(playback, {
 		return s;
 	},
 
-	getSliderTime : function() {
-		if (!_.isUndefined(playback.masterSlider)) {
-			return new Date(playback.masterSlider.slider('value') * 1000);
-		} else {
-			return new Date(); // TODO this is probably not right you may be on delay
-		}
-	},
 
 	getLocalTimeString : function(utctime) {
-//		var utctime = moment(datetime);
 		var pdttime = utctime.tz(playback.displayTZ)
 		var time = pdttime.format("HH:mm:ss z")
 		return time;
 	},
 
-	setSliderTimeLabel : function(datetime) {
+	setTimeLabel : function(datetime) {
 		$('#sliderTimeLabel').text(playback.getLocalTimeString(datetime));
 	},
-
-	setSliderTime : function(datetime) {
-		//update the slider
-		//var seconds = Math.round(datetime.getTime() / 1000);
-		var seconds = datetime.unix();
-		playback.masterSlider.slider('value', seconds);
-		playback.setSliderTimeLabel(datetime);
+	
+	setupSpeedInput: function() {
+		try {
+			var speedInput = $("#playbackSpeed");
+			speedInput.on('input', function(e) {
+				var newSpeed = parseFloat(e.currentTarget.value);
+				if (!isNaN(newSpeed)){
+					playback.setPlaybackSpeed(newSpeed);
+				}
+			});
+		} catch (e){
+			// pass, may not have the input
+		}
 	}
+
+	
 
 });

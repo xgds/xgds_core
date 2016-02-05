@@ -38,7 +38,6 @@ setTimeoutDelay = function(initTimeoutDelay){
 }
 
 runTime = function() {
-    
     var timeoutDelaySeconds = timeoutDelay/1000;
     var addSeconds = playbackSpeed * timeoutDelaySeconds;
     	

@@ -15,7 +15,8 @@
 // __END_LICENSE__
 
 $.extend(playback, {
-	
+	listeners: [],
+	playbackSpeed: 1,
 	initialize: function(options) {
 		// check for web workers
 		if (!window.Worker) { 
@@ -24,8 +25,15 @@ $.extend(playback, {
 			return;
 		} 
 		
-		playback.currentTime = moment(playback.getPlaybackStartTime());
-		playback.listeners = [];
+		// register start and end time functions
+		if (options.getEndTime){
+			playback.getEndTime = options.endTime;
+		}
+		if (options.getStartTime){
+			playback.getStartTime = options.startTime;
+		}
+		playback.currentTime = moment(playback.getStartTime());
+		
 		if (options.slider){
 			playback.setupSlider();
 			playback.hasMasterSlider = true;
@@ -33,7 +41,11 @@ $.extend(playback, {
 			playback.hasMasterSlider = false;
 		}
 		
+		if (options.playbackSpeed){
+			playback.playbackSpeed = options.playbackSpeed;
+		}
 		playback.setupTimer();
+		playback.setupSpeedInput();
 	},
 	
 	addListener: function(listener) {
@@ -51,40 +63,36 @@ $.extend(playback, {
 		playback.timerWorker.addEventListener("message", function (event) {
 			playback.currentTime = moment(event.data);
 	    	if (playback.hasMasterSlider){
-	    		// update slider time
-	    		playback.setSliderTimeLabel(playback.currentTime);
-	    		playback.setSliderTime(playback.currentTime);
+	    		playback.setTimeLabel(playback.currentTime);
 	    	}
 	    	playback.updateListeners(playback.currentTime);
 	    }, false);
+		playback.timerWorker.postMessage(['setPlaybackSpeed', playback.playbackSpeed]);
 		playback.timerWorker.postMessage(['setCurrentTime', playback.currentTime.format()]);
 	},
 
 	getCurrentTime : function() {
 		return playback.currentTime;
-//		if (playback.hasMasterSlider) {
-//			return playback.getSliderTime();
-//		} else {
-//			// TODO implement
-//			return null;
-//		}
 	},
 
 	startListeners : function() {
-		for ( var listener in playback.listeners) {
-			var currentTime = playback.getCurrentTime();
+		var currentTime = playback.getCurrentTime();
+		for (var i=0; i < playback.listeners.length; i++) {
+			var listener = playback.listeners[i];
 			listener.start(currentTime);
 		}
 	},
 	
 	updateListeners : function(currentTime) {
-		for ( var listener in playback.listeners) {
+		for (var i=0; i < playback.listeners.length; i++) {
+			var listener = playback.listeners[i];
 			listener.update(currentTime);
 		}
 	},
 
 	pauseListeners : function() {
-		for ( var listener in playback.listeners) {
+		for (var i=0; i < playback.listeners.length; i++) {
+			var listener = playback.listeners[i];
 			listener.pause();
 		}
 	},
@@ -119,10 +127,10 @@ $.extend(playback, {
 		playback.playFlag = true;
 		$('#playbutton').addClass("active");
 		$('#pausebutton').removeClass("active");
-		
+
+		playback.startListeners(playback.getCurrentTime());
 		playback.timerWorker.postMessage(['setPaused',false]);
 		playback.timerWorker.postMessage(['runTime']);
-		playback.startListeners(playback.getCurrentTime());
 	},
 
 	pauseButtonCallback : function() {
@@ -134,6 +142,11 @@ $.extend(playback, {
 		$('#pausebutton').addClass("active");
 		$('#playbutton').removeClass("active");
 		playback.pauseListeners();
+	}, 
+	
+	setPlaybackSpeed: function(speed) {
+		playback.playbackSpeed = speed;
+		playback.timerWorker.postMessage(['setPlaybackSpeed',speed]);
 	}
 
 });
