@@ -69,10 +69,15 @@ $.extend(playback, {
 		playback.timerWorker = new Worker('/static/xgds_core/js/playbackTimeControl.js');
 		playback.timerWorker.addEventListener("message", function (event) {
 			playback.currentTime = moment(event.data);
-	    	if (playback.hasMasterSlider){
-	    		playback.setTimeLabel(playback.currentTime);
-	    	}
-	    	playback.updateListeners(playback.currentTime);
+			// check if we are at the end
+			if (playback.endTime !== undefined && playback.currentTime.isSameOrAfter(playback.endTime)){
+				playback.pauseButtonCallback();
+			} else {
+		    	if (playback.hasMasterSlider){
+		    		playback.setTimeLabel(playback.currentTime);
+		    	}
+		    	playback.updateListeners(playback.currentTime);
+			}
 	    }, false);
 		playback.timerWorker.postMessage(['setPlaybackSpeed', playback.playbackSpeed]);
 		playback.timerWorker.postMessage(['setCurrentTime', playback.currentTime.format()]);
