@@ -15,5 +15,3 @@
 #__END_LICENSE__
 
 from django.conf.urls import url
-
-urlpatterns = []
