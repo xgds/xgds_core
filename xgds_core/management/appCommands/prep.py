@@ -36,6 +36,6 @@ from geocamUtil.management import commandUtil
 class Command(BaseCommand):
     help = 'Prep xgds_core'
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
         # put your code here
         pass
