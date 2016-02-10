@@ -1,4 +1,6 @@
 <div class="controller_div">
+	<div id="control_row" class="row" style="margin-bottom:8px;">
+	<div id="control_buttons_time" class="eight columns">
 	<a class="btn btn-info" id="playbuttonLink" href="#"
 		onclick="playback.playButtonCallback()"> <i id="playbutton"
 		class="icon-play"></i>
@@ -6,17 +8,13 @@
 		onclick="playback.pauseButtonCallback()"> <i id="pausebutton"
 		class="icon-pause active"></i>
 	</a>
-	<div id="masterSlider" class="masterSlider"></div>
-	<div id="seekTimeBox">
-		<label for="seekTime">Jump to:</label> <input id="seekTime"
-			type="text" name="text-input" placeholder="HH:MM:SS" class="stylish" />
-		<button type="submit" class="mybutton small" id="seekButton">Go</button>
+	<span id="sliderTimeLabel">00:00:00</span>
 	</div>
-	<div class="float-left">
-		Local Time: <span id="sliderTimeLabel">00:00:00</span>
+	<div id="control_buttons_inputs" class="four columns" style="text-align:right">
+	<label for="playbackSpeed">Speed:</label> <input id="playbackSpeed" type="text" name="text-input" value="1" style="max-width:30px"/>
+	<label for="seekTime">Jump to:</label> <input id="seekTime" type="text" name="text-input" placeholder="HH:MM:SS" style="max-width:80px" />
+	<button type="submit" class="mybutton small" id="seekButton">Go</button>
 	</div>
-	<div class="float-left">
-	<label for="playbackSpeed">Speed:</label> <input id="playbackSpeed"
-			type="text" name="text-input" value="1" />
 	</div>
+	<div id="masterSlider" class="masterSlider" style="margin-bottom:8px;"></div>
 </div>
