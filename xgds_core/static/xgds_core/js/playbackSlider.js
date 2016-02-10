@@ -58,17 +58,13 @@ $.extend(playback, {
 			}
 		}
 	},
-
-	// for testing
-	getStartTime : function() {
-		return moment().utc()
+	
+	setSliderStartTime: function(startTime){
+		playback.masterSlider.slider( "option", "min", startTime.unix() );
 	},
-
-	// for testing
-	getEndTime : function() {
-		var nowMoment = moment(moment.now());
-		nowMoment.add(1, 'hour')
-		return nowMoment;
+	
+	setSliderEndTime: function(endTime){
+		playback.masterSlider.slider( "option", "max", endTime.unix() );
 	},
 
 	/**
@@ -76,16 +72,14 @@ $.extend(playback, {
 	 */
 	setupSlider : function() {
 		if (playback.endTime != undefined) {
-			var endMoment = moment(playback.endTime);
 			playback.masterSlider = $('#masterSlider').slider({
 				step : 1,
-				min : playback.currentTime.unix(),
-				max : endMoment.unix(),
+				min : playback.startTime.unix(),
+				max : playback.endTime.unix(),
 				stop : playback.uponSliderStopCallback,
 				slide : playback.uponSliderMoveCallback,
 				range : 'min'
 			});
-			playback.setTimeLabel(playback.currentTime);
 		}
 		playback.addListener(playback.sliderListener);
 	},

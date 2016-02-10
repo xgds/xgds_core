@@ -28,11 +28,11 @@ $.extend(playback, {
 		
 		// register start and end time functions
 		if (options.getStartTime){
-			playback.getStartTime = options.startTime;
+			playback.getStartTime = options.getStartTime;
 		}
 		playback.startTime = moment(playback.getStartTime());
 		if (options.getEndTime){
-			playback.getEndTime = options.endTime;
+			playback.getEndTime = options.getEndTime;
 		}
 		var endTime = playback.getEndTime();
 		if (endTime){
@@ -40,17 +40,19 @@ $.extend(playback, {
 		}
 		playback.currentTime = moment(playback.startTime);
 		
-		if (options.slider){
+		playback.hasMasterSlider = true;
+		if ('slider' in options){
+			playback.hasMasterSlider = options.slider;
+		}
+		if (playback.hasMasterSlider){
 			playback.setupSlider();
-			playback.hasMasterSlider = true;
-		} else {
-			playback.hasMasterSlider = false;
 		}
 		
 		if (options.playbackSpeed){
 			playback.playbackSpeed = options.playbackSpeed;
 		}
 		playback.setupTimer();
+		playback.setTimeLabel(playback.currentTime);
 		playback.setupSpeedInput();
 		playback.setupSeekButton();
 	},
@@ -171,6 +173,42 @@ $.extend(playback, {
 		playback.currentTime = moment(currentTime); 
 		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.format()]);
 		playback.updateListeners(playback.currentTime);
+	}, 
+	
+	updateStartTime: function(newStartTime){
+		playback.startTime = moment(newStartTime);
+		if (playback.hasMasterSlider){
+			playback.setSliderStartTime(playback.startTime);
+		}
+		if (playback.currentTime.isBefore(playback.startTime)){
+			playback.currentTime = playback.startTime;
+		}
+
+	},
+	
+	updateEndTime: function(newEndTime){
+		playback.endTime = moment(newEndTime);
+		if (playback.hasMasterSlider){
+			playback.setSliderEndTime(playback.endTime);
+		}
+		if (playback.currentTime.isAfter(playback.endTime)){
+			playback.currentTime = playback.endTime;
+			if (playback.playFlag){
+				playback.pauseButtonCallback();
+			}
+		}
+	},
+	
+	// for testing
+	getStartTime : function() {
+		return moment().utc()
+	},
+
+	// for testing
+	getEndTime : function() {
+		var nowMoment = moment(moment.now());
+		nowMoment.add(1, 'hour')
+		return nowMoment;
 	}
 	
 
