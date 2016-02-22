@@ -18,6 +18,8 @@ $.extend(playback, {
 	listeners: [],
 	playbackSpeed: 1,
 	endTime: undefined,
+	displayTZ : 'Etc/UTC',
+	hasMasterSlider: true,
 	initialize: function(options) {
 		// check for web workers
 		if (!window.Worker) { 
@@ -26,21 +28,24 @@ $.extend(playback, {
 			return;
 		} 
 		
+		if (options.displayTZ){
+			playback.displayTZ = options.displayTZ;
+		}
+
 		// register start and end time functions
 		if (options.getStartTime){
 			playback.getStartTime = options.getStartTime;
 		}
-		playback.startTime = moment(playback.getStartTime());
+		playback.startTime = moment(playback.getStartTime()).tz(playback.displayTZ);
 		if (options.getEndTime){
 			playback.getEndTime = options.getEndTime;
 		}
 		var endTime = playback.getEndTime();
 		if (endTime){
-			playback.endTime = moment(endTime);
+			playback.endTime = moment(endTime).tz(playback.displayTZ);
 		}
 		playback.currentTime = moment(playback.startTime);
 		
-		playback.hasMasterSlider = true;
 		if ('slider' in options){
 			playback.hasMasterSlider = options.slider;
 		}
@@ -51,6 +56,7 @@ $.extend(playback, {
 		if (options.playbackSpeed){
 			playback.playbackSpeed = options.playbackSpeed;
 		}
+		
 		playback.setupTimer();
 		playback.setTimeLabel(playback.currentTime);
 		playback.setupSpeedInput();
@@ -70,7 +76,7 @@ $.extend(playback, {
 	setupTimer: function(){
 		playback.timerWorker = new Worker('/static/xgds_core/js/playbackTimeControl.js');
 		playback.timerWorker.addEventListener("message", function (event) {
-			playback.currentTime = moment(event.data);
+			playback.currentTime = moment(event.data).tz(playback.displayTZ);
 			// check if we are at the end
 			if (playback.endTime !== undefined && playback.currentTime.isSameOrAfter(playback.endTime)){
 				playback.pauseButtonCallback();
@@ -170,13 +176,13 @@ $.extend(playback, {
 	},
 	
 	setCurrentTime: function(currentTime){
-		playback.currentTime = moment(currentTime); 
+		playback.currentTime = moment(currentTime).tz(playback.displayTZ); 
 		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.format()]);
 		playback.updateListeners(playback.currentTime);
 	}, 
 	
 	updateStartTime: function(newStartTime){
-		playback.startTime = moment(newStartTime);
+		playback.startTime = moment(newStartTime).tz(playback.displayTZ);
 		if (playback.hasMasterSlider){
 			playback.setSliderStartTime(playback.startTime);
 		}
@@ -187,7 +193,7 @@ $.extend(playback, {
 	},
 	
 	updateEndTime: function(newEndTime){
-		playback.endTime = moment(newEndTime);
+		playback.endTime = moment(newEndTime).tz(playback.displayTZ);
 		if (playback.hasMasterSlider){
 			playback.setSliderEndTime(playback.endTime);
 		}

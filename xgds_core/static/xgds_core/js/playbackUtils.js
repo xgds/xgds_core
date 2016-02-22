@@ -16,11 +16,6 @@
 
 playback = {}; //namespace
 
-//TODO better to have the server provide
-moment.tz.add([ 'America/Los_Angeles|PST PDT|80 70|0101|1Lzm0 1zb0 Op0',
-		'America/New_York|EST EDT|50 40|0101|1Lz50 1zb0 Op0',
-		'Etc/UTC|UTC|0|0|' ]);
-
 jQuery(function($) {
 	var windowWidth = $(window).width();
 	$(window).resize(function() {
@@ -31,8 +26,6 @@ jQuery(function($) {
 });
 
 $.extend(playback, {
-	displayTZ : 'Etc/UTC', // TODO override this
-
 	/**
 	 * Helper for converting json datetime object to javascript date time
 	 */
@@ -96,14 +89,14 @@ $.extend(playback, {
 	},
 
 
-	getLocalTimeString : function(utctime) {
-		var pdttime = utctime.tz(playback.displayTZ)
-		var time = pdttime.format("HH:mm:ss z")
+	getLocalTimeString : function(utctime, format) {
+		var localTime = utctime.tz(playback.displayTZ)
+		var time = localTime.format(format)
 		return time;
 	},
 
 	setTimeLabel : function(datetime) {
-		$('#sliderTimeLabel').text(playback.getLocalTimeString(datetime));
+		$('#sliderTimeLabel').text(getLocalTimeString(datetime, playback.displayTZ, "HH:mm:ss z"));
 	},
 	
 	setupSpeedInput: function() {
