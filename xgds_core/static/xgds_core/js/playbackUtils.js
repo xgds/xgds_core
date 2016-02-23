@@ -72,9 +72,9 @@ $.extend(playback, {
 	 * Helper to parse seektime into hours, minutes, seconds
 	 */
 	seekTimeParser : function(input) {
-		var parsedMoment = moment(input,'hh:mm:ss');
+		var parsedMoment = moment(input,'MM/DD/YY hh:mm:ss');
 		if (!parsedMoment.isValid()){
-			return null;
+			parsedMoment = moment(input,'hh:mm:ss');
 		} else {
 			return parsedMoment;
 		}
@@ -96,7 +96,7 @@ $.extend(playback, {
 	},
 
 	setTimeLabel : function(datetime) {
-		$('#sliderTimeLabel').text(getLocalTimeString(datetime, playback.displayTZ, "HH:mm:ss z"));
+		$('#sliderTimeLabel').text(getLocalTimeString(datetime, playback.displayTZ, DEFAULT_TIME_FORMAT));
 	},
 	
 	setupSpeedInput: function() {
@@ -114,11 +114,15 @@ $.extend(playback, {
 	},
 	
 	setupSeekButton: function() {
+		/// set up the seek button and contents of the jump to
 		try {
 			var seekButton = $("#seekButton");
 			seekButton.on('click', function(e) {
 				playback.seekCallback();
 			});
+			var seekTime = $("#seekTime");
+			seekTime.attr('placeholder', playback.startTime.format('MM/DD/YY') + ' hh:mm:ss');
+			
 		} catch (e){
 			// pass, may not have the input
 		}

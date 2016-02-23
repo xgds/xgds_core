@@ -25,7 +25,7 @@ getLocalTime = function(utctime, destTimeZone) {
 	return moment(utctime).tz(destTimeZone)
 };
 
-DEFAULT_TIME_FORMAT = "MM/DD/YYYY hh:mm z"
+DEFAULT_TIME_FORMAT = "MM/DD/YY hh:mm:ss z"
 
 /*
  * Convert a utc moment time into the destination timezone and format it.
