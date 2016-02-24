@@ -15,3 +15,10 @@
 # __END_LICENSE__
 
 from django.db import models
+
+class Constant(models.Model):
+    name = models.CharField(max_length=64, blank=False)
+    units = models.CharField(max_length=32, blank=False)
+    notes = models.CharField(max_length=256, blank=False)
+    dataType = models.CharField(max_length=32, blank=False)
+    value = models.CharField(max_length=256, blank=False)
