@@ -72,9 +72,9 @@ $.extend(playback, {
 	 * Helper to parse seektime into hours, minutes, seconds
 	 */
 	seekTimeParser : function(input) {
-		var parsedMoment = moment(input,'MM/DD/YY hh:mm:ss');
+		var parsedMoment = moment(input,'MM/DD/YY HH:mm:ss');
 		if (!parsedMoment.isValid()){
-			parsedMoment = moment(input,'hh:mm:ss');
+			parsedMoment = moment(input,'HH:mm:ss');
 		} else {
 			return parsedMoment;
 		}
@@ -121,7 +121,7 @@ $.extend(playback, {
 				playback.seekCallback();
 			});
 			var seekTime = $("#seekTime");
-			seekTime.attr('placeholder', playback.startTime.format('MM/DD/YY') + ' hh:mm:ss');
+			seekTime.attr('placeholder', playback.startTime.format('MM/DD/YY') + ' HH:mm:ss');
 			
 		} catch (e){
 			// pass, may not have the input
