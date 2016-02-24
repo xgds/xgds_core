@@ -9,3 +9,4 @@
 /static/css/*.r*.css
 /xgds_core/build
 TEST
+/xgds_core/migrations/
