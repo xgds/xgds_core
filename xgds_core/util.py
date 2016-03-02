@@ -14,19 +14,10 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from django.db import models
-from xgds_core.util import get100Years
 
-class Constant(models.Model):
-    name = models.CharField(max_length=64, blank=False)
-    units = models.CharField(max_length=32, blank=False)
-    notes = models.CharField(max_length=256, blank=False)
-    dataType = models.CharField(max_length=32, blank=False)
-    value = models.CharField(max_length=256, blank=False)
-    
-class TimeZoneHistory(models.Model):
-    startTime = models.DateTimeField(default=timezone.now)
-    endTime = models.DateTimeField(null=True, blank=True, default=get100Years )
-    timeZone = models.CharField(max_length=128, blank=False)
-    notes = models.CharField(max_length=512, blank=True)
+
+def get100Years():
+    theNow = timezone.now() + relativedelta(years=100)
+    return theNow

@@ -14,7 +14,24 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+from django.conf import settings
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.template import RequestContext
 from django.utils.translation import ugettext, ugettext_lazy as _
+
+from xgds_core.models import TimeZoneHistory
+
+def getTimeZone(inputTime):
+    ''' For a given time, look in the TimeZoneHistory to see what the time zone was set to at that time.
+    '''
+    result = TimeZoneHistory.objects.filter(startTime__lte=inputTime, endTime__gte=inputTime)
+    if result.count() > 0:
+        return result[0]
+    else:
+        return settings.TIME_ZONE
+
+def get100Years():
+    theNow = timezone.now() + relativedelta(years=100)
+    return theNow
+    

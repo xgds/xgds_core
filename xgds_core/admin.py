@@ -19,3 +19,4 @@ from django.contrib import admin
 from xgds_core.models import *
 
 admin.site.register(Constant)
+admin.site.register(TimeZoneHistory)

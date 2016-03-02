@@ -22,7 +22,8 @@
  * Convert a utc moment time into the destination time zone.
  */
 getLocalTime = function(utctime, destTimeZone) {
-	return moment(utctime).tz(destTimeZone)
+	moment.tz.setDefault('Etc/UTC');
+	return moment(utctime).tz(destTimeZone);
 };
 
 DEFAULT_TIME_FORMAT = "MM/DD/YY HH:mm:ss z"
