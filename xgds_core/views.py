@@ -27,7 +27,7 @@ def getTimeZone(inputTime):
     '''
     result = TimeZoneHistory.objects.filter(startTime__lte=inputTime, endTime__gte=inputTime)
     if result.count() > 0:
-        return result[0]
+        return result[0].timeZone
     else:
         return settings.TIME_ZONE
 
