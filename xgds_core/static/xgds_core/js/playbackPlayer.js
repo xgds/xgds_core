@@ -65,6 +65,7 @@ $.extend(playback, {
 	
 	addListener: function(listener) {
 		playback.listeners.push(listener);
+		listener.initialize();
 	},
 	
 	removeListener: function(listener) {

@@ -86,6 +86,9 @@ $.extend(playback, {
 	
 	sliderListener: {
 		lastUpdate: undefined,
+		initialize: function() {
+			//noop
+		},
 		doSetTime: function(currentTime){
 			playback.sliderListener.lastUpdate = moment(currentTime);
 			playback.setSliderTime(playback.currentTime);
