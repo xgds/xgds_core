@@ -89,7 +89,7 @@ $.extend(playback, {
 			}
 	    }, false);
 		playback.timerWorker.postMessage(['setPlaybackSpeed', playback.playbackSpeed]);
-		playback.timerWorker.postMessage(['setCurrentTime', playback.currentTime.format()]);
+		playback.timerWorker.postMessage(['setCurrentTime', playback.currentTime.toISOString()]);
 	},
 
 	getCurrentTime : function() {
@@ -178,7 +178,7 @@ $.extend(playback, {
 	
 	setCurrentTime: function(currentTime){
 		playback.currentTime = moment(currentTime).tz(playback.displayTZ); 
-		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.format()]);
+		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.toISOString()]);
 		playback.updateListeners(playback.currentTime);
 	}, 
 	

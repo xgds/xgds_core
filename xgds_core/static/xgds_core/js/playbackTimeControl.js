@@ -42,7 +42,7 @@ runTime = function() {
     var addSeconds = playbackSpeed * timeoutDelaySeconds;
     	
     self.currentTime.add(addSeconds, 'seconds');
-    postMessage(self.currentTime.format());
+    postMessage(self.currentTime.toISOString()); 
     if (!paused){
     	setTimeout("self.runTime()", timeoutDelay);
     }
