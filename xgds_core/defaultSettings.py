@@ -34,5 +34,8 @@ Other modules can access the value of FOO like this:
 Don't try to get the value of FOO from django.conf.settings.  That
 settings object will not know about the default value!
 """
+from geocamUtil.SettingsUtil import getOrCreateArray
 
-XGDS_CORE_BOWER_INSTALLED_APPS = ('moment-range',)
+
+BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
+BOWER_INSTALLED_APPS += ['moment-range']
