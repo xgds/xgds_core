@@ -34,8 +34,11 @@ Other modules can access the value of FOO like this:
 Don't try to get the value of FOO from django.conf.settings.  That
 settings object will not know about the default value!
 """
-from geocamUtil.SettingsUtil import getOrCreateArray
+from geocamUtil.SettingsUtil import getOrCreateArray, getOrCreateDict
 
+XGDS_CORE_TEMPLATE_DEBUG = False # If this is true, handlebars templates will not be cached.
+XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictionary to store directories of handlebars to load based on class name
 
 BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
 BOWER_INSTALLED_APPS += ['moment-range']
+

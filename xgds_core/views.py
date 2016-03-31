@@ -14,6 +14,9 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+import os
+import glob
+
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
@@ -31,7 +34,16 @@ def getTimeZone(inputTime):
     else:
         return settings.TIME_ZONE
 
-def get100Years():
-    theNow = timezone.now() + relativedelta(years=100)
-    return theNow
-    
+
+def get_handlebars_templates(source):
+    global _template_cache
+    if settings.XGDS_CORE_TEMPLATE_DEBUG or not _template_cache:
+        templates = {}
+        for thePath in source:
+            inp = os.path.join(settings.PROJ_ROOT, 'apps', thePath)
+            for template_file in glob.glob(os.path.join(inp, '*.handlebars')):
+                with open(template_file, 'r') as infile:
+                    template_name = os.path.splitext(os.path.basename(template_file))[0]
+                    templates[template_name] = infile.read()
+        _template_cache = templates
+    return _template_cache
