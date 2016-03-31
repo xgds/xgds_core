@@ -19,12 +19,24 @@
 /*
  * Add a date time picker on an input field
  */
-function addDateTimePicker(element_id, defaultTimeZone){
-	$( "#" + element_id ).datetimepicker({'controlType': 'select',
-        'oneLine': true,
-        'showTimezone': false,
-        'timezone': moment.tz(defaultTimeZone).utcOffset()
-       });
+function addDateTimePicker(element_id, defaultTimeZone, showTimezone){
+	showTimezone = showTimezone || false;
+	var options = {'controlType': 'select',
+	        	   'oneLine': true,
+	        	   'showTimezone': showTimezone,
+	        	   'timezone': moment.tz(defaultTimeZone).utcOffset(),
+	        	   'format': 'd/m/Y H:M zzz'
+	       			};
+	if (showTimezone){
+		var timezoneList = []; 
+		var names = moment.tz.names();
+		for (var i=0; i < names.length; i++){
+			var offset = moment.tz(names[i]).utcOffset();
+			timezoneList.push({label:names[i], value:offset});
+		}
+		options['timezoneList'] = timezoneList;
+	}
+	$( "#" + element_id ).datetimepicker(options);
 }
 
 /*
