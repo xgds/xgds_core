@@ -25,6 +25,8 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from xgds_core.models import TimeZoneHistory
 
+_template_cache = None
+
 def getTimeZone(inputTime):
     ''' For a given time, look in the TimeZoneHistory to see what the time zone was set to at that time.
     '''
