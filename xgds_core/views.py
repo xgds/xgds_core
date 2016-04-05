@@ -16,6 +16,8 @@
 
 import os
 import glob
+import json
+import datetime
 
 from django.conf import settings
 from django.shortcuts import render_to_response
@@ -23,6 +25,8 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.template import RequestContext
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.cache import caches
+from django.http import (HttpResponse,
+                         HttpResponseNotAllowed)
 
 from xgds_core.models import TimeZoneHistory
 
@@ -52,3 +56,29 @@ def get_handlebars_templates(source, key):
                     templates[template_name] = infile.read()
         _template_cache.set(key, templates)
     return templates
+
+
+def update_session(request, key, value):
+    ''' Update session variable '''
+    if not request.is_ajax() or not request.method=='POST':
+        return HttpResponseNotAllowed(['POST'])
+    
+    request.session[request.POST['key']] = request.POST['value']
+    return HttpResponse(json.dumps({'Success':"True"}), content_type='application/json')
+
+def set_cookie(response, key, value, days_expire = 7):
+    if days_expire is None:
+        max_age = 365 * 24 * 60 * 60  #one year
+    else:
+        max_age = days_expire * 24 * 60 * 60 
+    expires = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
+    response.set_cookie(key, value, max_age=max_age, expires=expires, domain=settings.SESSION_COOKIE_DOMAIN, secure=settings.SESSION_COOKIE_SECURE or None)
+    
+def update_cookie(request, key, value):
+    ''' Update cookie variable '''
+    if not request.is_ajax() or not request.method=='POST':
+        return HttpResponseNotAllowed(['POST'])
+    
+    response =  HttpResponse(json.dumps({'Success':"True"}), content_type='application/json')
+    set_cookie(response, key, value)
+    return response

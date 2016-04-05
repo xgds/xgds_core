@@ -17,6 +17,9 @@
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 
+import xgds_core.views as views
 
 urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds_core/gridstack_test.html'), {}, 'gridstack_test'),
+               url(r'^update_session', views.update_session, {}, 'update_session'),
+               url(r'^update_cookie', views.update_cookie, {}, 'update_cookie'),
                ]

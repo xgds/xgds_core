@@ -32,8 +32,8 @@
     	app.vent.on("mapSearch:drewFeatures", function(e) {
         	app.vent.trigger('mapSearch:fit');
             });
-        {% block prePackery %}
-		{% endblock prePackery %}
+        {% block preLayout %}
+		{% endblock preLayout %}
 		
     	initializeGridstack();
     	
@@ -63,11 +63,13 @@
 
 
 {% block content %}
-	{% block packery %}
+	{% block preDashboard %}
+	{% endblock preDashboard %}
+	{% block dashboard %}
 	<div id="container" class="grid-stack grid-stack-6"> 
 		
-		{% block firstPackery %}
-		{% endblock firstPackery %}
+		{% block preMap %}
+		{% endblock preMap %}
 		
 		{% block map %}
 		<div id="map-gridstack-item" class="grid-stack-item" 
@@ -78,11 +80,12 @@
 		</div>
 		{% endblock map %}
 		
+		{% block postMap %}
+		{% endblock postMap %}
 		
-		{% block lastPackery %}
-		{% endblock lastPackery %}
-		
+		{% block layers %}
 		<div id="layers" hidden></div>
-	</div> <!--  js packery container -->
-	{% endblock packery %}
+		{% endblock layers %}
+	</div> <!--  gridstack container -->
+	{% endblock dashboard %}
 {% endblock content %}

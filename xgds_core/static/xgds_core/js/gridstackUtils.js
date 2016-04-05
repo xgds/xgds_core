@@ -15,7 +15,7 @@
 // __END_LICENSE__
 
 DEFAULT_GRIDSTACK_OPTIONS =  {
-        cellHeight: 150,
+        cellHeight: 200,
         verticalMargin: 10,
         width: 6
     };
@@ -42,6 +42,12 @@ function initializeGridstack(options) {
     bindMapResize(container);
 }
 
+function addItem(item, x, y, width, height){
+	THE_GRIDSTACK.addWidget(item, x, y, width, height);
+	bindButtonCallbacks(item);
+    initializePin(item);
+}
+
 function bindMapResize(container){
 	var mapGridstackItem = container.find("#map-gridstack-item");
 	if (mapGridstackItem.length == 1) {
@@ -51,8 +57,8 @@ function bindMapResize(container){
 		mapGridstackItem.on('resizestop', function(event, ui){
 			app.vent.trigger('doMapResize');
 		});
+		app.vent.trigger('doMapResize');
 	}
-	app.vent.trigger('doMapResize');
 }
 
 function initializePin(item){
@@ -68,13 +74,20 @@ function initializePin(item){
 }
 
 function bindButtonCallbacks(container){
+	bindDeleteButtonCallback(container);
+	container.find(".pinDiv").bind("click", function(event) {
+		clickPin(event);
+	});	
+}
+
+/**
+ * Removes item upon delete button click.
+ */
+function bindDeleteButtonCallback(container) {
 	container.find(".icon-cancel-circled").bind("click", function(event) {
 		var parentElement = event.target.parentElement.parentElement;
 		THE_GRIDSTACK.removeWidget(parentElement);
 	});
-	container.find(".pinDiv").bind("click", function(event) {
-		clickPin(event);
-	});	
 }
 
 function clickPin(event) {
@@ -117,3 +130,43 @@ function unpinItem(item, pinButton){
     pinButton.removeClass('icon-lock');
     pinButton.addClass('icon-lock-open');
 }
+
+function loadGrid() {
+    this.grid.removeAll();
+    var items = GridStackUI.Utils.sort(this.serializedData);
+    _.each(items, function (node) {
+        this.grid.addWidget($('<div><div class="grid-stack-item-content" /><div/>'),
+            node.x, node.y, node.width, node.height);
+    }, this);
+}
+
+function saveGrid(){
+    var serializedData = _.map($('.grid-stack > .grid-stack-item:visible'), function (el) {
+        el = $(el);
+        var node = el.data('_gridstack_node');
+        return {
+            x: node.x,
+            y: node.y,
+            width: node.width,
+            height: node.height
+        };
+    });
+    
+    var key = window.location.href;
+    var jsonData = JSON.stringify({ key: serializedData});  
+    $.ajax( { url: "{% url 'xgds_notes_record' %}",
+    	      type: "POST",
+    	      dataType: 'json',
+    	      data: jsonData,
+    	      success: function(data)
+    	        {
+    	    	  console.log(data);
+    	        },
+    	        error: function(data)
+    	        {
+    	        	console.log("boo");
+    	        }
+    	    });
+//    $('#saved-data').val(JSON.stringify(this.serializedData, null, '    '));
+}
+
