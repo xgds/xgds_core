@@ -22,10 +22,10 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.template import RequestContext
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.core.cache import caches
 
 from xgds_core.models import TimeZoneHistory
 
-_template_cache = None
 
 def getTimeZone(inputTime):
     ''' For a given time, look in the TimeZoneHistory to see what the time zone was set to at that time.
@@ -37,9 +37,12 @@ def getTimeZone(inputTime):
         return settings.TIME_ZONE
 
 
-def get_handlebars_templates(source):
-    global _template_cache
-    if settings.XGDS_CORE_TEMPLATE_DEBUG or not _template_cache:
+def get_handlebars_templates(source, key):
+    _template_cache = caches['default']
+    templates = None
+    if key in _template_cache:
+        templates = _template_cache.get(key)
+    if settings.XGDS_CORE_TEMPLATE_DEBUG or not templates:
         templates = {}
         for thePath in source:
             inp = os.path.join(settings.PROJ_ROOT, 'apps', thePath)
@@ -47,5 +50,5 @@ def get_handlebars_templates(source):
                 with open(template_file, 'r') as infile:
                     template_name = os.path.splitext(os.path.basename(template_file))[0]
                     templates[template_name] = infile.read()
-        _template_cache = templates
-    return _template_cache
+        _template_cache.set(key, templates)
+    return templates

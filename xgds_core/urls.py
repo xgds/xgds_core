@@ -15,3 +15,8 @@
 #__END_LICENSE__
 
 from django.conf.urls import url
+from django.views.generic.base import TemplateView
+
+
+urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds_core/gridstack_test.html'), {}, 'gridstack_test'),
+               ]

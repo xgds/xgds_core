@@ -1,0 +1,25 @@
+{% extends 'xgds_core/dashboard_gridstack.html' %}
+
+{% block firstPackery %}
+<div class="grid-stack-item"
+        data-gs-x="0" data-gs-y="0"
+        data-gs-width="3" data-gs-height="2">
+            <div class="grid-stack-item-content">
+            <i class="icon-lock-open pinDiv warning"></i>
+        	<i class="icon-cancel-circled"></i>
+            PRE MAP
+            </div>
+    </div>
+{% endblock firstPackery %}
+
+{% block lastPackery %}
+<div class="grid-stack-item lockAspect"
+        data-gs-x="0" data-gs-y="2"
+        data-gs-width="3" data-gs-height="2">
+            <div class="grid-stack-item-content" style="background:pink;">
+            <i class="icon-lock pinDiv warning"></i>
+        	<i class="icon-cancel-circled"></i>
+            POST MAP
+            </div>
+    </div>
+{% endblock lastPackery %}

@@ -40,5 +40,6 @@ XGDS_CORE_TEMPLATE_DEBUG = False # If this is true, handlebars templates will no
 XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictionary to store directories of handlebars to load based on class name
 
 BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
-BOWER_INSTALLED_APPS += ['moment-range']
+BOWER_INSTALLED_APPS += ['moment-range',
+                         'gridstack']
 
