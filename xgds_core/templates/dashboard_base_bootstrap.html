@@ -1,9 +1,16 @@
-{% extends 'base.html' %}
+{% extends 'base_bootstrap.html' %}
 {% load pipeline %}
 
  {% block cssExtras %}
  {{ block.super }}
-	{% include "xgds_map_server/MapServerCSS.html" %}
+ <style>
+ .grid-stack-item  {
+	background-color: pink;
+	left: 10px;
+	right: 10px;	
+}
+ </style>
+	{# include "xgds_map_server/MapServerCSS.html" #}
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.css" ></link>
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack-extra.min.css" ></link>
  {% endblock cssExtras %}
@@ -55,9 +62,15 @@
 	{% endwith %}
 	{% endif %}
 	
-	<script type="text/javascript" src="{{ STATIC_URL }}geocamUtil/js/datatable_helpers.js"></script>
-	<script type="text/javascript" src="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.js" ></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}xgds_core/js/gridstackUtils.js"></script>
+	
+	<script src="{{ EXTERNAL_URL }}lodash/lodash.min.js"></script>
+    <script src="{{ EXTERNAL_URL }}jquery-ui/jquery-ui.min.js"></script>
+    <script src="{{ EXTERNAL_URL }}tether/dist/js/tether.min.js"></script>
+    <script src="{{ EXTERNAL_URL }}bootstrap/xgds/js/bootstrap.min.js"></script>
+    <script src="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.js" ></script>
+    <!-- <script src="{{ STATIC_URL }}geocamUtil/js/datatable_helpers.js"></script> -->
+    <script src="{{ STATIC_URL }}xgds_core/js/gridstackUtils.js"></script>
+    
 	{% javascript 'custom_map' %}
 {% endblock scripts %}
 
@@ -66,14 +79,14 @@
 	{% block preDashboard %}
 	{% endblock preDashboard %}
 	{% block dashboard %}
-	<div id="container" class="grid-stack grid-stack-6"> 
+	<div id="container" class="grid-stack grid-stack-6 ui-droppable"> 
 		
 		{% block preMap %}
 		{% endblock preMap %}
 		
 		
 		{% block map %}
-		<div id="map-gridstack-item" class="grid-stack-item" 
+		<div id="map-gridstack-item" class="grid-stack-item ui-draggable" 
 		data-gs-x="3" data-gs-y="0"
         data-gs-width="2" data-gs-height="2" >
 			<i class="icon-lock-open pinDiv warning"></i>
@@ -85,7 +98,7 @@
 		{% endblock map %}
 		
 		{% block layers %}
-		<div id="map-gridstack-item" class="grid-stack-item" 
+		<div id="map-gridstack-item" class="grid-stack-item ui-draggable" 
 		data-gs-x="6" data-gs-y="0"
         data-gs-width="1" data-gs-height="2" >
 			<i class="icon-lock-open pinDiv warning"></i>
