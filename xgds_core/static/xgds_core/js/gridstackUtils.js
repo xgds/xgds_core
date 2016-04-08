@@ -16,8 +16,9 @@
 
 DEFAULT_GRIDSTACK_OPTIONS =  {
         cellHeight: 200,
-        verticalMargin: 10,
-        width: 6
+        verticalMargin: 20,
+        width: 6,
+        float: false
     };
 
 THE_GRIDSTACK = undefined;
@@ -85,8 +86,10 @@ function bindButtonCallbacks(container){
  */
 function bindDeleteButtonCallback(container) {
 	container.find(".icon-cancel-circled").bind("click", function(event) {
-		var parentElement = event.target.parentElement.parentElement;
-		THE_GRIDSTACK.removeWidget(parentElement);
+		var parentElement = $(event.target).closest(".grid-stack-item");
+		if (parentElement != undefined){
+			THE_GRIDSTACK.removeWidget(parentElement);
+		}
 	});
 }
 

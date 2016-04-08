@@ -1,11 +1,28 @@
 {% extends 'base.html' %}
 {% load pipeline %}
+{% load siteFrames %}
 
  {% block cssExtras %}
  {{ block.super }}
 	{% include "xgds_map_server/MapServerCSS.html" %}
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.css" ></link>
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack-extra.min.css" ></link>
+	<style>
+/* .grid-stack-item  {
+ background-color: blue;
+  margin: 20px 0 10px;
+	left: 10px;
+	right: 10px;
+	  padding-left: 5px;
+  padding-right: 5px;
+	
+} */
+
+ .grid-stack-item-content {
+    display: block;
+    margin: 20px 0 10px;
+    }
+ </style>
  {% endblock cssExtras %}
 
 
@@ -20,7 +37,7 @@
 		SHOW_COMPASS: {{ settings.XGDS_MAP_SERVER_SHOW_COMPASS}},
 		selectedLayerUrl: "{{ settings.XGDS_MAP_SERVER_SELECTED_LAYER_URL }}",
 		layerFeedUrl: "{{ settings.XGDS_MAP_SERVER_LAYER_FEED_URL }}",
-		siteFrame: {{ settings.XGDS_CURRENT_SITEFRAME|safe }},
+		siteFrame: {% siteframe settings.XGDS_CURRENT_SITEFRAME_ID %},
 		XGDS_MAP_SERVER_MAP_LOADED_CALLBACK: {{ settings.XGDS_MAP_SERVER_MAP_LOADED_CALLBACK }},
 		dataUrl: "{{ settings.DATA_URL }}"
 	};
@@ -76,11 +93,11 @@
 		<div id="map-gridstack-item" class="grid-stack-item" 
 		data-gs-x="3" data-gs-y="0"
         data-gs-width="2" data-gs-height="2" >
+			<div class="grid-stack-item-content" id="map-gridstack-item-content" >
 			<i class="icon-lock-open pinDiv warning"></i>
-			{% if settings.XGDS_SITEFRAMES|length > 1 %}	
-        		{{selectSiteFrameForm}}
-        	{% endif %}
-			<div class="grid-stack-item-content" id="map"></div>
+        		{% siteframe_form %}
+				<div id="map"></div>
+			</div>
 		</div>
 		{% endblock map %}
 		
@@ -88,8 +105,10 @@
 		<div id="map-gridstack-item" class="grid-stack-item" 
 		data-gs-x="6" data-gs-y="0"
         data-gs-width="1" data-gs-height="2" >
+			<div class="grid-stack-item-content" id="layers-gridstack-item-content">
+			<i class="icon-cancel-circled"></i>
 			<i class="icon-lock-open pinDiv warning"></i>
-			<div class="grid-stack-item-content" id="layers">
+			<div id="layers"></div>
 			</div>
 		</div>
 		{% endblock layers %}

@@ -1,16 +1,22 @@
 {% extends 'base_bootstrap.html' %}
 {% load pipeline %}
+{% load siteFrames %}
 
  {% block cssExtras %}
  {{ block.super }}
  <style>
- .grid-stack-item  {
-	background-color: pink;
-	left: 10px;
-	right: 10px;	
-}
+ /* .grid-stack-item  {
+ background-color: blue;
+  margin: 20px 0 10px;
+  padding-left: 5px;
+  padding-right: 5px;
+} */
+ .grid-stack-item-content {
+    display: block;
+    margin: 20px 0 10px;
+ }
  </style>
-	{# include "xgds_map_server/MapServerCSS.html" #}
+	{% include "xgds_map_server/MapServerCSS.html" %}
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.css" ></link>
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack-extra.min.css" ></link>
  {% endblock cssExtras %}
@@ -27,7 +33,7 @@
 		SHOW_COMPASS: {{ settings.XGDS_MAP_SERVER_SHOW_COMPASS}},
 		selectedLayerUrl: "{{ settings.XGDS_MAP_SERVER_SELECTED_LAYER_URL }}",
 		layerFeedUrl: "{{ settings.XGDS_MAP_SERVER_LAYER_FEED_URL }}",
-		siteFrame: {{ settings.XGDS_CURRENT_SITEFRAME|safe }},
+		siteFrame: {% siteframe settings.XGDS_CURRENT_SITEFRAME_ID %},
 		XGDS_MAP_SERVER_MAP_LOADED_CALLBACK: {{ settings.XGDS_MAP_SERVER_MAP_LOADED_CALLBACK }},
 		dataUrl: "{{ settings.DATA_URL }}"
 	};
@@ -65,8 +71,6 @@
 	
 	<script src="{{ EXTERNAL_URL }}lodash/lodash.min.js"></script>
     <script src="{{ EXTERNAL_URL }}jquery-ui/jquery-ui.min.js"></script>
-    <script src="{{ EXTERNAL_URL }}tether/dist/js/tether.min.js"></script>
-    <script src="{{ EXTERNAL_URL }}bootstrap/xgds/js/bootstrap.min.js"></script>
     <script src="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.js" ></script>
     <!-- <script src="{{ STATIC_URL }}geocamUtil/js/datatable_helpers.js"></script> -->
     <script src="{{ STATIC_URL }}xgds_core/js/gridstackUtils.js"></script>
@@ -79,30 +83,32 @@
 	{% block preDashboard %}
 	{% endblock preDashboard %}
 	{% block dashboard %}
-	<div id="container" class="grid-stack grid-stack-6 ui-droppable"> 
+	<div id="container" class="grid-stack grid-stack-6"> 
 		
 		{% block preMap %}
 		{% endblock preMap %}
 		
 		
 		{% block map %}
-		<div id="map-gridstack-item" class="grid-stack-item ui-draggable" 
+		<div id="map-gridstack-item" class="grid-stack-item" 
 		data-gs-x="3" data-gs-y="0"
         data-gs-width="2" data-gs-height="2" >
+        	<div>
 			<i class="icon-lock-open pinDiv warning"></i>
-			{% if settings.XGDS_SITEFRAMES|length > 1 %}	
-        		{{selectSiteFrameForm}}
-        	{% endif %}
+        		{% siteframe_form %}
 			<div class="grid-stack-item-content" id="map"></div>
+			</div>
 		</div>
 		{% endblock map %}
 		
 		{% block layers %}
-		<div id="map-gridstack-item" class="grid-stack-item ui-draggable" 
+		<div id="map-gridstack-item" class="grid-stack-item" 
 		data-gs-x="6" data-gs-y="0"
         data-gs-width="1" data-gs-height="2" >
-			<i class="icon-lock-open pinDiv warning"></i>
+        	<div>
 			<div class="grid-stack-item-content" id="layers">
+			<i class="icon-lock-open pinDiv warning"></i>
+			</div>
 			</div>
 		</div>
 		{% endblock layers %}
