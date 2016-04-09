@@ -19,6 +19,7 @@ import glob
 import json
 import datetime
 
+from django.template import loader
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
@@ -58,6 +59,11 @@ def get_handlebars_templates(source, key):
     return templates
 
 
+def get_handlebar_as_string(request, handlebarPath):
+    t = loader.get_template(handlebarPath)
+    return HttpResponse(t.template.source, content_type='text/plain', status=200)
+    
+    
 def update_session(request, key, value):
     ''' Update session variable '''
     if not request.is_ajax() or not request.method=='POST':
