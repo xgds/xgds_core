@@ -26,5 +26,5 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^test_bootstrap$', TemplateView.as_view(template_name='xgds_core/test_bootstrap.html'), {}, 'gridstack_test'),
                url(r'^update_session', views.update_session, {}, 'update_session'),
                url(r'^update_cookie', views.update_cookie, {}, 'update_cookie'),
-               url(r'^handlebar_string/(?P<handlebarPath>[\w+\/\w+]*\.\w+)$', views.get_handlebar_as_string, {}, 'handlebar_string'),
+               url(r'^handlebar_string/(?P<handlebarPath>[\s\S]+)$', views.get_handlebar_as_string, {}, 'handlebar_string'),
                ]
