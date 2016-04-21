@@ -60,8 +60,10 @@ def get_handlebars_templates(source, key):
 
 
 def get_handlebar_as_string(request, handlebarPath):
-    t = loader.get_template(handlebarPath)
-    return HttpResponse(t.template.source, content_type='text/plain', status=200)
+    template_file = os.path.join(settings.PROJ_ROOT, 'apps', handlebarPath)
+    with open(template_file, 'r') as infile:
+        result = infile.read()
+        return HttpResponse(result, content_type='text/plain', status=200)
     
     
 def update_session(request, key, value):
