@@ -17,6 +17,8 @@
 from django.utils import timezone
 from django.db import models
 from xgds_core.util import get100Years
+from django.contrib.auth.models import User
+
 
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
@@ -25,8 +27,17 @@ class Constant(models.Model):
     dataType = models.CharField(max_length=32, blank=False)
     value = models.CharField(max_length=256, blank=False)
     
+    
 class TimeZoneHistory(models.Model):
     startTime = models.DateTimeField(default=timezone.now)
     endTime = models.DateTimeField(null=True, blank=True, default=get100Years )
     timeZone = models.CharField(max_length=128, blank=False)
     notes = models.CharField(max_length=512, blank=True)
+    
+    
+class XgdsUser(User):
+    class Meta:
+        proxy = True
+        
+    def __unicode__(self):
+        return u'%s, %s' % (self.first_name, self.last_name)
