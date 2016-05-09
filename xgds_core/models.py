@@ -17,6 +17,9 @@
 from django.utils import timezone
 from django.db import models
 from xgds_core.util import get100Years
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 from django.contrib.auth.models import User
 
 
@@ -41,3 +44,11 @@ class XgdsUser(User):
         
     def __unicode__(self):
         return u'%s, %s' % (self.first_name, self.last_name)
+
+
+class NamedURL(models.Model):
+    name = models.CharField(max_length=256, blank=True, null=True)
+    url = models.CharField(max_length=1024, blank=False, null=False)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')

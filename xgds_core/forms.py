@@ -14,4 +14,11 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
-from django import forms
+from django.forms import ModelForm, CharField
+from xgds_core.models import NamedURL
+
+
+class NamedURLForm(ModelForm):
+
+    class Meta: 
+        model = NamedURL
