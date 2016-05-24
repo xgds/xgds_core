@@ -19,6 +19,8 @@ import glob
 import json
 import datetime
 
+import couchdb
+
 from django.template import loader
 from django.conf import settings
 from django.shortcuts import render_to_response
@@ -89,4 +91,18 @@ def update_cookie(request, key, value):
     
     response =  HttpResponse(json.dumps({'Success':"True"}), content_type='application/json')
     set_cookie(response, key, value)
+    return response
+
+def get_db_attachment(request, docDir, docName):
+    docPath = "%s/%s" % (docDir, docName)
+    dbServer = couchdb.Server()
+    db = dbServer[settings.COUCHDB_FILESTORE_NAME]
+    doc = db[docPath]
+    # By convention, attachment has the same basename as document
+    attDataStream = db.get_attachment(doc, docName)
+    attData = attDataStream.read()
+    attDataStream.close()
+    attMimeType = doc["_attachments"][docName]["content_type"]
+    
+    response = HttpResponse(attData, content_type=attMimeType)
     return response
