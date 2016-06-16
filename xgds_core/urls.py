@@ -28,7 +28,7 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^update_session', views.update_session, {}, 'update_session'),
                url(r'^update_cookie', views.update_cookie, {}, 'update_cookie'),
                url(r'^handlebar_string/(?P<handlebarPath>[\s\S]+)$', views.get_handlebar_as_string, {}, 'handlebar_string'),
-               url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {}, 'get_db_attachment'),
+               url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {'readOnly': True, 'loginRequired': False, 'securityTags': ['readOnly']}, 'get_db_attachment'),
                url(r'^live/$', RedirectView.as_view(url=settings.XGDS_CORE_LIVE_INDEX_URL, permanent=False), name='live_index'),
                url(r'^error', TemplateView.as_view(template_name='xgds_core/error.html'), {}, 'error'),
                ]
