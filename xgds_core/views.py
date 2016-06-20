@@ -79,6 +79,7 @@ def update_session(request, key, value):
     request.session[request.POST['key']] = request.POST['value']
     return HttpResponse(json.dumps({'Success':"True"}), content_type='application/json')
 
+
 def set_cookie(response, key, value, days_expire = 7):
     if days_expire is None:
         max_age = 365 * 24 * 60 * 60  #one year
@@ -86,6 +87,7 @@ def set_cookie(response, key, value, days_expire = 7):
         max_age = days_expire * 24 * 60 * 60 
     expires = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
     response.set_cookie(key, value, max_age=max_age, expires=expires, domain=settings.SESSION_COOKIE_DOMAIN, secure=settings.SESSION_COOKIE_SECURE or None)
+
     
 def update_cookie(request, key, value):
     ''' Update cookie variable '''
@@ -96,6 +98,19 @@ def update_cookie(request, key, value):
     set_cookie(response, key, value)
     return response
 
+
+def get_file_from_couch(docDir, docName):
+    if docDir[-1] == '/':  #get rid of the trailing slash
+        docDir = docDir[:len(docDir)-1]  
+    docPath = "%s/%s" % (docDir, docName)
+    dbServer = couchdb.Server()
+    db = dbServer[settings.COUCHDB_FILESTORE_NAME]
+    doc = db[docPath]
+    # By convention, attachment has the same basename as document
+    dataStream = db.get_attachment(doc, docName).read()
+    return dataStream
+    
+    
 def get_db_attachment(request, docDir, docName):
     docPath = "%s/%s" % (docDir, docName)
     dbServer = couchdb.Server()
