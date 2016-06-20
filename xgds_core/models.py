@@ -17,6 +17,8 @@
 from django.utils import timezone
 from django.db import models
 from xgds_core.util import get100Years
+from django.core.urlresolvers import reverse
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
@@ -52,3 +54,72 @@ class NamedURL(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+class SearchableModel():
+    """
+    Mixin this class to have your model get the methods it needs to be searchable and
+    show up in the datatables.
+    Override methods where you need to.
+    """
+    @property
+    def app_label(self):
+        return self._meta.app_label
+    
+    @property
+    def type(self):
+        #IMPORTANT -- override this if it is not the registered model name in site settings JS_MAP
+        return self.model_type
+
+    @property
+    def model_type(self):
+        t = type(self)
+        if t._deferred:
+            t = t.__base__
+        return t._meta.object_name
+    
+    @property
+    def view_url(self):
+        return reverse('search_map_single_object', kwargs={'modelPK':self.pk,
+                                                           'modelName': self.type})
+
+    @property
+    def lat(self):
+        position = self.getPosition()
+        if position:
+            return position.latitude
+        
+    @property
+    def lon(self):
+        position = self.getPosition()
+        if position:
+            return position.longitude
+
+    @property
+    def altitude(self):
+        try:
+            position = self.getPosition()
+            if position:
+                return position.altitude
+        except:
+            pass
+        return None
+    
+    @property
+    def heading(self):
+        try:
+            position = self.getPosition()
+            if position:
+                return position.heading
+        except:
+            pass
+        return None
+    
+ 
+    def getPosition(self):
+        if self.position:
+            return self.position
+        return None
+
+    @classmethod
+    def getSearchableFields(self):
+        return ['name', 'description']
