@@ -8,15 +8,6 @@
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.css" ></link>
 	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack-extra.min.css" ></link>
 	<style>
-/* .grid-stack-item  {
- background-color: blue;
-  margin: 20px 0 10px;
-	left: 10px;
-	right: 10px;
-	  padding-left: 5px;
-  padding-right: 5px;
-	
-} */
 
  .grid-stack-item-content {
     display: block;
@@ -52,7 +43,7 @@
         {% block preLayout %}
 		{% endblock preLayout %}
 		
-    	initializeGridstack();
+    	xgds_gridstack.initializeGridstack();
     	
     	{% block otherJSInit %}
 		{% endblock otherJSInit %}

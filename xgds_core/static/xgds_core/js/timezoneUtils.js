@@ -35,8 +35,11 @@ getLocalTimeString = function(utctime, destTimeZone, format) {
 	if (format === undefined){
 		format = DEFAULT_TIME_FORMAT;
 	}
+	if (utctime === undefined){
+		return '';
+	}
 	var localTime = getLocalTime(utctime, destTimeZone);
-	if (localTime != null){
+	if (localTime != undefined && localTime != null){
 		return localTime.format(format);
 	} else {
 		alert("Tell the system administrators that something is wrong with moment timezone.");

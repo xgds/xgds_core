@@ -31,4 +31,6 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {'readOnly': True, 'loginRequired': False, 'securityTags': ['readOnly']}, 'get_db_attachment'),
                url(r'^live/$', RedirectView.as_view(url=settings.XGDS_CORE_LIVE_INDEX_URL, permanent=False), name='live_index'),
                url(r'^error', TemplateView.as_view(template_name='xgds_core/error.html'), {}, 'error'),
+               url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(), {}, 'view_json_modelName'),
+               url(r'^view/(?P<modelName>\w+)/(?P<filter>[\w]+:[\w]+)$', views.OrderListJson.as_view(), {}, 'view_json_modelName_filter')
                ]

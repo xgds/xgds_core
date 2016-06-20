@@ -13,13 +13,15 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
-
 import os
 import glob
 import json
 import datetime
 
 import couchdb
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.db.models import Q
 
 from django.template import loader
 from django.conf import settings
@@ -32,6 +34,7 @@ from django.http import (HttpResponse,
                          HttpResponseNotAllowed)
 
 from xgds_core.models import TimeZoneHistory
+from geocamUtil.loader import LazyGetModelByName
 
 
 def getTimeZone(inputTime):
@@ -106,3 +109,88 @@ def get_db_attachment(request, docDir, docName):
     
     response = HttpResponse(attData, content_type=attMimeType)
     return response
+
+
+class OrderListJson(BaseDatatableView):
+    """
+    Ways to look up json for datatables for objects
+    """
+    
+    model = None
+    
+    # dictionary that is for our filter
+    filterDict = {}
+    
+    # to hold the Q queries for or-ing a search
+    queries = None
+    
+    # set max limit of records returned, this is used to protect our site if someone tries to attack our site
+    # and make it return huge amount of data
+    max_display_length = 10
+    
+    def lookupModel(self, modelName):
+        try:
+            self.model = LazyGetModelByName(getattr(settings, modelName)).get()
+        except:
+            self.model = LazyGetModelByName(modelName).get()
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.model:
+            if 'modelName' in kwargs:
+                self.lookupModel(kwargs.get('modelName'))
+        
+        if 'filter' in kwargs:
+            theFilter = kwargs.get('filter', None)
+            self.buildFilterDict(theFilter)
+        
+        return super(OrderListJson, self).dispatch(request, *args, **kwargs)
+
+
+    def addQuery(self, query):
+        if self.queries:
+            self.queries |= query
+        else:
+            self.queries = query
+        
+    def buildQuery(self, search):
+#         searchDict = {}
+        self.queries = None
+        try:
+            for key in self.model.getSearchableFields():
+#                 searchDict[key+'__contains'] = search;
+                self.addQuery(Q(**{key+'__contains':search}))
+        except:
+            try:
+                self.model._meta.get_field('name')
+                self.addQuery(Q(**{'name__contains':search}))
+            except:
+                pass
+            
+            try:
+                self.model._meta.get_field('description')
+                self.addQuery(Q(**{'description__contains':search}))
+            except:
+                pass
+        
+    def buildFilterDict(self, theFilter):
+        dictEntries = str(theFilter).split(",")
+        for entry in dictEntries:
+            splits = str(entry).split(":")
+            try:
+                value = int(splits[1]);
+                self.filterDict[splits[0]] = value
+            except:
+                self.filterDict[splits[0]] = splits[1]
+
+    def filter_queryset(self, qs):
+        if self.filterDict:
+            qs = qs.filter(**self.filterDict)
+        
+        # TODO handle search with sphinx
+        search = self.request.GET.get(u'search[value]', None)
+        if search:
+            self.buildQuery(str(search))
+            if self.queries:
+                qs = qs.filter(self.queries)
+                
+        return qs
