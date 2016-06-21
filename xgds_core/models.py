@@ -55,6 +55,7 @@ class NamedURL(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
+
 class SearchableModel():
     """
     Mixin this class to have your model get the methods it needs to be searchable and
