@@ -49,10 +49,10 @@ class XgdsUser(User):
 
 
 class NamedURL(models.Model):
-    name = models.CharField(max_length=256, blank=True, null=True)
-    url = models.CharField(max_length=1024, blank=False, null=False)
+    name = models.CharField(max_length=256, blank=True, null=True, db_index=True)
+    url = models.CharField(max_length=1024, blank=False, null=False, db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveIntegerField(db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
 class SearchableModel(object):
