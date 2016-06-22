@@ -137,10 +137,10 @@ $.extend(xgds_gridstack,{
 	
 	bindChanges: function() {
 
-		$('.grid-stack').on('change', function(event, items) {
-			console.log(items);
-		    //serializeWidgetMap(items);
-		});
+//		$('.grid-stack').on('change', function(event, items) {
+//			console.log(items);
+//		    //serializeWidgetMap(items);
+//		});
 	},
 
 	loadGrid: function() {

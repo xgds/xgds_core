@@ -123,3 +123,8 @@ class SearchableModel(object):
     @classmethod
     def getSearchableFields(self):
         return ['name', 'description']
+    
+    @classmethod
+    def timesearchField(self):
+        """ Override to return the name of the field that contains the most important searchable time"""
+        return 'event_time'

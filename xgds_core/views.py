@@ -17,6 +17,7 @@ import os
 import glob
 import json
 import datetime
+from django.utils import timezone
 
 import couchdb
 
@@ -200,6 +201,13 @@ class OrderListJson(BaseDatatableView):
     def filter_queryset(self, qs):
         if self.filterDict:
             qs = qs.filter(**self.filterDict)
+        
+        todayOnly = self.request.GET.get(u'today', u'true')
+        if todayOnly == u'true':
+            timesearchField = self.model.timesearchField()
+            today = timezone.now().date()
+            filterDict = { timesearchField + '__gt': today}
+            qs = qs.filter(**filterDict)
         
         # TODO handle search with sphinx
         search = self.request.GET.get(u'search[value]', None)
