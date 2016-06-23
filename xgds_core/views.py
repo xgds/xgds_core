@@ -205,7 +205,7 @@ class OrderListJson(BaseDatatableView):
         todayOnly = self.request.GET.get(u'today', u'true')
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
-            today = timezone.now().date()
+            today = timezone.localtime(timezone.now()).date()
             filterDict = { timesearchField + '__gt': today}
             qs = qs.filter(**filterDict)
         
