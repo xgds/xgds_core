@@ -142,7 +142,7 @@ class OrderListJson(BaseDatatableView):
     
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
-    max_display_length = 10
+    max_display_length = 100
     
     def lookupModel(self, modelName):
         try:
