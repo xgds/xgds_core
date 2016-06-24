@@ -61,6 +61,22 @@ class SearchableModel(object):
     show up in the datatables.
     Override methods where you need to.
     """
+    
+    def renderColumn(self, column):
+        text = None
+        try:
+            text = getattr(self, column)
+        except AttributeError:
+            for part in column.split('.'):
+                obj = getattr(self, part)
+            text = obj
+        if text is None:
+            text = ''
+        return text
+    
+    def toViewDict(self, columns):
+        return [self.renderColumn(column) for column in columns]
+    
     @property
     def app_label(self):
         return self._meta.app_label

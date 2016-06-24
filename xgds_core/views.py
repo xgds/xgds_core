@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+import traceback
 import os
 import glob
 import json
@@ -208,12 +209,15 @@ class OrderListJson(BaseDatatableView):
             today = timezone.localtime(timezone.now()).date()
             filterDict = { timesearchField + '__gt': today}
             qs = qs.filter(**filterDict)
-        
+            
         # TODO handle search with sphinx
         search = self.request.GET.get(u'search[value]', None)
         if search:
             self.buildQuery(str(search))
             if self.queries:
                 qs = qs.filter(self.queries)
-                
+        
+        last = self.request.GET.get(u'last', -1)
+        if last > 0:
+            qs = qs[-last:]
         return qs
