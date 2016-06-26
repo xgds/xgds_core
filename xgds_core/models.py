@@ -141,6 +141,10 @@ class SearchableModel(object):
         return ['name', 'description']
     
     @classmethod
+    def getSearchableNumericFields(self):
+        return []
+    
+    @classmethod
     def timesearchField(self):
         """ Override to return the name of the field that contains the most important searchable time"""
         return 'event_time'

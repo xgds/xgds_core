@@ -170,24 +170,27 @@ class OrderListJson(BaseDatatableView):
             self.queries = query
         
     def buildQuery(self, search):
-#         searchDict = {}
         self.queries = None
-        try:
-            for key in self.model.getSearchableFields():
-#                 searchDict[key+'__contains'] = search;
-                self.addQuery(Q(**{key+'__contains':search}))
-        except:
+        if search:
             try:
-                self.model._meta.get_field('name')
-                self.addQuery(Q(**{'name__contains':search}))
+                for key in self.model.getSearchableFields():
+                    self.addQuery(Q(**{key+'__icontains':search}))
+                
+                if unicode(search).isnumeric():
+                    for key in self.model.getSearchableNumericFields():
+                        self.addQuery(Q(**{key:search}))
             except:
-                pass
-            
-            try:
-                self.model._meta.get_field('description')
-                self.addQuery(Q(**{'description__contains':search}))
-            except:
-                pass
+                try:
+                    self.model._meta.get_field('name')
+                    self.addQuery(Q(**{'name__icontains':search}))
+                except:
+                    pass
+                
+                try:
+                    self.model._meta.get_field('description')
+                    self.addQuery(Q(**{'description__icontains':search}))
+                except:
+                    pass
         
     def buildFilterDict(self, theFilter):
         dictEntries = str(theFilter).split(",")
