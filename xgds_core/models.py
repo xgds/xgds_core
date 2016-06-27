@@ -31,6 +31,9 @@ class Constant(models.Model):
     notes = models.CharField(max_length=256, blank=False)
     dataType = models.CharField(max_length=32, blank=False)
     value = models.CharField(max_length=256, blank=False)
+
+    def __unicode__(self):
+        return u'%s: %s' % (self.name, self.value)
     
     
 class TimeZoneHistory(models.Model):
