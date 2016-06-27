@@ -81,11 +81,15 @@ class SearchableModel(object):
     def app_label(self):
         return self._meta.app_label
     
+    @classmethod
+    def cls_type(cls):
+        #IMPORTANT -- override this if it is not the registered model name in site settings JS_MAP
+        return cls._meta.object_name
+    
     @property
     def type(self):
-        #IMPORTANT -- override this if it is not the registered model name in site settings JS_MAP
-        return self.model_type
-
+        return self.__class__.cls_type()
+    
     @property
     def model_type(self):
         t = type(self)
