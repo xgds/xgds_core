@@ -17,6 +17,7 @@
 from django.utils import timezone
 from django.db import models
 from xgds_core.util import get100Years
+from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -77,8 +78,20 @@ class SearchableModel(object):
             text = ''
         return text
     
-    def toViewDict(self, columns):
+    def toMapList(self, columns):
+        """
+        Return a list of the values for rendering in tables or on the map
+        """
         return [self.renderColumn(column) for column in columns]
+    
+    def toMapDict(self):
+        """
+        Return a reduced dictionary that will be turned to JSON for rendering in a map
+        """
+        columns = settings.XGDS_MAP_SERVER_JS_MAP[self.cls_type()]['columns']
+        values =  self.toMapList(columns)
+        result = dict(zip(columns, values))
+        return result
     
     @property
     def app_label(self):
