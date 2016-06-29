@@ -70,7 +70,7 @@ class SearchableModel(object):
     
     @property
     def DT_RowId(self):
-        return str(self.pk)
+        return self.pk
     
     def renderColumn(self, column):
         text = None
