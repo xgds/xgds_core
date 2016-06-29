@@ -22,9 +22,10 @@ from django.core.urlresolvers import reverse
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from django.contrib.auth.models import User
-
+import json
 
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
@@ -58,6 +59,7 @@ class NamedURL(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
+
 
 class SearchableModel(object):
     """
@@ -95,7 +97,7 @@ class SearchableModel(object):
         columns = settings.XGDS_MAP_SERVER_JS_MAP[self.cls_type()]['columns']
         values =  self.toMapList(columns)
         result = dict(zip(columns, values))
-        return result
+        return json.dumps(result, cls=DatetimeJsonEncoder)
     
     @property
     def app_label(self):
