@@ -66,6 +66,10 @@ class SearchableModel(object):
     Override methods where you need to.
     """
     
+    @property
+    def DT_RowId(self):
+        return str(self.pk)
+    
     def renderColumn(self, column):
         text = None
         try:
