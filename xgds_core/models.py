@@ -22,9 +22,7 @@ from django.core.urlresolvers import reverse
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-
 from django.contrib.auth.models import User
-
 
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
@@ -59,6 +57,7 @@ class NamedURL(models.Model):
     object_id = models.PositiveIntegerField(db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+
 class SearchableModel(object):
     """
     Mixin this class to have your model get the methods it needs to be searchable and
@@ -68,7 +67,7 @@ class SearchableModel(object):
     
     @property
     def DT_RowId(self):
-        return str(self.pk)
+        return self.pk
     
     def renderColumn(self, column):
         text = None
