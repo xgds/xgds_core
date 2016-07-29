@@ -13,7 +13,6 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
-
 from django.utils import timezone
 from django.db import models
 from xgds_core.util import get100Years
@@ -171,3 +170,7 @@ class SearchableModel(object):
     def timesearchField(self):
         """ Override to return the name of the field that contains the most important searchable time"""
         return 'event_time'
+    
+    @property
+    def tz(self):
+        return self.timezone

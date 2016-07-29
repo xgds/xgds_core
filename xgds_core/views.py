@@ -159,7 +159,7 @@ class OrderListJson(BaseDatatableView):
         if 'filter' in kwargs:
             theFilter = kwargs.get('filter', None)
             self.buildFilterDict(theFilter)
-        
+
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
 
@@ -170,6 +170,7 @@ class OrderListJson(BaseDatatableView):
             self.queries = query
         
     def buildQuery(self, search):
+
         self.queries = None
         if search:
             try:
@@ -209,9 +210,10 @@ class OrderListJson(BaseDatatableView):
         todayOnly = self.request.GET.get(u'today', u'true')
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
-            today = timezone.localtime(timezone.now()).date()
-            filterDict = { timesearchField + '__gt': today}
-            qs = qs.filter(**filterDict)
+            if timesearchField != None:
+                today = timezone.localtime(timezone.now()).date()
+                filterDict = { timesearchField + '__gt': today}
+                qs = qs.filter(**filterDict)
             
         # TODO handle search with sphinx
         search = self.request.GET.get(u'search[value]', None)
@@ -223,4 +225,5 @@ class OrderListJson(BaseDatatableView):
         last = self.request.GET.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
+        
         return qs
