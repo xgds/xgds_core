@@ -122,18 +122,21 @@ class SearchableModel(object):
 
     @property
     def lat(self):
+        ''' latitude '''
         position = self.getPosition()
         if position:
             return position.latitude
         
     @property
     def lon(self):
+        ''' longitude '''
         position = self.getPosition()
         if position:
             return position.longitude
 
     @property
-    def altitude(self):
+    def alt(self):
+        ''' altitude '''
         try:
             position = self.getPosition()
             if position:
@@ -143,7 +146,8 @@ class SearchableModel(object):
         return None
     
     @property
-    def heading(self):
+    def head(self):
+        ''' heading '''
         try:
             position = self.getPosition()
             if position:
