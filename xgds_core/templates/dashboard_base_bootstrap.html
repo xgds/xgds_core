@@ -35,7 +35,8 @@
 		layerFeedUrl: "{{ settings.XGDS_MAP_SERVER_LAYER_FEED_URL }}",
 		siteFrame: {% siteframe settings.XGDS_CURRENT_SITEFRAME_ID %},
 		XGDS_MAP_SERVER_MAP_LOADED_CALLBACK: {{ settings.XGDS_MAP_SERVER_MAP_LOADED_CALLBACK }},
-		dataUrl: "{{ settings.DATA_URL }}"
+		dataUrl: "{{ settings.DATA_URL }}",
+		settingsLive: {{ settings.GEOCAM_UTIL_LIVE_MODE|yesno:"true,false" }}
 	};
 	{% block jsInitPreApp %}
 	{% endblock jsInitPreApp %}
