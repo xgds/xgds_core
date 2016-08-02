@@ -23,6 +23,7 @@ from django.utils import timezone
 import couchdb
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.views.decorators.cache import never_cache
 from django.db.models import Q
 
 from django.template import loader
@@ -151,7 +152,10 @@ class OrderListJson(BaseDatatableView):
         except:
             self.model = LazyGetModelByName(modelName).get()
 
+    @never_cache
     def dispatch(self, request, *args, **kwargs):
+        self.filterDict.clear()
+
         if not self.model:
             if 'modelName' in kwargs:
                 self.lookupModel(kwargs.get('modelName'))
@@ -170,7 +174,6 @@ class OrderListJson(BaseDatatableView):
             self.queries = query
         
     def buildQuery(self, search):
-
         self.queries = None
         if search:
             try:
