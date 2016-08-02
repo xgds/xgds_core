@@ -23,6 +23,7 @@ from django.utils import timezone
 import couchdb
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.views.decorators.cache import never_cache
 from django.db.models import Q
 
 from django.template import loader
@@ -151,7 +152,10 @@ class OrderListJson(BaseDatatableView):
         except:
             self.model = LazyGetModelByName(modelName).get()
 
+    @never_cache
     def dispatch(self, request, *args, **kwargs):
+        self.filterDict.clear()
+
         if not self.model:
             if 'modelName' in kwargs:
                 self.lookupModel(kwargs.get('modelName'))
@@ -159,7 +163,7 @@ class OrderListJson(BaseDatatableView):
         if 'filter' in kwargs:
             theFilter = kwargs.get('filter', None)
             self.buildFilterDict(theFilter)
-        
+
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
 
@@ -206,12 +210,14 @@ class OrderListJson(BaseDatatableView):
         if self.filterDict:
             qs = qs.filter(**self.filterDict)
         
-        todayOnly = self.request.GET.get(u'today', u'true')
+        defaultToday = u'true' if settings.GEOCAM_UTIL_LIVE_MODE else  u'false'
+        todayOnly = self.request.GET.get(u'today', defaultToday)
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
-            today = timezone.localtime(timezone.now()).date()
-            filterDict = { timesearchField + '__gt': today}
-            qs = qs.filter(**filterDict)
+            if timesearchField != None:
+                today = timezone.localtime(timezone.now()).date()
+                filterDict = { timesearchField + '__gt': today}
+                qs = qs.filter(**filterDict)
             
         # TODO handle search with sphinx
         search = self.request.GET.get(u'search[value]', None)
@@ -223,4 +229,5 @@ class OrderListJson(BaseDatatableView):
         last = self.request.GET.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
+        
         return qs
