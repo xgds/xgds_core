@@ -61,6 +61,10 @@ $.extend(playback, {
 		playback.setTimeLabel(playback.currentTime);
 		playback.setupSpeedInput();
 		playback.setupSeekButton();
+        app.listenTo(app.vent, 'playback:setCurrentTime', function(currentTime) {
+        	playback.setCurrentTime(currentTime);
+        });
+
 	},
 	
 	addListener: function(listener) {
