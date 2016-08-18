@@ -17,13 +17,19 @@ class CouchDbStorage(Storage):
     couchDb = None
 
     def __init__(self, database=None):
-        self.couchServer = couchdb.Server()
-        if database:
-            self.couchDb = self.couchServer[database]
-        else:
-            self.couchDb = self.couchServer[settings.COUCHDB_FILESTORE_NAME]
+        self.setupComplete = False
+
+    def _setupIfNeeded(self):
+        if not self.setupComplete:
+            self.couchServer = couchdb.Server()
+            if database:
+                self.couchDb = self.couchServer[database]
+            else:
+                self.couchDb = self.couchServer[settings.COUCHDB_FILESTORE_NAME]
+            self.setupComplete = True
 
     def _open(self, name, mode='rb'):
+        self._setupIfNeeded()
         doc = self.couchDb.get(name)
         if not doc:
             raise IOError("File not found in DB: %s" % name)
@@ -33,6 +39,7 @@ class CouchDbStorage(Storage):
         return File(attachmentData)
 
     def _save(self, name, content):
+        self._setupIfNeeded()
         directory, basename = os.path.split(name)
 
         
@@ -45,14 +52,17 @@ class CouchDbStorage(Storage):
         return name
 
     def delete(self, name):
+        self._setupIfNeeded()
         doc = self.couchDb.get(name)
         if doc:
             self.couchDb.delete(doc)
 
     def exists(self, name):
+        self._setupIfNeeded()
         return name in self.couchDb
 
     def size(self, name):
+        self._setupIfNeeded()
         doc = self.couchDb.get(name)
         directory, basename = os.path.split(name)
         if not doc:
@@ -60,6 +70,7 @@ class CouchDbStorage(Storage):
         return doc["_attachments"][basename]["length"]
 
     def url(self, name):
+        self._setupIfNeeded()
         directory, basename = os.path.split(name)
         return reverse("get_db_attachment", args=[directory, basename])
 
@@ -68,6 +79,7 @@ class CouchDbStorage(Storage):
         Returns a filename that's free on the target storage system, and
         available for new content to be written to.
         """
+        self._setupIfNeeded()
         dir_name, file_name = os.path.split(name)
         file_root, file_ext = os.path.splitext(file_name)
         # If the filename already exists, add an underscore and a random 7
