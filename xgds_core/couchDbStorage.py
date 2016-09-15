@@ -18,12 +18,13 @@ class CouchDbStorage(Storage):
 
     def __init__(self, database=None):
         self.setupComplete = False
+        self.database = database
 
     def _setupIfNeeded(self):
         if not self.setupComplete:
             self.couchServer = couchdb.Server()
-            if database:
-                self.couchDb = self.couchServer[database]
+            if self.database:
+                self.couchDb = self.couchServer[self.database]
             else:
                 self.couchDb = self.couchServer[settings.COUCHDB_FILESTORE_NAME]
             self.setupComplete = True
