@@ -231,3 +231,9 @@ class OrderListJson(BaseDatatableView):
             qs = qs[-last:]
         
         return qs
+    
+def helpPopup(request, help_content_path, help_title):
+    return render_to_response('help_popup.html',
+                              {'help_title': help_title,
+                               'help_content_path': help_content_path},
+                              context_instance=RequestContext(request))

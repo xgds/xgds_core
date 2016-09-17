@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+{% load static %}
+{% load includestatic %}
+{% load markup %}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+  	<meta charset="utf-8">
+    <title>
+    {% block siteTitle %}xGDS Help: {{ help_title }} {% endblock siteTitle%}
+    </title>
+    <link rel="stylesheet" type="text/css" href="{% static 'gumby/css/gumby.css' %}">
+ 	<link rel="stylesheet" type="text/css" href="{% static 'xgds_core/css/help.css' %}">
+ 	{% block cssExtras %}
+    {% endblock cssExtras %}
+  </head>
+  
+ <body>
+{% block header %}
+<header>
+<div class="popup_title">
+	{{help_title}}
+    <a href="#"
+       onclick="javascript:window.close()"
+       id="closeWindow">Close</a>
+</div>
+</header>
+{% endblock %}
+<div class="row twelve columns" id="page-content">			
+   	{% block content %}
+   	{% includestatic help_content_path as help_content %}
+   	{{ help_content|restructuredtext }}
+   	{% endblock %}
+ </div>
+ 
+ </body>
