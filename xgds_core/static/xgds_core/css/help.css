@@ -404,7 +404,6 @@ padding:0 0 12px 6px;
 }
 #docstitle {
     height: 36px; 
-    background-image: url(header_sm_mid.png);
     left: 0;
     top: 0;
     position: absolute;
@@ -415,7 +414,6 @@ padding:0 0 12px 6px;
     margin: 0;
     color: white;
     text-shadow:0 1px 0 #787878;
-    background: transparent url(documentation.png) no-repeat scroll 10px 3px;
     height: 36px;
     font-size: 15px;
 }
