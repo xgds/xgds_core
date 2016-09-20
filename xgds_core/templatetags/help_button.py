@@ -12,7 +12,11 @@ register = template.Library()
 
 @register.simple_tag(name='help_button')
 def help_button(help_content_path, help_title):
-    url = reverse('help_popup', kwargs={'help_content_path':help_content_path,
-                                        'help_title':help_title})
-    result = "<a href='#' onclick='help.openPopup(\"" + url + "\")' class='help_button'><i class='fa fa-question-circle-o fa-2' aria-hidden='true'></i></a>"
-    return mark_safe(result)
+    try:
+        url = reverse('help_popup', kwargs={'help_content_path':help_content_path,
+                                            'help_title':str(help_title)})
+        result = "<a href='#' onclick='help.openPopup(\"" + url + "\")' class='help_button'><i class='fa fa-question-circle-o fa-2' aria-hidden='true'></i></a>"
+        return mark_safe(result)
+    except:
+        # if the url is not found do not include the help button
+        return None

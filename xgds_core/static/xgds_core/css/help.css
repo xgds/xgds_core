@@ -148,7 +148,7 @@ table.docutils {
     border-top: 1px solid #919699;
     border-left: 1px solid #919699;
     border-right: 1px solid #919699;
-    font-size:.9em;
+    font-size:.8em;
     padding:8px;
     text-align:left;
     vertical-align:top;
@@ -156,7 +156,7 @@ table.docutils {
 
 table.docutils td, table.docutils th {
     padding: 8px;
-    font-size: .9em;
+    font-size: .8em;
     text-align: left;
     vertical-align: top;
     border-bottom: 1px solid #919699;
@@ -205,7 +205,10 @@ th {
 
 /* -- other body styles ----------------------------------------------------- */
 
-dl dt { font-weight: bold; font-size: 12px; font-size: .9rem; }
+dl dt { 
+	font-weight: bold; 
+	font-size: 13px; 
+}
 
 dl {
     margin-bottom: 15px;
@@ -213,7 +216,7 @@ dl {
 
 dd p {
     margin-top: 0px;
-    font-size: .9em;
+    font-size: 13px; //.9em;
 }
 
 dd ul, dd table {
@@ -224,7 +227,7 @@ dd {
     margin-top: 3px;
     margin-bottom: 5px;
     margin-left: 30px;
-    font-size: .8em;
+    font-size: 13px; //.8em;
     line-height: normal;
 }
 
@@ -234,11 +237,11 @@ dt:target, .highlight {
 
 dl.glossary dt {
     font-weight: bold;
-    font-size: 0.8em;
+    font-size: 13px; //0.8em;
 }
 
 dl.glossary dd {
-	font-size:.9em;
+	font-size:.8em;
 }
 .field-list ul {
     vertical-align: top;
@@ -312,7 +315,7 @@ tt {
 tt.descname {
     background-color: transparent;
     font-weight: bold;
-    font-size: .9em;
+    font-size: .8em;
 }
 
 tt.descclassname {
@@ -417,7 +420,7 @@ padding:0 0 12px 6px;
     text-shadow:0 1px 0 #787878;
     background: transparent url(documentation.png) no-repeat scroll 10px 3px;
     height: 36px;
-    font-size: 15px;
+    font-size: 14px;
 }
 #header {
 height:45px;
@@ -462,7 +465,7 @@ font-size:10px;
 p {
 -x-system-font:none;
 font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
-font-size:.9em;
+font-size:.8em;
 font-size-adjust:none;
 font-stretch:normal;
 font-style:normal;
@@ -501,7 +504,7 @@ padding:0 0 12px 6px;
 li {
 margin-top:7px;
 font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
-font-size:.9em;
+font-size:.8em;
 font-size-adjust:none;
 font-stretch:normal;
 font-style:normal;
