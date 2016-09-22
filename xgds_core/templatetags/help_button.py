@@ -19,4 +19,4 @@ def help_button(help_content_path, help_title):
         return mark_safe(result)
     except:
         # if the url is not found do not include the help button
-        return None
+        return ""
