@@ -29,6 +29,10 @@ class CouchDbStorage(Storage):
                 self.couchDb = self.couchServer[settings.COUCHDB_FILESTORE_NAME]
             self.setupComplete = True
 
+    def get_couchDb(self):
+        self._setupIfNeeded()
+        return self.couchDb
+
     def _open(self, name, mode='rb'):
         self._setupIfNeeded()
         doc = self.couchDb.get(name)
