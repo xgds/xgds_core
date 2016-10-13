@@ -142,6 +142,9 @@ class OrderListJson(BaseDatatableView):
     # to hold the Q queries for or-ing a search
     queries = None
     
+    # to hold the anded Q queries from the form
+    formQueries = None
+    
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
     max_display_length = 100
@@ -160,9 +163,19 @@ class OrderListJson(BaseDatatableView):
             if 'modelName' in kwargs:
                 self.lookupModel(kwargs.get('modelName'))
         
-        if 'filter' in kwargs:
-            theFilter = kwargs.get('filter', None)
-            self.buildFilterDict(theFilter)
+#         if 'filter' in kwargs:
+#             theFilter = kwargs.get('filter', None)
+#             self.buildFilterDict(theFilter)
+            #TODO instead of this, send the request to a method that 
+            # builds the registered form and then builds the query
+        if self.form:
+            # self.filterDict has the stuff
+            filledForm = self.form(request.POST)
+            if filledForm.is_valid():
+                self.formQueries = filledForm.getQueries()
+            else:
+                print 'invalid form'
+                print str(filledForm.errors)
 
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
@@ -199,7 +212,7 @@ class OrderListJson(BaseDatatableView):
     def buildFilterDict(self, theFilter):
         dictEntries = str(theFilter).split(",")
         for entry in dictEntries:
-            splits = str(entry).split(":")
+            splits = str(entry).split("|")
             try:
                 value = int(splits[1]);
                 self.filterDict[splits[0]] = value
@@ -207,26 +220,30 @@ class OrderListJson(BaseDatatableView):
                 self.filterDict[splits[0]] = splits[1]
 
     def filter_queryset(self, qs):
-        if self.filterDict:
+        if self.formQueries:
+            qs = qs.filter(self.formQueries)
+        elif self.filterDict:
             qs = qs.filter(**self.filterDict)
         
         defaultToday = u'true' if settings.GEOCAM_UTIL_LIVE_MODE else  u'false'
-        todayOnly = self.request.GET.get(u'today', defaultToday)
+        todayOnly = self.request.POST.get(u'today', defaultToday)
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
             if timesearchField != None:
                 today = timezone.localtime(timezone.now()).date()
                 filterDict = { timesearchField + '__gt': today}
                 qs = qs.filter(**filterDict)
+        
+        
             
         # TODO handle search with sphinx
-        search = self.request.GET.get(u'search[value]', None)
+        search = self.request.POST.get(u'search[value]', None)
         if search:
             self.buildQuery(str(search))
             if self.queries:
                 qs = qs.filter(self.queries)
         
-        last = self.request.GET.get(u'last', -1)
+        last = self.request.POST.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
         
