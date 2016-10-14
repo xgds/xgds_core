@@ -39,6 +39,16 @@ function addDateTimePicker(element_id, defaultTimeZone, showTimezone){
 	$( "#" + element_id ).datetimepicker(options);
 }
 
+function addDateTimePickers(){
+	// add timezoneless date time pickers on anything with datetimepicker class
+	var options = {'controlType': 'select',
+     	   		    'oneLine': true,
+     	   		    'showTimezone': false,
+     	   		    'format': 'd/m/Y H:M zzz'
+    			};
+	$( ".datetimepicker" ).datetimepicker(options);
+}
+
 /*
  * get the time from the date time picker and return it in utc time.
  */

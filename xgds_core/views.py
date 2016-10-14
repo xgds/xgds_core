@@ -163,13 +163,7 @@ class OrderListJson(BaseDatatableView):
             if 'modelName' in kwargs:
                 self.lookupModel(kwargs.get('modelName'))
         
-#         if 'filter' in kwargs:
-#             theFilter = kwargs.get('filter', None)
-#             self.buildFilterDict(theFilter)
-            #TODO instead of this, send the request to a method that 
-            # builds the registered form and then builds the query
         if self.form:
-            # self.filterDict has the stuff
             filledForm = self.form(request.POST)
             if filledForm.is_valid():
                 self.formQueries = filledForm.getQueries()
