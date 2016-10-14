@@ -13,7 +13,6 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
-
 import pytz
 import traceback
 from django.forms.models import ModelChoiceField, ModelForm
@@ -38,6 +37,9 @@ class SearchForm(ModelForm):
                 self.queries &= query
             else:
                 self.queries = query
+    
+    def buildContainsQuery(self, fieldname, field, value):
+        return Q(**{fieldname+'__icontains':str(value)})
     
     def buildQueryForCharField(self, fieldname, field, value):
         return Q(**{fieldname+'__icontains':value})
