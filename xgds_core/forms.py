@@ -14,12 +14,15 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+import pytz
 import traceback
 from django.forms.models import ModelChoiceField, ModelForm
 from django.forms import BooleanField, CharField, IntegerField, FloatField, DecimalField, ChoiceField, DateTimeField
 from xgds_core.models import NamedURL
 from django.db.models.fields import *
 from django.db.models import Q
+
+from geocamUtil import TimeUtil
 
 # class NamedURLForm(ModelForm):
 # 
@@ -52,9 +55,9 @@ class SearchForm(ModelForm):
         if minimum:
             return Q(**{fieldname+'__gte': value})
         elif maximum:
-            return Q(**{fieldname+'__lte': value})
+            return Q(**{fieldname+'__lt': value})
         #TODO handle close to date
-        return Q(**{fieldname+'=' +value})
+        return Q(**{fieldname+'__exact': value})
 
     def buildQueryForNumberField(self, fieldname, field, value, minimum=False, maximum=False):
         if minimum:
@@ -75,9 +78,9 @@ class SearchForm(ModelForm):
             elif field_typename == 'ModelChoiceField':
                 return self.buildQueryForModelChoiceField(fieldname, field, value)
             elif field_typename == 'DateTimeField':
-                return self.buildQueryForDateTimeField(fieldname, field, value, minimum=minimum, maximim=maximum)
+                return self.buildQueryForDateTimeField(fieldname, field, value, minimum=minimum, maximum=maximum)
             elif field_typename == 'DecimalField' or field_typename == 'FloatField' or field_typename == 'IntegerField':
-                return self.buildQueryForNumberField(fieldname, field, value, minimum=minimum, maximim=maximum)
+                return self.buildQueryForNumberField(fieldname, field, value, minimum=minimum, maximum=maximum)
             return None
         except:
             traceback.print_exc()
@@ -88,19 +91,33 @@ class SearchForm(ModelForm):
         # and them together
         self.queries = None
         for key in self.changed_data:
-            value = self.cleaned_data[key]
-            fieldname = str(key)
-            minimum = fieldname.startswith('min_')
-            maximum = fieldname.startswith('max_')
-            if minimum or maximum:
-                fieldname = fieldname[4:]
             try:
+                value = self.cleaned_data[key]
+                fieldname = str(key)
+                minimum = fieldname.startswith('min_')
+                maximum = fieldname.startswith('max_')
                 field = self.fields[fieldname]
+                if minimum or maximum:
+                    fieldname = fieldname[4:]
+                    
                 builtQuery = self.buildQueryForField(fieldname, field, value, minimum, maximum)
                 self.addQuery(builtQuery)
             except:
                 pass
         return self.queries
-            
+    
+    # populate the times properly
+    def clean_time(self, key, timezone):
+        event_time = self.cleaned_data[key]
+        if not event_time:
+            return None
+        else:
+            if timezone:
+                tz = pytz.timezone(timezone)
+                event_time = event_time.replace(tzinfo=tz)
+            # if there is no timezone it will already be in the settings' local time.
+            event_time = TimeUtil.timeZoneToUtc(event_time)
+            return event_time
+
     class Meta: 
         abstract = True

@@ -40,7 +40,7 @@ function addDateTimePicker(element_id, defaultTimeZone, showTimezone){
 }
 
 function addDateTimePickers(){
-	// add timezoneless date time pickers on anything with datetimepicker class
+	// add timezoneless utc date time pickers on anything with datetimepicker class
 	var options = {'controlType': 'select',
      	   		    'oneLine': true,
      	   		    'showTimezone': false,
