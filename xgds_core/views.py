@@ -26,6 +26,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
 
+from django.views.decorators.cache import cache_page
 from django.template import loader
 from django.conf import settings
 from django.shortcuts import render_to_response
@@ -114,6 +115,7 @@ def get_file_from_couch(docDir, docName):
     return dataStream
     
     
+@cache_page(60 * 15)
 def get_db_attachment(request, docDir, docName):
     docPath = "%s/%s" % (docDir, docName)
     dbServer = couchdb.Server()
