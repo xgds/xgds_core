@@ -31,7 +31,7 @@ $.extend(xgds_gridstack,{
 	    
 		var container = $('.grid-stack');
 	    container.gridstack(options);
-	    xgds_gridstack.THE_GRIDSTACK = container.data('gridstack')
+	    xgds_gridstack.THE_GRIDSTACK = container.data('gridstack');
 	        
 	    xgds_gridstack.bindButtonCallbacks(container);
 	    
