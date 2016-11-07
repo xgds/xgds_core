@@ -236,8 +236,14 @@ class OrderListJson(BaseDatatableView):
         search = self.request.POST.get(u'search[value]', None)
         if search:
             self.buildQuery(str(search))
+            tagsQuery = self.model.buildTagsQuery(search)
+            if tagsQuery:
+                self.addQuery(Q(**tagsQuery))
             if self.queries:
                 qs = qs.filter(self.queries)
+            noteQuery = self.model.buildNoteQuery(search)
+            if noteQuery:
+                qs = qs.filter(noteQuery)
         
         last = self.request.POST.get(u'last', -1)
         if last > 0:

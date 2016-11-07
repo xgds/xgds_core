@@ -178,3 +178,11 @@ class SearchableModel(object):
     @property
     def tz(self):
         return self.timezone
+
+    @classmethod
+    def buildTagsQuery(cls, search_value):
+        return None
+
+    @classmethod
+    def buildNoteQuery(cls, search_value):
+        return None
