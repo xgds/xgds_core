@@ -249,7 +249,7 @@ class OrderListJson(BaseDatatableView):
         if last > 0:
             qs = qs[-last:]
         
-        return qs
+        return qs.distinct()
     
 def helpPopup(request, help_content_path, help_title):
     return render_to_response('help_popup.html',
