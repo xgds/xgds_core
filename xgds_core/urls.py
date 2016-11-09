@@ -19,6 +19,7 @@ from django.views.generic.base import TemplateView, RedirectView
 from django.conf import settings
 
 import xgds_core.views as views
+import xgds_core.typeahead as typeahead
 
 urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds_core/gridstack_test.html'), {}, 'gridstack_test'),
                url(r'^gridstack_generic_test$', TemplateView.as_view(template_name='xgds_core/gridstack_generic_test.html'), {}, 'gridstack_generic_test'),
@@ -34,4 +35,6 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(), {}, 'view_json_modelName'),
                #url(r'^view/(?P<modelName>\w+)/(?P<filter>(([\w]+|[a-zA-Z0-9:._\-\s]+),*)+)$', views.OrderListJson.as_view(), {}, 'view_json_modelName_filter'),
                url(r'^help/(?P<help_content_path>[\s\S]+)/(?P<help_title>[\s\S]+)$', views.helpPopup, {}, 'help_popup'),
+               url(r'^users.json$', typeahead.getTypeaheadUsers, {}, 'xgds_core_users_json'),
+               url(r'^(?P<model_name>[\w]+[\.]*[\w]*).json$', typeahead.getTypeaheadJson, {}, 'xgds_core_model_json'),
                ]
