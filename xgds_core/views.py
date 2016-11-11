@@ -19,6 +19,7 @@ import glob
 import json
 import datetime
 from django.utils import timezone
+from django.http import Http404
 
 import couchdb
 
@@ -117,18 +118,21 @@ def get_file_from_couch(docDir, docName):
     
 @cache_page(60 * 15)
 def get_db_attachment(request, docDir, docName):
-    docPath = "%s/%s" % (docDir, docName)
-    dbServer = couchdb.Server()
-    db = dbServer[settings.COUCHDB_FILESTORE_NAME]
-    doc = db[docPath]
-    # By convention, attachment has the same basename as document
-    attDataStream = db.get_attachment(doc, docName)
-    attData = attDataStream.read()
-    attDataStream.close()
-    attMimeType = doc["_attachments"][docName]["content_type"]
+    try:
+        docPath = "%s/%s" % (docDir, docName)
+        dbServer = couchdb.Server()
+        db = dbServer[settings.COUCHDB_FILESTORE_NAME]
+        doc = db[docPath]
+        # By convention, attachment has the same basename as document
+        attDataStream = db.get_attachment(doc, docName)
+        attData = attDataStream.read()
+        attDataStream.close()
+        attMimeType = doc["_attachments"][docName]["content_type"]
     
-    response = HttpResponse(attData, content_type=attMimeType)
-    return response
+        response = HttpResponse(attData, content_type=attMimeType)
+        return response
+    except:
+        raise Http404("CouchDB Object does not exist for: %s/%s" % (docDir, docName))
 
 
 class OrderListJson(BaseDatatableView):
