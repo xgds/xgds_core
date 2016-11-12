@@ -24,6 +24,10 @@ def typeahead(url, input_id):
     result = ('''
 <script type="text/javascript">
     var theInput = $('#%(input_id)s');
+    theInput.attr("id", "%(input_id)s_display");
+    var parent = theInput.parent();
+    $('<input>').attr({'type':'hidden',
+                       'id': '%(input_id)s'}).appendTo(parent);
     if (theInput.length > 0) {
         theInput.addClass("typeahead");
         var bloodhound = bloodhound || {};

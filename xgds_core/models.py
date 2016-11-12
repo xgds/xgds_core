@@ -44,9 +44,14 @@ class TimeZoneHistory(models.Model):
 class XgdsUser(User):
     class Meta:
         proxy = True
-        
+        ordering = ['first_name']
+    
+    @classmethod
+    def getAutocompleteFields(cls):
+        return ['first_name', 'last_name']
+
     def __unicode__(self):
-        return u'%s, %s' % (self.first_name, self.last_name)
+        return u'%s %s' % (self.first_name, self.last_name)
 
 
 class NamedURL(models.Model):
