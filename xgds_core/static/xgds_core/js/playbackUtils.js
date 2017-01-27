@@ -19,9 +19,10 @@ playback = {}; //namespace
 jQuery(function($) {
 	var windowWidth = $(window).width();
 	$(window).resize(function() {
-		if (windowWidth != $(window).width()) {
-			return;
-		}
+		windowWidth = $(window).width();
+//		if (windowWidth != $(window).width()) {
+//			return;
+//		}
 	});
 });
 
