@@ -53,9 +53,6 @@ $.extend(xgds_gridstack,{
 	bindMapResize: function (container){
 		var mapGridstackItem = container.find("#map-gridstack-item");
 		if (mapGridstackItem.length == 1) {
-			// disable resize on the map
-			mapGridstackItem.find("#map").resizable('destroy');
-//			mapGridstackItem.find("#map").resizable("disable").removeClass('ui-state-disabled');;
 			mapGridstackItem.on('resizestop', function(event, ui){
 				app.vent.trigger('doMapResize');
 			});
