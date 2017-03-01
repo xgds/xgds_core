@@ -57,7 +57,11 @@ $.extend({
 		for(var i = 0; i < namespaces.length; i++) {
 			context = context[namespaces[i]];
 		}
-		return context[func].apply(context, args);
+		var theFunction = context[func];
+		if (theFunction !== undefined){
+			return theFunction.apply(context, [args]);
+		}
+		return undefined;
 	},
 	lookupFunctionByName: function(functionName, context) {
 		context = context || window;

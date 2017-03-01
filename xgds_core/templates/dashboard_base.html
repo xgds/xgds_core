@@ -18,22 +18,6 @@
 
 
 {% block jsInit %}
-	appOptions = {
-		BODY_RADIUS_METERS: {{ settings.XGDS_MAP_SERVER_BODY_RADIUS_METERS }},
-		DEFAULT_COORD_SYSTEM: "{{ settings.XGDS_MAP_SERVER_DEFAULT_COORD_SYSTEM }}",
-		SETUP_COORD_SYSTEM: {{ settings.XGDS_MAP_SERVER_MAP_SETUP_COORD_SYSTEM }},
-		DEFAULT_COORD_SYSTEM_CENTER: {{ settings.XGDS_MAP_SERVER_DEFAULT_COORD_SYSTEM_CENTER }},
-		DEFAULT_ZOOM: {{ settings.XGDS_MAP_SERVER_DEFAULT_ZOOM }},
-		DEFAULT_ROTATION: {{ settings.XGDS_MAP_SERVER_DEFAULT_ROTATION }},
-		SHOW_COMPASS: {{ settings.XGDS_MAP_SERVER_SHOW_COMPASS}},
-		selectedLayerUrl: "{{ settings.XGDS_MAP_SERVER_SELECTED_LAYER_URL }}",
-		layerFeedUrl: "{{ settings.XGDS_MAP_SERVER_LAYER_FEED_URL }}",
-		siteFrame: {% siteframe settings.XGDS_CURRENT_SITEFRAME_ID %},
-		XGDS_MAP_SERVER_MAP_LOADED_CALLBACK: {{ settings.XGDS_MAP_SERVER_MAP_LOADED_CALLBACK }},
-		dataUrl: "{{ settings.DATA_URL }}",
-		searchModels: {{ settings.XGDS_MAP_SERVER_JS_MAP|safe }},
-		settingsLive: {{ settings.GEOCAM_UTIL_LIVE_MODE|yesno:"true,false" }}
-	};
 	{% block jsInitPreApp %}
 	{% endblock jsInitPreApp %}
 	
@@ -57,6 +41,26 @@
 {% block scripts %}
 {{block.super}}
 	{% include "xgds_core/timeJS.html" %}
+	{% block preMapJS %}
+	<script type="text/javascript">
+	var appOptions = {
+		BODY_RADIUS_METERS: {{ settings.XGDS_MAP_SERVER_BODY_RADIUS_METERS }},
+		DEFAULT_COORD_SYSTEM: '{{ settings.XGDS_MAP_SERVER_DEFAULT_COORD_SYSTEM }}',
+		SETUP_COORD_SYSTEM: '{{ settings.XGDS_MAP_SERVER_MAP_SETUP_COORD_SYSTEM }}',
+		DEFAULT_COORD_SYSTEM_CENTER: {{ settings.XGDS_MAP_SERVER_DEFAULT_COORD_SYSTEM_CENTER }},
+		DEFAULT_ZOOM: {{ settings.XGDS_MAP_SERVER_DEFAULT_ZOOM }},
+		DEFAULT_ROTATION: {{ settings.XGDS_MAP_SERVER_DEFAULT_ROTATION }},
+		SHOW_COMPASS: {{ settings.XGDS_MAP_SERVER_SHOW_COMPASS}},
+		selectedLayerUrl: '{{ settings.XGDS_MAP_SERVER_SELECTED_LAYER_URL }}',
+		layerFeedUrl: '{{ settings.XGDS_MAP_SERVER_LAYER_FEED_URL }}',
+		siteFrame: {% siteframe settings.XGDS_CURRENT_SITEFRAME_ID %},
+		XGDS_MAP_SERVER_MAP_LOADED_CALLBACK: '{{ settings.XGDS_MAP_SERVER_MAP_LOADED_CALLBACK }}',
+		dataUrl: '{{ settings.DATA_URL }}',
+		searchModels: {{ settings.XGDS_MAP_SERVER_JS_MAP|safe }},
+		settingsLive: {{ settings.GEOCAM_UTIL_LIVE_MODE|yesno:'true,false' }}
+	};
+	</script>
+	{% endblock preMapJS %}
 	{% if app %}
 	{% include "MapJS.html" %}
 	{% else %}
@@ -73,6 +77,8 @@
 
 
 {% block content %}
+
+<script type="x-template/underscore" id="application_contents">
 	{% block preDashboard %}
 	{% endblock preDashboard %}
 	{% block dashboard %}
@@ -113,4 +119,7 @@
 		
 	</div> <!--  gridstack container -->
 	{% endblock dashboard %}
+</script>
+<div id="application" >
+</div>
 {% endblock content %}
