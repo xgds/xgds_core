@@ -41,6 +41,9 @@ XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictio
 XGDS_CORE_LIVE_INDEX_URL = '/'
 
 BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
-BOWER_INSTALLED_APPS += ['moment-range#2.1.0',
-                         'gridstack']
+BOWER_INSTALLED_APPS += ['moment',
+                         'moment-timezone',
+                         'moment-duration-format',
+                         'moment-range#2.1.0',
+                         'gridstack#0.2.5']
 
