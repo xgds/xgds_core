@@ -29,6 +29,7 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^gridstack_generic_oursite$', TemplateView.as_view(template_name='xgds_core/gridstack_generic_oursite.html'), {}, 'gridstack_test_oursite'),
                url(r'^gridstack_test_bootstrap$', TemplateView.as_view(template_name='xgds_core/gridstack_test_bootstrap.html'), {}, 'gridstack_test_bootstrap'),
                url(r'^test_bootstrap$', TemplateView.as_view(template_name='xgds_core/test_bootstrap.html'), {}, 'gridstack_test'),
+               url(r'^test_bootstrap4$', TemplateView.as_view(template_name='test/hello_bootstrap.html'), {}, 'test_bootstrap4'),
                url(r'^update_session', views.update_session, {}, 'update_session'),
                url(r'^update_cookie', views.update_cookie, {}, 'update_cookie'),
                url(r'^handlebar_string/(?P<handlebarPath>[\s\S]+)$', views.get_handlebar_as_string, {}, 'handlebar_string'),
