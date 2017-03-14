@@ -152,5 +152,49 @@
     		"dataType":"string",
     		"value":"10.10.24.102"
     	}
+    },
+    {
+    	"pk": 41,
+    	"model": "xgds_core.Constant",
+    	"fields": {
+    		"name":"EV1_TRACKING_PROTO",
+    		"units":"n/a",
+    		"notes":"Network protocol for EVA tracking data delivery",
+    		"dataType":"string",
+    		"value":"UDP"
+    	}
+    },
+    {
+    	"pk": 42,
+    	"model": "xgds_core.Constant",
+    	"fields": {
+    		"name":"EV2_TRACKING_PROTO",
+    		"units":"n/a",
+    		"notes":"Network protocol for EVA tracking data delivery",
+    		"dataType":"string",
+    		"value":"UDP"
+    	}
+    },
+    {
+    	"pk": 43,
+    	"model": "xgds_core.Constant",
+    	"fields": {
+    		"name":"delay",
+    		"units":"seconds",
+    		"notes":"Local to remote delay time",
+    		"dataType":"integer",
+    		"value":"0"
+    	}
+    },
+    {
+    	"pk": 44,
+    	"model": "xgds_core.Constant",
+    	"fields": {
+    		"name":"remoteDelay",
+    		"units":"seconds",
+    		"notes":"Delay settings on remote server",
+    		"dataType":"integer",
+    		"value":"0"
+    	}
     }
 ]
