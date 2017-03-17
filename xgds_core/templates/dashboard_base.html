@@ -22,6 +22,7 @@
 	{% endblock jsInitPreApp %}
 	
 	$(function(){
+		siteFrames = {% siteframes_dict %};
     	app.start(appOptions);
     	app.vent.on("mapSearch:drewFeatures", function(e) {
         	app.vent.trigger('mapSearch:fit');
