@@ -61,7 +61,7 @@ $.extend(xgds_gridstack,{
 	},
 
 	initializePin: function(item){
-		var locks = $(item).find('.icon-lock');
+		var locks = $(item).find('.fa-lock');
 		if (locks.length > 0){
 			xgds_gridstack.pinItem(item);
 		} else {
@@ -83,7 +83,7 @@ $.extend(xgds_gridstack,{
 	 * Removes item upon delete button click.
 	 */
 	bindDeleteButtonCallback: function(container) {
-		container.find(".icon-cancel-circled").bind("click", function(event) {
+		container.find(".fa-window-close").bind("click", function(event) {
 			var parentElement = $(event.target).closest(".grid-stack-item");
 			if (parentElement != undefined){
 				xgds_gridstack.THE_GRIDSTACK.removeWidget(parentElement);
@@ -95,7 +95,7 @@ $.extend(xgds_gridstack,{
 	    var pinButton = $(event.target);
 	    var item = pinButton.closest(".grid-stack-item");
 	    
-	    if (pinButton.hasClass('icon-lock')) {
+	    if (pinButton.hasClass('fa-lock')) {
 	    	xgds_gridstack.unpinItem(item, pinButton);
 	    } else {
 	    	xgds_gridstack.pinItem(item, pinButton);
@@ -113,8 +113,8 @@ $.extend(xgds_gridstack,{
 		if (pinButton === undefined){
 			pinButton = $(item).find(".pinDiv");
 		}
-	    pinButton.removeClass('icon-lock-open');
-	    pinButton.addClass('icon-lock');
+	    pinButton.removeClass('fa-unlock-alt');
+	    pinButton.addClass('fa-lock');
 	},
 
 	unpinItem: function(item, pinButton){
@@ -128,8 +128,8 @@ $.extend(xgds_gridstack,{
 		if (pinButton === undefined){
 			pinButton = $(item).find(".pinDiv");
 		}
-	    pinButton.removeClass('icon-lock');
-	    pinButton.addClass('icon-lock-open');
+	    pinButton.removeClass('fa-lock');
+	    pinButton.addClass('fa-unlock-alt');
 	},
 	
 	bindChanges: function() {
