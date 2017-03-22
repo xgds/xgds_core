@@ -25,8 +25,9 @@ def help_button(help_content_path, help_title):
     try:
         url = reverse('help_popup', kwargs={'help_content_path':help_content_path,
                                             'help_title':str(help_title)})
-        result = "<a href='#' onclick='help.openPopup(\"" + url + "\")' class='help_button'><i class='fa fa-question-circle-o fa-lg' aria-hidden='true'></i></a>"
+        result = "<a href='#' onclick='help.openPopup(\"" + url + "\")' class='help_button btn btn-primary fa fa-question-circle-o fa-lg' role='button'></a>"
         return mark_safe(result)
     except:
-        # if the url is not found do not include the help button
-        return ""
+        # if the url is not found disable it
+        result = "<a href='#' class='help_button btn btn-primary fa fa-question-circle-o fa-lg disabled' role='button' disabled></a>"
+        return mark_safe(result)
