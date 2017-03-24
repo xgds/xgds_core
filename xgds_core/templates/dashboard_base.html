@@ -94,8 +94,10 @@
 		data-gs-x="3" data-gs-y="0"
         data-gs-width="2" data-gs-height="2" >
 			<div class="grid-stack-item-content" id="map-gridstack-item-content" >
-			<i class="fa fa-lock pinDiv warning"></i>
-        		{% siteframe_form %}
+				{% siteframe_form %}
+				<ul class="nav justify-content-end">
+					<i class="fa fa-lock pinDiv warning"></i>
+				</ul>
 				<div id="map"></div>
 			</div>
 		</div>
@@ -103,11 +105,13 @@
 		
 		{% block layers %}
 		<div id="layers-gridstack-item" class="grid-stack-item" 
-		data-gs-x="6" data-gs-y="0"
-        data-gs-width="1" data-gs-height="2" >
+			data-gs-x="6" data-gs-y="0"
+        	data-gs-width="1" data-gs-height="2" >
 			<div class="grid-stack-item-content" id="layers-gridstack-item-content">
-			<i class="fa fa-window-close fa-lg"></i>
-			<i class="fa fa-unlock-alt pinDiv warning"></i>
+			<ul class="nav justify-content-end">
+				<i class="fa fa-window-close gray-light fa-lg"></i>
+				<i class="fa fa-unlock-alt gray-light pinDiv warning"></i>
+			</ul>
 			<div id="layers"></div>
 			</div>
 		</div>
