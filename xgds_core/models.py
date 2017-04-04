@@ -191,3 +191,16 @@ class SearchableModel(object):
     @classmethod
     def buildNoteQuery(cls, search_value):
         return None
+    
+def getRelayFileName(instance, filename):
+    return settings.XGDS_CORE_RELAY_SUBDIRECTORY + filename
+
+class RelayFile(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(db_index=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    acquisition_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
+    relay_start_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
+    relay_success_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
+    file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
+    

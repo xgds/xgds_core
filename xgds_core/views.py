@@ -23,6 +23,7 @@ from django.http import Http404
 
 import couchdb
 
+from django.contrib.contenttypes.models import ContentType
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
@@ -40,6 +41,7 @@ from django.http import (HttpResponse,
 
 from xgds_core.models import TimeZoneHistory
 from geocamUtil.loader import LazyGetModelByName
+from xgds_core.models import RelayFile
 
 
 def getTimeZone(inputTime):
@@ -260,3 +262,15 @@ def helpPopup(request, help_content_path, help_title):
                               {'help_title': help_title,
                                'help_content_path': help_content_path},
                               context_instance=RequestContext(request))
+
+def addRelayFile(dataProduct, fileToSave):
+    record = RelayFile(content_type=ContentType.objects.get_for_model(dataProduct),
+                       object_id=dataProduct.pk,
+                       acquisition_time=dataProduct.acquisition_time,
+                       file_to_send=fileToSave)
+    record.save()
+    
+    #TODO fire REDIS event if REDIS is on
+    
+                        
+    
