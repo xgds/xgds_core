@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+import json
 from django.utils import timezone
 from django.db import models
 from xgds_core.util import get100Years
@@ -204,3 +205,6 @@ class RelayFile(models.Model):
     relay_success_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
     file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
     
+    def toRelayJson(self):
+        result = {'relay_file_pk': self.pk}
+        return json.dumps(result)

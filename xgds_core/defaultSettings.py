@@ -39,7 +39,13 @@ from geocamUtil.SettingsUtil import getOrCreateArray, getOrCreateDict
 XGDS_CORE_TEMPLATE_DEBUG = False # If this is true, handlebars templates will not be cached.
 XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictionary to store directories of handlebars to load based on class name
 XGDS_CORE_LIVE_INDEX_URL = '/'
+
+#support for data relay via REDIS
 XGDS_CORE_RELAY_SUBDIRECTORY = 'relay/'
+XGDS_CORE_REDIS = False
+XGDS_CORE_REDIS_PORT = 6379
+XGDS_CORE_REDIS_RELAY_CHANNEL = 'dataRelayQueue'
+
 BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
 BOWER_INSTALLED_APPS += ['moment',
                          'moment-timezone',

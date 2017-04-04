@@ -16,8 +16,17 @@
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from django.conf import settings
+
+if settings.XGDS_CORE_REDIS:
+    import redis
 
 
 def get100Years():
     theNow = timezone.now() + relativedelta(years=100)
     return theNow
+
+if settings.XGDS_CORE_REDIS:
+    def queueRedisData(channel, jsonData):
+        rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
+        rs.lpush(channel,jsonData)

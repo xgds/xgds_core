@@ -42,6 +42,8 @@ from django.http import (HttpResponse,
 from xgds_core.models import TimeZoneHistory
 from geocamUtil.loader import LazyGetModelByName
 from xgds_core.models import RelayFile
+if settings.XGDS_CORE_REDIS:
+    from xgds_core.util import queueRedisData
 
 
 def getTimeZone(inputTime):
@@ -271,6 +273,11 @@ def addRelayFile(dataProduct, fileToSave):
     record.save()
     
     #TODO fire REDIS event if REDIS is on
+    if settings.XGDS_CORE_REDIS:
+        queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, record.toRelayJson())
+        record.relay_start_time = datetime.datetime.utcnow()
+        record.save()
+
     
                         
     
