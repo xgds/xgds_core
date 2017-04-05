@@ -196,15 +196,25 @@ class SearchableModel(object):
 def getRelayFileName(instance, filename):
     return settings.XGDS_CORE_RELAY_SUBDIRECTORY + filename
 
-class RelayFile(models.Model):
+class RelayEvent(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
     acquisition_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
     relay_start_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
     relay_success_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
-    file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
+    serialized_form = models.TextField()
+    url = models.CharField(max_length=128)
     
     def toRelayJson(self):
-        result = {'relay_file_pk': self.pk}
+        result = {'relay_event_pk': self.pk}
+        return json.dumps(result)
+
+class RelayFile(models.Model):
+    file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
+    file_key = models.CharField(max_length=64)
+    relay_event = models.ForeignKey(RelayEvent)
+    
+    def toRelayJson(self):
+        result = {'relay_file': self.file_to_send}
         return json.dumps(result)

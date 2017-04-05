@@ -41,7 +41,9 @@ from django.http import (HttpResponse,
 
 from xgds_core.models import TimeZoneHistory
 from geocamUtil.loader import LazyGetModelByName
-from xgds_core.models import RelayFile
+
+from xgds_core.models import RelayFile, RelayEvent
+
 if settings.XGDS_CORE_REDIS:
     from xgds_core.util import queueRedisData
 
@@ -265,18 +267,25 @@ def helpPopup(request, help_content_path, help_title):
                                'help_content_path': help_content_path},
                               context_instance=RequestContext(request))
 
-def addRelayFile(dataProduct, fileToSave):
-    record = RelayFile(content_type=ContentType.objects.get_for_model(dataProduct),
+def addRelayFiles(dataProduct, filesToSave, serializedForm, url):
+    event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
                        object_id=dataProduct.pk,
                        acquisition_time=dataProduct.acquisition_time,
-                       file_to_send=fileToSave)
-    record.save()
-    
-    #TODO fire REDIS event if REDIS is on
+                       serialized_form=serializedForm,
+                       url=url)
+    event.save()
+
+    for k,f in filesToSave.iteritems():
+        relayFile = RelayFile(file_to_send=f,
+                              file_key=k,
+                              relay_event_id=event.pk)
+        relayFile.save()
+        
+    #fire REDIS event if REDIS is on
     if settings.XGDS_CORE_REDIS:
-        queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, record.toRelayJson())
-        record.relay_start_time = datetime.datetime.utcnow()
-        record.save()
+        queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, event.toRelayJson())
+        event.relay_start_time = datetime.datetime.utcnow()
+        event.save()
 
     
                         
