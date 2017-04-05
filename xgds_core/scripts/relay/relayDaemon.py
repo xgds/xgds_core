@@ -14,7 +14,6 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
-import pydevd
 import redis
 import json
 import requests
@@ -30,36 +29,34 @@ from xgds_core.models import RelayEvent, RelayFile
 
 rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
 
-def relayListener(opts):
+def relayListener(timeout, hosturl):
     # callback from Redis to handle stored data and files that are waiting to be relayed
     logging.info('RELAY LISTENER RUNNING')
-    pydevd.settrace('192.168.0.11')
     while True:
         # see if we had already active relays
-        active = rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
+        active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE, -1, -1)
         while active:
             # handle previously active event
-            relayData(active, opts)
+            relayData(active[0], timeout, hosturl)
             # get next one
-            active = rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
+            active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE, -1, -1)
     
         # handle newly broadcast data to relay
         active = rs.brpoplpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
-        relayData(active, opts)
+        relayData(active, timeout, hosturl)
     
     
-def relayData(active, opts):
+def relayData(active, timeout, hosturl):
     # actually do the relaying to the remote host
-    pydevd.settrace('192.168.0.11')
     try:
-        event = RelayEvent.objects.get(pk=json.loads(active).relay_event_pk)
+        event = RelayEvent.objects.get(pk=json.loads(active)['relay_event_pk'])
         logging.info('RELAY BEGIN %d' % event.pk)
-        url = "%s/%s" % (opts.namedHost, event.url)
+        url = "%s%s" % (hosturl, event.url)
         files = {}
         for f in event.relayfile_set.all():
             files[f.file_key] = f.file_to_send
-        #TODO handle pk matching
-        response = requests.post(url, json=event.serialized_form, files=files, timeout=opts.timeout)
+        #TODO handle pk matching and check for the pk and type somehow
+        response = requests.post(url, data=json.loads(event.serialized_form), files=files, timeout=timeout)
         if response.status_code == requests.codes.ok:
             event.relay_success_time = datetime.datetime.utcnow()
             rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
@@ -74,17 +71,16 @@ def relayData(active, opts):
 
 def main():
     import optparse
-    parser = optparse.OptionParser('usage: %prog')
+    parser = optparse.OptionParser('usage: %prog hosturl')
     parser.add_option('-t', '--timeout',
                       default=30,
                       help='Timeout in seconds for response from HTTP relay post.')
-    parser.add_option('-n', '--namedHost',
-                      help='Name of remote host to relay to, ie http://shore.xgds.org')
     opts, args = parser.parse_args()
-    if args:
-        parser.error('expected no args')
+    if not args:
+        parser.error('expected hosturl as argument (http://shore.xgds.org for example)')
     logging.basicConfig(level=logging.DEBUG)
 
+    relayListener(opts.timeout, args[0])
 
 if __name__ == '__main__':
     main()
