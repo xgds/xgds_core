@@ -267,13 +267,20 @@ def helpPopup(request, help_content_path, help_title):
                                'help_content_path': help_content_path},
                               context_instance=RequestContext(request))
 
-def addRelayFiles(dataProduct, filesToSave, serializedForm, url):
-    event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
-                       object_id=dataProduct.pk,
-                       acquisition_time=dataProduct.acquisition_time,
-                       serialized_form=serializedForm,
-                       url=url)
-    event.save()
+def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True):
+    # first see if there is an existing relayEvent
+    content_type=ContentType.objects.get_for_model(dataProduct)
+    object_id=dataProduct.pk
+    existingEvents = RelayEvent.objects.filter(content_type=content_type, object_id=object_id)
+    if existingEvents.count():
+        event = existingEvents[0]
+    else:
+        event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
+                           object_id=dataProduct.pk,
+                           acquisition_time=dataProduct.acquisition_time,
+                           serialized_form=serializedForm,
+                           url=url)
+        event.save()
 
     for k,f in filesToSave.iteritems():
         relayFile = RelayFile(file_to_send=f,
@@ -282,7 +289,7 @@ def addRelayFiles(dataProduct, filesToSave, serializedForm, url):
         relayFile.save()
         
     #fire REDIS event if REDIS is on
-    if settings.XGDS_CORE_REDIS:
+    if settings.XGDS_CORE_REDIS and broadcast:
         queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, event.toRelayJson())
         event.relay_start_time = datetime.datetime.utcnow()
         event.save()

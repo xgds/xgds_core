@@ -214,7 +214,3 @@ class RelayFile(models.Model):
     file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
     file_key = models.CharField(max_length=64)
     relay_event = models.ForeignKey(RelayEvent)
-    
-    def toRelayJson(self):
-        result = {'relay_file': self.file_to_send}
-        return json.dumps(result)
