@@ -1,0 +1,35 @@
+{% extends 'dashboard_base_bootstrap.html' %}
+
+{% block preMap %}
+<div class="grid-stack-item ui-draggable"
+        data-gs-x="0" data-gs-y="0"
+        data-gs-width="2" data-gs-height="2">
+            <div class="grid-stack-item-content">
+            <i class="fa fa-unlock-alt pinDiv"></i>
+        	<i class="fa fa-window-close fa-lg"></i>
+            PRE MAP
+            </div>
+    </div>
+    
+    <div class="grid-stack-item ui-draggable"
+        data-gs-x="2" data-gs-y="0"
+        data-gs-width="1" data-gs-height="2">
+            <div class="grid-stack-item-content">
+            <i class="fa fa-unlock-alt pinDiv"></i>
+        	<i class="fa fa-window-close fa-lg"></i>
+            PRE MAP 2
+            </div>
+    </div>
+{% endblock preMap %}
+
+{% block postMap %}
+<div class="grid-stack-item lockAspect ui-draggable"
+        data-gs-x="0" data-gs-y="2"
+        data-gs-width="3" data-gs-height="2">
+            <div class="grid-stack-item-content" style="background:pink;">
+            <i class="fa fa-lock pinDiv"></i>
+        	<i class="fa fa-window-close fa-lg"></i>
+            POST MAP
+            </div>
+    </div>
+{% endblock postMap %}
