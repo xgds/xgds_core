@@ -206,6 +206,13 @@ class RelayEvent(models.Model):
     serialized_form = models.TextField()
     url = models.CharField(max_length=128)
     
+    def getSerializedData(self):
+        result = {'object_id':self.object_id,
+                  'content_type_id': self.content_type.id,
+                  'url': self.url,
+                  'serialized_form': self.serialized_form}
+        return result
+    
     def toRelayJson(self):
         result = {'relay_event_pk': self.pk}
         return json.dumps(result)

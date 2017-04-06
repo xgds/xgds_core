@@ -51,12 +51,12 @@ def relayData(active, timeout, hosturl):
     try:
         event = RelayEvent.objects.get(pk=json.loads(active)['relay_event_pk'])
         logging.info('RELAY BEGIN %d' % event.pk)
-        url = "%s%s" % (hosturl, event.url)
+        url = "%s%s" % (hosturl, '/xgds_core/relay/')
         files = {}
         for f in event.relayfile_set.all():
             files[f.file_key] = f.file_to_send
         #TODO handle pk matching and check for the pk and type somehow
-        response = requests.post(url, data=json.loads(event.serialized_form), files=files, timeout=timeout)
+        response = requests.post(url, data=event.getSerializedData(), files=files, timeout=timeout)
         if response.status_code == requests.codes.ok:
             event.relay_success_time = datetime.datetime.utcnow()
             rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE)

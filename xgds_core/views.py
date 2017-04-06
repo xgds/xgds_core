@@ -24,6 +24,8 @@ from django.http import Http404
 import couchdb
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import resolve
+
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
@@ -294,6 +296,31 @@ def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True)
         event.relay_start_time = datetime.datetime.utcnow()
         event.save()
 
-    
-                        
-    
+
+def receiveRelay(request):
+    object_id = request.POST.get('object_id')
+    content_type_id = request.POST.get('content_type_id')
+    ct = ContentType.objects.get_for_id(content_type_id)
+    foundObject = ct.get_object_for_this_type(pk=object_id)
+    if foundObject:
+        # return success, we already have it
+        return HttpResponse(json.dumps({'exists': 'true', 
+                                        'json': {'pk': object_id,
+                                                 'content_type_id': content_type_id}}), 
+                            content_type='application/json')
+        
+    else:
+        # we don't have this object already, call the original url to submit
+        url = request.POST.get('url')
+        serialized_form = request.POST.get('serialized_form')
+        serialized_form_dict = json.loads(serialized_form)
+        
+        # add the original form information back to the request
+        mutable = request.POST._mutable
+        request.POST._mutable = True
+        for k,v in serialized_form_dict.iteritems():
+            request.POST[k]=v
+        request.POST._mutable = mutable
+        
+        view, view_args, view_kwargs = resolve(url)
+        return view(request)
