@@ -4,10 +4,10 @@
  */
  h3 {
      color:#000000;
-     font-size: .9em;
-     margin-bottom:0.5em;
+     //font-size: .9em;
+/*      margin-bottom:0.5em;
      margin-top:2em;
- }
+ */ }
 /* -- main layout ----------------------------------------------------------- */
 
 header, .full-width {
@@ -20,7 +20,7 @@ header, .full-width {
 	margin-left: 20px;
 	padding-top: 5px;
 	padding-bottom: 5px;
-	font-size: 1.2em;
+	font-size: 1.2rem;
 	color: #FFFFFF;
 	font-weight: bold;
 }
@@ -29,7 +29,7 @@ header, .full-width {
 	float: right;
 	color: #DDDDDD;
 	margin-right: 5px;
-	font-size: .8em;
+	font-size: .8rem;
 }
 
 div.clearer {
@@ -98,7 +98,7 @@ div.topic {
 }
 
 p.topic-title {
-    font-size: 1em;
+    //font-size: 1em;
     font-weight: bold;
     margin-top: 10px;
 }
@@ -117,7 +117,7 @@ p.topic-title {
     margin:30px;
 }
 .admonition p { 
-    font: .9em 'Lucida Grande', Geneva, Helvetica, Arial, sans-serif;
+    //font: .9em 'Lucida Grande', Geneva, Helvetica, Arial, sans-serif;
     margin-top: 7px;
     margin-bottom: 0px;
 }
@@ -148,7 +148,7 @@ table.docutils {
     border-top: 1px solid #919699;
     border-left: 1px solid #919699;
     border-right: 1px solid #919699;
-    font-size:.8em;
+    //font-size:.8em;
     padding:8px;
     text-align:left;
     vertical-align:top;
@@ -156,7 +156,7 @@ table.docutils {
 
 table.docutils td, table.docutils th {
     padding: 8px;
-    font-size: .8em;
+    //font-size: .8em;
     text-align: left;
     vertical-align: top;
     border-bottom: 1px solid #919699;
@@ -207,7 +207,7 @@ th {
 
 dl dt { 
 	font-weight: bold; 
-	font-size: 13px; 
+	//font-size: 13px; 
 }
 
 dl {
@@ -216,7 +216,7 @@ dl {
 
 dd p {
     margin-top: 0px;
-    font-size: 13px; //.9em;
+    //font-size: 13px; //.9em;
 }
 
 dd ul, dd table {
@@ -227,7 +227,7 @@ dd {
     margin-top: 3px;
     margin-bottom: 5px;
     margin-left: 30px;
-    font-size: 13px; //.8em;
+    //font-size: 13px; //.8em;
     line-height: normal;
 }
 
@@ -237,11 +237,11 @@ dt:target, .highlight {
 
 dl.glossary dt {
     font-weight: bold;
-    font-size: 13px; //0.8em;
+    //font-size: 13px; //0.8em;
 }
 
 dl.glossary dd {
-	font-size:.8em;
+	//font-size:.8em;
 }
 .field-list ul {
     vertical-align: top;
@@ -263,7 +263,7 @@ dl.glossary dd {
 }
 
 .optional {
-    font-size: 1.3em;
+    //font-size: 1.3em;
 }
 
 .versionmodified {
@@ -287,8 +287,8 @@ pre {
     background-color:#F1F5F9;
     border:1px solid #C9D1D7;
     border-spacing:0;
-    font-family:"Bitstream Vera Sans Mono",Monaco,"Lucida Console",Courier,Consolas,monospace;
-    font-size:11px;
+    //font-family:"Bitstream Vera Sans Mono",Monaco,"Lucida Console",Courier,Consolas,monospace;
+    //font-size:11px;
     padding: 10px;
 }
 
@@ -308,14 +308,14 @@ table.highlighttable td {
 }
 
 tt {
-	font-family:"Bitstream Vera Sans Mono",Monaco,"Lucida Console",Courier,Consolas,monospace;
+	//font-family:"Bitstream Vera Sans Mono",Monaco,"Lucida Console",Courier,Consolas,monospace;
 
 }
 
 tt.descname {
     background-color: transparent;
     font-weight: bold;
-    font-size: .8em;
+    //font-size: .8em;
 }
 
 tt.descclassname {
@@ -364,7 +364,7 @@ span.eqno {
 }
 
 body {
-    font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
+    //font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
 }
 
 dl.class dt {
@@ -418,7 +418,7 @@ padding:0 0 12px 6px;
     color: white;
     text-shadow:0 1px 0 #787878;
     height: 36px;
-    font-size: 14px;
+    //font-size: 14px;
 }
 #header {
 height:45px;
@@ -430,7 +430,7 @@ z-index:900;
 }
 
 #header h1 {
-font-size:10pt;
+font-size:1rem;
 margin:0;
 padding:5px 0 0 10px;
 text-shadow:0 1px 0 #D5D5D5;
@@ -440,8 +440,8 @@ white-space:nowrap;
 h1 {
 -x-system-font:none;
 color:#3085d6;
-font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
-font-size:1em;
+//font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
+font-size:1rem;
 font-size-adjust:none;
 font-stretch:normal;
 font-style:normal;
@@ -457,13 +457,13 @@ border-top:1px solid #DDDDDD;
 clear:both;
 padding-top:9px;
 width:100%;
-font-size:10px;
+//font-size:10px;
 }
 
 p {
 -x-system-font:none;
-font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
-font-size:.8em;
+//font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
+//font-size:.8em;
 font-size-adjust:none;
 font-stretch:normal;
 font-style:normal;
@@ -477,7 +477,7 @@ margin-top:0;
 h2 {
 border-bottom:1px solid #919699;
 color:#000000;
-font-size:24px;
+//font-size:24px;
 margin-top:2.5em;
 padding-bottom:2px;
 }
@@ -501,8 +501,8 @@ padding:0 0 12px 6px;
 }
 li {
 margin-top:7px;
-font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
-font-size:.8em;
+//font-family:'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
+//font-size:.8em;
 font-size-adjust:none;
 font-stretch:normal;
 font-style:normal;

@@ -11,8 +11,10 @@
     <title>
     {% block siteTitle %}xGDS Help: {{ help_title }} {% endblock siteTitle%}
     </title>
-    <link rel="stylesheet" type="text/css" href="{% static 'gumby/css/gumby.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.css' %}">
  	<link rel="stylesheet" type="text/css" href="{% static 'xgds_core/css/help.css' %}">
+ 	<link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+ 	
  	{% block cssExtras %}
     {% endblock cssExtras %}
   </head>
@@ -24,11 +26,11 @@
 	{{help_title}}
     <a href="#"
        onclick="javascript:window.close()"
-       id="closeWindow">Close</a>
+       id="closeWindow"><i class="fa fa-window-close white fa-lg mt-1"></i></a>
 </div>
 </header>
 {% endblock %}
-<div class="row twelve columns" id="page-content">			
+<div class="container-fluid" id="page-content">			
    	{% block content %}
    	{% includestatic help_content_path as help_content %}
    	{{ help_content|restructuredtext }}
