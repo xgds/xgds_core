@@ -301,15 +301,15 @@ def receiveRelay(request):
     object_id = request.POST.get('object_id')
     content_type_id = request.POST.get('content_type_id')
     ct = ContentType.objects.get_for_id(content_type_id)
-    foundObject = ct.get_object_for_this_type(pk=object_id)
-    if foundObject:
+    try:
+        foundObject = ct.get_object_for_this_type(pk=object_id)
         # return success, we already have it
         return HttpResponse(json.dumps({'exists': 'true', 
                                         'json': {'pk': object_id,
                                                  'content_type_id': content_type_id}}), 
                             content_type='application/json')
         
-    else:
+    except:
         # we don't have this object already, call the original url to submit
         url = request.POST.get('url')
         serialized_form = request.POST.get('serialized_form')
