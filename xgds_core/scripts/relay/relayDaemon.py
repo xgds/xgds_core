@@ -59,6 +59,7 @@ def relayData(active, timeout, hosturl):
         response = requests.post(url, data=event.getSerializedData(), files=files, timeout=timeout)
         if response.status_code == requests.codes.ok:
             event.relay_success_time = datetime.datetime.utcnow()
+            event.save()
             rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
             logging.info('RELAY SUCCESS %d' % event.pk)
         else:
