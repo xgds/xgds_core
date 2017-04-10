@@ -208,7 +208,8 @@ class RelayEvent(models.Model):
     
     def getSerializedData(self):
         result = {'object_id':self.object_id,
-                  'content_type_id': self.content_type.id,
+                  'content_type_app_label': self.content_type.app_label,
+                  'content_type_model': self.content_type.model,
                   'url': self.url,
                   'serialized_form': self.serialized_form}
         return result

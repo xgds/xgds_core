@@ -299,14 +299,16 @@ def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True)
 
 def receiveRelay(request):
     object_id = request.POST.get('object_id')
-    content_type_id = request.POST.get('content_type_id')
-    ct = ContentType.objects.get_for_id(content_type_id)
+    content_type_app_label = request.POST.get('content_type_app_label')
+    content_type_model = request.POST.get('content_type_model')
+    ct = ContentType.objects.get(model=content_type_model, app_label=content_type_app_label)
     try:
         foundObject = ct.get_object_for_this_type(pk=object_id)
         # return success, we already have it
         return HttpResponse(json.dumps({'exists': 'true', 
                                         'json': {'pk': object_id,
-                                                 'content_type_id': content_type_id}}), 
+                                                 'content_type_app_label': content_type_app_label,
+                                                 'content_type_model': content_type_model}}), 
                             content_type='application/json')
         
     except:
