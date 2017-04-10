@@ -298,6 +298,7 @@ def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True)
 
 
 def receiveRelay(request):
+    print 'IN RECEIVE RELAY'
     object_id = request.POST.get('object_id')
     content_type_app_label = request.POST.get('content_type_app_label')
     content_type_model = request.POST.get('content_type_model')
@@ -325,4 +326,10 @@ def receiveRelay(request):
         request.POST._mutable = mutable
         
         view, view_args, view_kwargs = resolve(url)
-        return view(request)
+
+        try:
+
+           print 'about to call view '
+           return view(request, **view_kwargs)
+        except:
+           traceback.print_exc()
