@@ -14,15 +14,19 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 import json
+import datetime
 from django.utils import timezone
 from django.db import models
-from xgds_core.util import get100Years
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
+
+from geocamUtil.models.ExtrasDotField import ExtrasDotField
+from xgds_core.util import get100Years
+
 
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
@@ -222,3 +226,56 @@ class RelayFile(models.Model):
     file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
     file_key = models.CharField(max_length=64)
     relay_event = models.ForeignKey(RelayEvent)
+
+
+
+class AbstractCondition(models.Model):
+    source = models.CharField(null=False, blank=False, max_length=64, db_index=True)     # where did this condition originate
+    source_id = models.CharField(null=True, blank=True, max_length=64, db_index=True)    # id from the source side so we can correlate or update conditions
+    xgds_id = models.CharField(null=True, blank=True, max_length=64, db_index=True)      # id on the xGDS side in case we want to map this condition to something
+    timezone = models.CharField(null=True, blank=False, max_length=32, default=settings.TIME_ZONE, db_index=True)    # timezone of the condition (for display)
+    start_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True) # if the condition has a duration, what is its start time
+    end_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)   # if the condition has a duration, what is its end time
+    name = models.CharField(null=True, blank=True, max_length=64)      # name which probably came from the source
+    
+    class Meta:
+        abstract = True
+
+    def getLatestCondition(self):
+        lastCondition = self.condition_history__set.last()
+        if lastCondition:
+            return lastCondition
+        return None
+
+    def getLatestStatus(self):
+        lastCondition = self.getLatestCondition()
+        if lastCondition:
+            return lastCondition.status
+        return None
+
+    def getLatestSourceTime(self):
+        lastCondition = self.getLatestCondition()
+        if lastCondition:
+            return lastCondition.source_time
+        return None
+
+
+class Condition(AbstractCondition):
+    pass
+
+DEFAULT_CONDITION_FIELD = lambda: models.ForeignKey('xgds_core.Condition', null=True, blank=True)
+
+class AbstractConditionHistory(models.Model):
+    condition = 'set to DEFAULT_CONDITION_FIELD() or similar in derived classes'
+    source_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True, default=datetime.datetime.utcnow) # actual source time of the condition
+    creation_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True, default=datetime.datetime.utcnow)  # when was this modified in xGDS
+    status = models.CharField(null=True, blank=True, max_length=128)    # id on the xGDS side in case we want to map this condition to something
+    jsonData = ExtrasDotField(null=True, blank=True)                    # dot dictionary to hold the raw data and any extra data
+
+    class Meta:
+        abstract = True
+        ordering = ['creation_time']
+
+
+class ConditionHistory(AbstractConditionHistory):
+    condition = DEFAULT_CONDITION_FIELD()
