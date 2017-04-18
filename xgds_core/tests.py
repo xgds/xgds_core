@@ -14,7 +14,6 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
-import pydevd
 import requests
 import datetime
 import json
@@ -35,7 +34,6 @@ class xgds_coreTest(TestCase):
 class xgds_coreConditionSetTest(TestCase):
     
     def test_set_condition(self):
-        pydevd.setttrace('128.102.236.67')
         url = "%s%s" % (settings.HOSTNAME, '/xgds_core/condition/set/')
         isonow = datetime.datetime.now(pytz.utc).isoformat()
         data = {'time': isonow,

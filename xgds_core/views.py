@@ -13,7 +13,6 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
-import pydevd
 import traceback
 import os
 import pytz
@@ -346,7 +345,6 @@ CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTOR
 def setCondition(request):
     ''' read information from request.POST and use it to set or update a stored condition
     '''
-    pydevd.settrace('128.102.236.67')
     try:
         raw_source_time = request.POST.get('time')
         source_time = dateparser(raw_source_time)
