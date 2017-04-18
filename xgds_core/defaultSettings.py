@@ -47,6 +47,9 @@ XGDS_CORE_REDIS_PORT = 6379
 XGDS_CORE_REDIS_RELAY_CHANNEL = 'dataRelayQueue'
 XGDS_CORE_REDIS_RELAY_ACTIVE = 'dataRelayActive'
 
+XGDS_CORE_CONDITION_MODEL = "xgds_core.Condition"
+XGDS_CORE_CONDITION_HISTORY_MODEL = "xgds_core.ConditionHistory"
+
 BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
 BOWER_INSTALLED_APPS += ['moment',
                          'moment-timezone',

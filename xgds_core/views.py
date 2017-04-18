@@ -13,16 +13,23 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+import pydevd
 import traceback
 import os
+import pytz
 import glob
 import json
 import datetime
+import httplib
+from dateutil.parser import parse as dateparser
+
 from django.utils import timezone
 from django.http import Http404
 
 import couchdb
 
+from django.core.serializers import serialize
+from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import resolve
 
@@ -34,7 +41,7 @@ from django.views.decorators.cache import cache_page
 from django.template import loader
 from django.conf import settings
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404, JsonResponse
 from django.template import RequestContext
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.cache import caches
@@ -327,6 +334,39 @@ def receiveRelay(request):
         view, view_args, view_kwargs = resolve(url)
 
         try:
-           return view(request, **view_kwargs)
+            return view(request, **view_kwargs)
         except:
-           traceback.print_exc()
+            traceback.print_exc()
+
+
+CONDITION_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_MODEL)
+CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTORY_MODEL)
+
+    
+def setCondition(request):
+    ''' read information from request.POST and use it to set or update a stored condition
+    '''
+    pydevd.settrace('128.102.236.67')
+    try:
+        raw_source_time = request.POST.get('time')
+        source_time = dateparser(raw_source_time)
+        condition_source = request.POST.get('source')
+        condition_source_id = request.POST.get('id', None)
+        if condition_source_id:
+            condition = CONDITION_MODEL.get().objects.get_or_create(source=condition_source, source_id=condition_source_id)
+        else:
+            condition = CONDITION_MODEL.get()(source=condition_source)
+
+        condition_data = request.POST.get('data', '{}')
+        condition_history = condition.populate(source_time, condition_data)
+        
+        json_condition_history = serialize('json', condition_history, cls=DjangoJSONEncoder)
+        return JsonResponse(json.dumps({'status': 'success',
+                                        'data': json_condition_history}),
+                            status=httplib.ACCEPTED)
+    except Exception as e:
+        return JsonResponse(json.dumps({'status': 'error',
+                                        'error': str(e)
+                                        }),
+                            status=httplib.NOT_ACCEPTABLE)
+    
