@@ -286,23 +286,29 @@ class AbstractCondition(models.Model):
         condition_history.populate(condition_data_dict)
         return condition_history
   
-    def getLatestCondition(self):
-        lastCondition = self.condition_history__set.last()
+    def getLatestHistory(self):
+        history = self.getHistory()
+        lastCondition = history.last()
         if lastCondition:
             return lastCondition
         return None
 
     def getLatestStatus(self):
-        lastCondition = self.getLatestCondition()
+        lastCondition = self.getLatestHistory()
         if lastCondition:
             return lastCondition.status
         return None
 
     def getLatestSourceTime(self):
-        lastCondition = self.getLatestCondition()
+        lastCondition = self.getLatestHistory()
         if lastCondition:
             return lastCondition.source_time
         return None
+    
+    def getHistory(self):
+        history_name = settings.XGDS_CORE_CONDITION_HISTORY_MODEL.replace('.','_')
+        return getattr(self, history_name)
+    
 
 
 class Condition(AbstractCondition):
