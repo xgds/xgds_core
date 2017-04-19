@@ -317,8 +317,9 @@ class AbstractConditionHistory(models.Model):
     status = models.CharField(null=True, blank=True, max_length=128)    # id on the xGDS side in case we want to map this condition to something
     jsonData = ExtrasDotField(null=True, blank=True)                    # dot dictionary to hold the raw data and any extra data
 
-    def populate(self, condition_data_dict):
-        self.save()
+    def populate(self, condition_data_dict, save=True):
+        if save:
+            self.save()
 
     class Meta:
         abstract = True

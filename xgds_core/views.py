@@ -28,7 +28,7 @@ from django.http import Http404
 import couchdb
 
 from django.core.serializers import serialize
-from django.core.serializers.json import DjangoJSONEncoder
+from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import resolve
 
@@ -51,6 +51,7 @@ from xgds_core.models import TimeZoneHistory
 from geocamUtil.loader import LazyGetModelByName
 
 from xgds_core.models import RelayFile, RelayEvent
+from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 if settings.XGDS_CORE_REDIS:
     from xgds_core.util import queueRedisData
@@ -351,20 +352,28 @@ def setCondition(request):
         condition_source = request.POST.get('source')
         condition_source_id = request.POST.get('id', None)
         if condition_source_id:
-            condition = CONDITION_MODEL.get().objects.get_or_create(source=condition_source, source_id=condition_source_id)
+            condition, created = CONDITION_MODEL.get().objects.get_or_create(source=condition_source, source_id=condition_source_id)
         else:
             condition = CONDITION_MODEL.get()(source=condition_source)
 
         condition_data = request.POST.get('data', '{}')
         condition_history = condition.populate(source_time, condition_data)
         
-        json_condition_history = serialize('json', condition_history, cls=DjangoJSONEncoder)
-        return JsonResponse(json.dumps({'status': 'success',
-                                        'data': json_condition_history}),
-                            status=httplib.ACCEPTED)
+#         condition_history_dict = model_to_dict(condition_history)
+#         condition_dict = model_to_dict(condition_history.condition)
+#         condition_dict.update(condition_history_dict)
+
+        json_condition_history = serialize('json', [condition, condition_history])
+#         json_condition_history = json.dumps(condition_dict, cls=DatetimeJsonEncoder)
+        result = {'status': 'success',
+                  'data': json_condition_history}
+        return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder)
+    
     except Exception as e:
-        return JsonResponse(json.dumps({'status': 'error',
-                                        'error': str(e)
-                                        }),
+        traceback.print_exc()
+        result_dict = {'status': 'error',
+                       'error': str(e)
+                       }
+        return JsonResponse(json.dumps(result_dict),
                             status=httplib.NOT_ACCEPTABLE)
     
