@@ -359,12 +359,7 @@ def setCondition(request):
         condition_data = request.POST.get('data', '{}')
         condition_history = condition.populate(source_time, condition_data)
         
-#         condition_history_dict = model_to_dict(condition_history)
-#         condition_dict = model_to_dict(condition_history.condition)
-#         condition_dict.update(condition_history_dict)
-
         json_condition_history = serialize('json', [condition, condition_history])
-#         json_condition_history = json.dumps(condition_dict, cls=DatetimeJsonEncoder)
         result = {'status': 'success',
                   'data': json_condition_history}
         return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder)
