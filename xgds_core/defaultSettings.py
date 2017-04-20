@@ -55,5 +55,5 @@ BOWER_INSTALLED_APPS += ['moment',
                          'moment-timezone',
                          'moment-duration-format',
                          'moment-range#2.1.0',
-                         'gridstack#0.2.5']
+                         'gridstack#0.2.6']
 
