@@ -19,6 +19,7 @@ from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
 from django.db import models
+from django.db.models import DEFERRED
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
@@ -125,7 +126,7 @@ class SearchableModel(object):
     @property
     def model_type(self):
         t = type(self)
-        if t._deferred:
+        if self.get_deferred_fields():
             t = t.__base__
         return t._meta.object_name
     

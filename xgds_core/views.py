@@ -39,7 +39,7 @@ from django.db.models import Q
 from django.views.decorators.cache import cache_page
 from django.template import loader
 from django.conf import settings
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404, JsonResponse
 from django.template import RequestContext
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -271,10 +271,11 @@ class OrderListJson(BaseDatatableView):
         return qs.distinct()
     
 def helpPopup(request, help_content_path, help_title):
-    return render_to_response('help_popup.html',
-                              {'help_title': help_title,
-                               'help_content_path': help_content_path},
-                              context_instance=RequestContext(request))
+    return render(request,
+                  'help_popup.html',
+                  {'help_title': help_title,
+                   'help_content_path': help_content_path},
+                  )
 
 def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True):
     # first see if there is an existing relayEvent
