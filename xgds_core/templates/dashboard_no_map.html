@@ -1,14 +1,15 @@
 
 {% extends 'base.html' %}
 {% load pipeline %}
+{% load static %}
 
 {% block cssExtras %}
 {{ block.super}}
 <link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}jquery-ui/themes/base/jquery-ui.min.css" ></link>
 <link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.css" ></link>
 <link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}gridstack/dist/gridstack-extra.min.css" ></link>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}geocamUtil/css/dashboard.css"></link>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}geocamUtil/css/datatable.css"></link>
+<link rel="stylesheet" type="text/css" href="{% static 'geocamUtil/css/dashboard.css' %}"></link>
+<link rel="stylesheet" type="text/css" href="{% static 'geocamUtil/css/datatable.css' %}"></link>
 {% endblock cssExtras %}
 
 {% block jsInit %}
@@ -33,9 +34,9 @@
 	<script type="text/javascript" src="{{ EXTERNAL_URL }}datatables-select/js/dataTables.select.js"></script>
     <script type="text/javascript" src='{{ EXTERNAL_URL }}handlebars/handlebars.min.js'></script>
 	
-	<script type="text/javascript" src="{{ STATIC_URL }}geocamUtil/js/datatable_helpers.js"></script>
+	<script type="text/javascript" src="{% static 'geocamUtil/js/datatable_helpers.js' %}"></script>
     <script type="text/javascript" src="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.js" ></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}xgds_core/js/gridstackUtils.js"></script>
+	<script type="text/javascript" src="{% static 'xgds_core/js/gridstackUtils.js' %}"></script>
 {% endblock scripts %}
 
 

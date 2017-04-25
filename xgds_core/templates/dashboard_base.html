@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load pipeline %}
 {% load siteFrames %}
+{% load static %}
 
  {% block cssExtras %}
  {{ block.super }}
@@ -70,9 +71,9 @@
 	{% endwith %}
 	{% endif %}
 	
-	<script type="text/javascript" src="{{ STATIC_URL }}geocamUtil/js/datatable_helpers.js"></script>
+	<script type="text/javascript" src="{% static 'geocamUtil/js/datatable_helpers.js' %}"></script>
 	<script type="text/javascript" src="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.js" ></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}xgds_core/js/gridstackUtils.js"></script>
+	<script type="text/javascript" src="{% static 'xgds_core/js/gridstackUtils.js' %}"></script>
 	{% javascript 'custom_map' %}
 {% endblock scripts %}
 

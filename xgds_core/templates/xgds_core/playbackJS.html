@@ -1,5 +1,6 @@
     {% include "xgds_core/timeJS.html" %}
-	<script type="text/javascript" src='{{ STATIC_URL }}xgds_core/js/playbackUtils.js'></script>
-	<script type="text/javascript" src='{{ STATIC_URL }}xgds_core/js/playbackSlider.js'></script>
-	<script type="text/javascript" src='{{ STATIC_URL }}xgds_core/js/playbackPlayer.js'></script>
+    {% load static %}
+	<script type="text/javascript" src="{% static 'xgds_core/js/playbackUtils.js' %}"></script>
+	<script type="text/javascript" src="{% static 'xgds_core/js/playbackSlider.js'%}"></script>
+	<script type="text/javascript" src="{% static 'xgds_core/js/playbackPlayer.js'%}"></script>
 	
