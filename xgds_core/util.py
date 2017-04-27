@@ -22,7 +22,7 @@ from django.conf import settings
 if settings.XGDS_CORE_REDIS:
     import redis
 
-rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
+    rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
 
 def get100Years():
     theNow = timezone.now() + relativedelta(years=100)
