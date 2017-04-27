@@ -15,3 +15,5 @@ def publish_hello():
     argString = request.args.get("argString", "")
     sse.publish({"message": "Hello %s!" % argString}, type='greeting')
     return "Message sent!"
+
+

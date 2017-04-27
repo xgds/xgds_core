@@ -14,6 +14,7 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+import json
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
@@ -21,12 +22,16 @@ from django.conf import settings
 if settings.XGDS_CORE_REDIS:
     import redis
 
+rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
 
 def get100Years():
     theNow = timezone.now() + relativedelta(years=100)
     return theNow
 
 if settings.XGDS_CORE_REDIS:
-    def queueRedisData(channel, jsonData):
-        rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
-        rs.lpush(channel,jsonData)
+    def queueRedisData(channel, jsonString):
+        rs.lpush(channel, jsonString)
+        
+    def publishRedisSSE(channel, sse_type, jsonString):
+        message_string = json.dumps({'type':sse_type, 'data': jsonString})
+        rs.publish(channel, message_string)

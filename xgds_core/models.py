@@ -286,6 +286,9 @@ class AbstractCondition(models.Model):
         condition_history.populate(condition_data_dict)
         return condition_history
   
+    def getRedisSSEChannel(self):
+        return 'condition'
+
     def getLatestHistory(self):
         history = self.getHistory()
         lastCondition = history.last()

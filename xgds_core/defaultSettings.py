@@ -47,6 +47,11 @@ XGDS_CORE_REDIS_PORT = 6379
 XGDS_CORE_REDIS_RELAY_CHANNEL = 'dataRelayQueue'
 XGDS_CORE_REDIS_RELAY_ACTIVE = 'dataRelayActive'
 
+# override to include SSE; right now we are based on flask-sse nginx and redis
+XGDS_SSE = False
+# extend this if you have your own channels, for example one per vehicle
+XGDS_SSE_CHANNELS = ['sse']
+
 XGDS_CORE_CONDITION_MODEL = "xgds_core.Condition"
 XGDS_CORE_CONDITION_HISTORY_MODEL = "xgds_core.ConditionHistory"
 

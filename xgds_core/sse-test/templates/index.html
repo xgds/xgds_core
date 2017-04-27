@@ -14,7 +14,39 @@
     source.addEventListener('error', function(event) {
         alert("Failed to connect to event stream. Is Redis running?");
     }, false);
+    
+    // subscribe to EV1 events
+    var ev1Source = new EventSource("/sse" + "{{ url_for('sse.stream', channel='EV1') }}"); 
+    ev1Source.addEventListener('position', function(event) {
+        document.getElementById("positionEV1").innerHTML = event.data;
+    }, false);
+    ev1Source.addEventListener('condition', function(event) {
+        document.getElementById("conditionEV1").innerHTML = event.data;
+    }, false);
+
+    // subscribe to EV2 events
+
+    var ev2Source = new EventSource("/sse" + "{{ url_for('sse.stream', channel='EV2') }}"); 
+    ev2Source.addEventListener('position', function(event) {
+        document.getElementById("positionEV2").innerHTML = event.data;
+    }, false);
+    ev2Source.addEventListener('condition', function(event) {
+        document.getElementById("conditionEV2").innerHTML = event.data;
+    }, false);
+
+
   </script>
   <p><span id="docText"></span></p>
+  <p>
+  <h3>EV1</h3>
+  <strong>POSITION</strong><span id="positionEV1"></span><br/>
+  <strong>CONDITION</strong><span id="conditionEV1"></span><br/>
+  </p>
+  
+  <p>
+  <h3>EV2</h3>
+  <strong>POSITION</strong><span id="positionEV2"></span><br/>
+  <strong>CONDITION</strong><span id="conditionEV2"></span><br/>
+  </p>
 </body>
 </html>

@@ -55,6 +55,8 @@ from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 if settings.XGDS_CORE_REDIS:
     from xgds_core.util import queueRedisData
+    from xgds_core.util import publishRedisSSE
+
 
 
 def getTimeZone(inputTime):
@@ -363,6 +365,10 @@ def setCondition(request):
         json_condition_history = serialize('json', [condition, condition_history])
         result = {'status': 'success',
                   'data': json_condition_history}
+        
+        if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
+            publishRedisSSE(condition.getRedisSSEChannel(), 'condition', json_condition_history)
+
         return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder)
     
     except Exception as e:
@@ -373,3 +379,7 @@ def setCondition(request):
         return JsonResponse(json.dumps(result_dict),
                             status=httplib.NOT_ACCEPTABLE)
     
+
+def getSseActiveChannels(request):
+    # Look up the active channels we are using for SSE
+    return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)
