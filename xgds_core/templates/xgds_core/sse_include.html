@@ -1,0 +1,7 @@
+	{% load static %}
+	<script src="{% static 'xgds_core/js/sseUtils.js' %}"></script>
+	<script type="text/javascript">
+		//$('#connected_div').show();
+		$('#connected_div').css('visibility','visible');
+		sse.initialize();
+	</script>
