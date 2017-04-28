@@ -1,9 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_sse import sse
-from flask import request
 
 app = Flask(__name__)
 app.config["REDIS_URL"] = "redis://localhost"
 app.register_blueprint(sse, url_prefix='/stream')
-
-

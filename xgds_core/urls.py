@@ -21,6 +21,7 @@ from django.conf import settings
 from dal.autocomplete import Select2QuerySetView
 
 import xgds_core.views as views
+import xgds_core.util as util
 import xgds_core.typeahead as typeahead
 from xgds_core.models import XgdsUser
 
@@ -44,7 +45,7 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^complete/User.json/$', typeahead.XSelect2QuerySetView.as_view(model=XgdsUser), name='select2_model_user'),
                url(r'^complete/(?P<model_name>[\w]+[\.]*[\w]*).json/$',typeahead.getSelectJson2, name='select2_model'),
                url(r'^relay/$',views.receiveRelay, {'loginRequired': False}, 'receive_relay'),
-               url(r'^sseActiveChannels/$', views.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'),
+               url(r'^sseActiveChannels/$', util.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'),
                url(r'^condition/set/$',views.setCondition, {'loginRequired': False}, 'xgds_core_set_condition'),
 #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
 #                url(r'^condition/range/(?P<range>[\d]+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_range'),

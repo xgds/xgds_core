@@ -23,7 +23,36 @@ $.extend(condition, {
 		sse.subscribe('condition', condition.handleConditionEvent)
 	},
 	handleConditionEvent: function(event){
-		$('#conditionDiv').html(event.data);
+		var receivedCondition = JSON.parse(event.data);
+		condition.updateColor(receivedCondition);
+		$('#conditionDiv').html(condition.getMessage(receivedCondition));
+	},
+	updateColor: function(received) {
+		// TODO replace this function with one that processes your status the way you want.
+//		var ch = received[1].fields;
+//		var cdiv = $('#conditionDiv');
+//		cdiv.removeClass (function (index, className) {
+//		    return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
+//		});
+//		cdiv.addClass('alert-info');
+	},
+	getPrintableTime: function(theTime, theTimeZone){
+		var theMoment = moment.tz(theTime, "Etc/UTC");
+		theMoment.tz(theTimeZone);
+		return theMoment.format('HH:mm:ss');
+	},
+	getMessage: function(received) {
+		// TODO replace this function with one that creates the message the way you want
+		var c = received[0].fields;
+		var ch = received[1].fields;
+		
+		// SOURCE(TIME): NAME STATUS
+		var result = c.source;
+		result += ' (' + condition.getPrintableTime(ch.source_time, c.timezone) + '): '; // todo convert to the timezone
+		result += c.name;
+		result += ' <strong>' + ch.status + '</strong>';
+		return result;
+		
 	},
 	getCurrentConditions: function() {
 		

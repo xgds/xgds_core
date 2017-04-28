@@ -337,3 +337,8 @@ class AbstractConditionHistory(models.Model):
 
 class ConditionHistory(AbstractConditionHistory):
     condition = DEFAULT_CONDITION_FIELD()
+
+class NameManager(models.Manager):
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)

@@ -362,7 +362,7 @@ def setCondition(request):
         condition_data = request.POST.get('data', '{}')
         condition_history = condition.populate(source_time, condition_data)
         
-        json_condition_history = serialize('json', [condition, condition_history])
+        json_condition_history = serialize('json', [condition, condition_history], use_natural_foreign_keys=True)
         result = {'status': 'success',
                   'data': json_condition_history}
         
@@ -380,6 +380,3 @@ def setCondition(request):
                             status=httplib.NOT_ACCEPTABLE)
     
 
-def getSseActiveChannels(request):
-    # Look up the active channels we are using for SSE
-    return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)

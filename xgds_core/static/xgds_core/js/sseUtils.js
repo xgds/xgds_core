@@ -21,14 +21,14 @@ $.extend(sse, {
 		sse.heartbeat();
 	},
 	heartbeat: function() {
-		setInterval(sse.checkHeartbeat, 6000);
+		setInterval(sse.checkHeartbeat, 11000);
 		sse.subscribe('heartbeat', sse.connectedCallback, 'sse');
 	},
 	checkHeartbeat: function() {
 		var connected = false
 		if (sse.lastHeartbeat != undefined){
 			var diff = moment.duration(moment().diff(sse.lastHeartbeat));
-			if (diff.asSeconds() <= 5) {
+			if (diff.asSeconds() <= 10) {
 				connected = true;
 			}
 		}
@@ -43,7 +43,10 @@ $.extend(sse, {
 			if (cdiv.hasClass('alert-danger')){
 				cdiv.removeClass('alert-danger');
 				cdiv.addClass('alert-success');
-				$("#connected").addClass('fa-spin');
+				var c = $("#connected");
+				c.removeClass('fa-bolt');
+				c.addClass('fa-plug');
+//				$("#connected").addClass('fa-spin');
 			}
 		} catch(err){
 			// in case there is no such page
@@ -55,7 +58,10 @@ $.extend(sse, {
 			if (cdiv.hasClass('alert-success')){
 				cdiv.removeClass('alert-success');
 				cdiv.addClass('alert-danger');
-				$("#connected").removeClass('fa-spin');
+				var c = $("#connected");
+				c.addClass('fa-bolt');
+				c.removeClass('fa-plug');
+//				$("#connected").removeClass('fa-spin');
 			}
 		} catch(err){
 			// in case there is no such page

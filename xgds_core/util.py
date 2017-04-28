@@ -18,6 +18,8 @@ import json
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
+from django.http import JsonResponse
+
 
 if settings.XGDS_CORE_REDIS:
     import redis
@@ -35,3 +37,7 @@ if settings.XGDS_CORE_REDIS:
     def publishRedisSSE(channel, sse_type, jsonString):
         message_string = json.dumps({'type':sse_type, 'data': jsonString})
         rs.publish(channel, message_string)
+        
+    def getSseActiveChannels(request):
+        # Look up the active channels we are using for SSE
+        return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)
