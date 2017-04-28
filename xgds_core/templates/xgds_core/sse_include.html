@@ -1,7 +1,12 @@
+	{% if ssePage %}
 	{% load static %}
 	<script src="{% static 'xgds_core/js/sseUtils.js' %}"></script>
 	<script type="text/javascript">
-		//$('#connected_div').show();
-		$('#connected_div').css('visibility','visible');
-		sse.initialize();
+		try {
+			$('#connected_div').css('visibility','visible');
+			sse.initialize();
+		} catch(err){
+			console.log('base.html should have a connected_div to show connection status');
+		}
 	</script>
+    {% endif %}

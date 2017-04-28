@@ -82,6 +82,16 @@ $.extend(sse, {
 		}
 		return sse.activeChannels;
 	},
+	parseEventChannel: function(event){
+		return sse.parseChannel(event.target.url);
+	},
+	parseChannel: function(fullUrl){
+		var splits = fullUrl.split('=');
+		if (splits.length > 1){
+			return splits[splits.length-1];
+		}
+		return 'sse';
+	},
 	subscribe: function(event_type, callback, channel) {
 		if (channel != undefined) {
 			var source = new EventSource("/sse/stream?channel=" + channel);

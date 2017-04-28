@@ -18,6 +18,7 @@ condition = {}; //namespace
 
 $.extend(condition, {
 	initialize: function() {
+		condition.subscribe();
 	},
 	subscribe: function() {
 		sse.subscribe('condition', condition.handleConditionEvent)

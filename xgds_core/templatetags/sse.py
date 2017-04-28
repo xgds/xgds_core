@@ -16,8 +16,9 @@
 
 
 from django import template
+from django.conf import settings
 register = template.Library()
 
 @register.inclusion_tag('xgds_core/sse_include.html')
 def setup_sse():
-    return { 'ssePage': True }
+    return { 'ssePage': settings.XGDS_SSE }
