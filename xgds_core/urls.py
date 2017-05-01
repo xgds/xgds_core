@@ -45,9 +45,11 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^complete/User.json/$', typeahead.XSelect2QuerySetView.as_view(model=XgdsUser), name='select2_model_user'),
                url(r'^complete/(?P<model_name>[\w]+[\.]*[\w]*).json/$',typeahead.getSelectJson2, name='select2_model'),
                url(r'^relay/$',views.receiveRelay, {'loginRequired': False}, 'receive_relay'),
-               url(r'^sseActiveChannels/$', util.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'),
                url(r'^condition/set/$',views.setCondition, {'loginRequired': False}, 'xgds_core_set_condition'),
 #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
 #                url(r'^condition/range/(?P<range>[\d]+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_range'),
                
                ]
+
+if settings.XGDS_CORE_REDIS:
+    urlpatterns.append(url(r'^sseActiveChannels/$', util.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
