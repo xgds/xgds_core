@@ -15,6 +15,15 @@
 //__END_LICENSE__
 
 $.extend({
+	preloadImages: function(urls) {
+		var result = [];
+		$.each(urls, function(index, theUrl){
+	        var theImg = $('<img/>')[0];
+	        theImg.src = theUrl;
+	        result.push(theImg);
+	    });
+		return result;
+	},
 	getManyJS: function(urls, callback){
 		var ajaxRequests = [];
 		$.each(urls, function(i, url){
