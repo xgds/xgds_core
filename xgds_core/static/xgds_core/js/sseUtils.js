@@ -46,7 +46,6 @@ $.extend(sse, {
 				var c = $("#connected");
 				c.removeClass('fa-bolt');
 				c.addClass('fa-plug');
-//				$("#connected").addClass('fa-spin');
 			}
 		} catch(err){
 			// in case there is no such page
@@ -61,7 +60,6 @@ $.extend(sse, {
 				var c = $("#connected");
 				c.addClass('fa-bolt');
 				c.removeClass('fa-plug');
-//				$("#connected").removeClass('fa-spin');
 			}
 		} catch(err){
 			// in case there is no such page
