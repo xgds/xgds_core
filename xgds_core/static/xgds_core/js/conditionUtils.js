@@ -26,9 +26,13 @@ $.extend(condition, {
 		sse.subscribe('condition', condition.handleConditionEvent)
 	},
 	handleConditionEvent: function(event){
-		var receivedCondition = JSON.parse(event.data);
-		condition.updateColor(receivedCondition);
-		$('#conditionDiv').html(condition.getMessage(receivedCondition));
+		try {
+			var receivedCondition = JSON.parse(event.data);
+			condition.updateColor(receivedCondition);
+			$('#conditionDiv').html(condition.getMessage(receivedCondition));
+		} catch(err){
+			// bad stuff
+		}
 	},
 	updateColor: function(received) {
 		// TODO replace this function with one that processes your status the way you want.
