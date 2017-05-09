@@ -58,6 +58,17 @@ if settings.XGDS_CORE_REDIS:
     from xgds_core.util import publishRedisSSE
 
 
+def buildFilterDict(theFilter):
+    filterDict = {}
+    dictEntries = str(theFilter).split(",")
+    for entry in dictEntries:
+        splits = str(entry).split(":")
+        try:
+            value = int(splits[1]);
+            filterDict[splits[0]] = value
+        except:
+            filterDict[splits[0]] = splits[1]
+    return filterDict
 
 def getTimeZone(inputTime):
     ''' For a given time, look in the TimeZoneHistory to see what the time zone was set to at that time.
@@ -378,5 +389,37 @@ def setCondition(request):
                        }
         return JsonResponse(json.dumps(result_dict),
                             status=httplib.NOT_ACCEPTABLE)
+
+
+def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
+    ''' Get the conditions from the last n hours, filtered by filter, in JSON
+    '''
+    now = datetime.datetime.now(pytz.utc)
+    yesterday = now - datetime.timedelta(seconds=3600 * range)
+    
+    if filter:
+        filterDict = buildFilterDict(filter)
+    filterDict['source_time__lte'] = now
+    filterDict['source_time__gte'] = yesterday
+
+    
+    condition_ids = CONDITION_MODEL.get().objects.values_list('pk', flat=True).distinct()    
+    recent_histories = [CONDITION_HISTORY_MODEL.get().objects.filter(**filterDict).filter(condition_id=c).order_by('-source_time')[0] for c in condition_ids]
+    
+    if recent_histories:
+        serialize_list = []
+        for h in recent_histories:
+            serialize_list.append(h.condition)
+            serialize_list.append(h)
+        json_condition_history = serialize('json', serialize_list, use_natural_foreign_keys=True)
+#         json_condition_history = serialize('json', recent_histories, use_natural_foreign_keys=True)
+        return JsonResponse(json_condition_history, status=httplib.OK, encoder=DatetimeJsonEncoder, safe=False)
+    
+    else:
+        return JsonResponse({'status':'none found'}, status=httplib.NOT_FOUND)
+        
+    
+    
+    
     
 

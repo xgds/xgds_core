@@ -17,8 +17,10 @@
 condition = {}; //namespace
 
 $.extend(condition, {
+	lastCondition: undefined,
 	initialize: function() {
 		condition.subscribe();
+		condition.getCurrentConditions();
 	},
 	subscribe: function() {
 		sse.subscribe('condition', condition.handleConditionEvent)
@@ -56,6 +58,13 @@ $.extend(condition, {
 		
 	},
 	getCurrentConditions: function() {
-		
+		$.ajax({
+            url: '/xgds_core/condition/activeJSON',
+            dataType: 'json',
+            success: $.proxy(function(data) {
+            	var fakeEvent = {data: data};
+            	condition.handleConditionEvent(fakeEvent);
+            }, this)
+          });
 	}
 });
