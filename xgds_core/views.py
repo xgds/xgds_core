@@ -418,7 +418,7 @@ def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
         return JsonResponse(json_condition_history, status=httplib.OK, encoder=DatetimeJsonEncoder, safe=False)
     
     else:
-        return JsonResponse({'status':'none found'}, status=httplib.NOT_FOUND)
+        return JsonResponse({}, status=httplib.NO_CONTENT)
         
     
     

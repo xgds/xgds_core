@@ -62,8 +62,10 @@ $.extend(condition, {
             url: '/xgds_core/condition/activeJSON',
             dataType: 'json',
             success: $.proxy(function(data) {
-            	var fakeEvent = {data: data};
-            	condition.handleConditionEvent(fakeEvent);
+            	if (!_.isEmpty(data)){
+            		var fakeEvent = {data: data};
+            		condition.handleConditionEvent(fakeEvent);
+            	}
             }, this)
           });
 	}
