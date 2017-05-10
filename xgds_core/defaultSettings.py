@@ -62,3 +62,4 @@ BOWER_INSTALLED_APPS += ['moment',
                          'moment-range#2.1.0',
                          'gridstack#0.2.6']
 
+FILE_UPLOAD_PERMISSIONS = 0o644
