@@ -403,11 +403,14 @@ def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
     filterDict['source_time__gte'] = yesterday
 
     
-    condition_ids = CONDITION_MODEL.get().objects.filter(start_time__lte=now).filter(start_time__gte=yesterday).values_list('pk', flat=True).distinct()
     recent_histories = None
-    if condition_ids:    
-        recent_histories = [CONDITION_HISTORY_MODEL.get().objects.filter(**filterDict).filter(condition_id=c).order_by('-source_time')[0] for c in condition_ids]
-    
+    try:
+        condition_ids = CONDITION_MODEL.get().objects.filter(start_time__lte=now).filter(start_time__gte=yesterday).values_list('pk', flat=True).distinct()
+        if condition_ids:    
+            recent_histories = [CONDITION_HISTORY_MODEL.get().objects.filter(**filterDict).filter(condition_id=c).order_by('-source_time')[0] for c in condition_ids]
+    except:
+        pass
+        
     if recent_histories:
         serialize_list = []
         for h in recent_histories:
