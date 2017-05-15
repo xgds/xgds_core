@@ -20,3 +20,6 @@ from xgds_core.models import *
 
 admin.site.register(Constant)
 admin.site.register(TimeZoneHistory)
+admin.site.register(RelayEvent)
+admin.site.register(RelayFile)
+admin.site.register(ConditionHistory)
