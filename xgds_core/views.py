@@ -59,6 +59,8 @@ if settings.XGDS_CORE_REDIS:
 
 
 def buildFilterDict(theFilter):
+    if isinstance(theFilter, dict):
+        return theFilter
     filterDict = {}
     dictEntries = str(theFilter).split(",")
     for entry in dictEntries:
