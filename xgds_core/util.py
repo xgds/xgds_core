@@ -19,6 +19,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
 from django.http import JsonResponse
+import urlparse
 
 
 if settings.XGDS_CORE_REDIS:
@@ -41,3 +42,11 @@ if settings.XGDS_CORE_REDIS:
     def getSseActiveChannels(request):
         # Look up the active channels we are using for SSE
         return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)
+
+def addPort(url, port):
+    ''' Add a port to a url '''
+    if port:
+        parsed = urlparse.urlparse(url)
+        replaced = parsed._replace(netloc="{}:{}".format(parsed.hostname, port))._replace(scheme='http')
+        return replaced.geturl()
+    return url
