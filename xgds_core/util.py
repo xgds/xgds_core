@@ -43,10 +43,12 @@ if settings.XGDS_CORE_REDIS:
         # Look up the active channels we are using for SSE
         return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)
 
-def addPort(url, port):
+def addPort(url, port, http=True):
     ''' Add a port to a url '''
     if port:
         parsed = urlparse.urlparse(url)
-        replaced = parsed._replace(netloc="{}:{}".format(parsed.hostname, port))._replace(scheme='http')
+        replaced = parsed._replace(netloc="{}:{}".format(parsed.hostname, port))
+        if http:
+            replaced = replaced._replace(scheme='http')
         return replaced.geturl()
     return url
