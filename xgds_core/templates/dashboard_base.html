@@ -81,6 +81,17 @@
 {% block content %}
 
 <script type="x-template/underscore" id="application_contents">
+	<div id="gridstack_buttonrow" class="d-flex justify-content-between mb-1">
+		<div class="d-flex justify-content-start">
+			{% block buttonrowLeft %}
+			{% endblock buttonrowLeft %}
+		</div>
+		<div class="d-flex justify-content-end">
+			{% block buttonrowRight %}
+			{% endblock buttonrowRight %}
+				<button id="gridstack_toggleAll" class='btn btn-primary fa fa-lock my-1' role='button' style="color:white; max-height:1.8rem;" onclick="xgds_gridstack.handleToggleAllClick();"></button>
+		</div>
+	</div>
 	{% block preDashboard %}
 	{% endblock preDashboard %}
 	{% block dashboard %}

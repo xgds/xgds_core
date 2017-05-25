@@ -41,6 +41,11 @@
 
 
 {% block content %}
+	<div id="gridstack_buttonrow">
+		<ul class="nav justify-content-end">
+			<button id="gridstack_toggleAll" class='btn btn-primary fa fa-lock' role='button' style="color:white;" onclick="xgds_gridstack.handleToggleAllClick();"></button>
+		</ul>
+	</div>
 	{% block preDashboard %}
 	{% endblock preDashboard %}
 
