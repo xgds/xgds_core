@@ -394,8 +394,7 @@ class DbServerInfo(models.Model):
         myPkIncrement = cls.getAutoIncrementIncrement()
         return (myPkIncrement != 1) and ((pk % myPkIncrement) != myPkOffset)
 
-    variableName = models.CharField(null=True, blank=True, max_length=64,
-                                    primary_key=True, db_column='VARIABLE_NAME')
+    variableName = models.CharField(max_length=64, primary_key=True, db_column='VARIABLE_NAME')
     variableValue = models.IntegerField(null=True, blank=True, max_length=1024,
                                         db_column='VARIABLE_VALUE')
 
