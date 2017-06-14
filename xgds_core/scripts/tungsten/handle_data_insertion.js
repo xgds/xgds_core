@@ -16,22 +16,79 @@
 
 //This simple javascript is called by tungsten replicator after it does an insertion.
 //To test in your virtual machine, type 
-//jjs handle_data_insertion.js
+//rhino handle_data_insertion.js
 
 //naive java implementation variant, if curl is not available
 var prefix = 'http://localhost:8181';
 var url = '/xgds_core/tungsten/dataInsert/';
-
-// test data for Tamar's computer
+//test data for Tamar's computer
 var data = {'pk':14173083,
-		    'tablename':'basaltApp_pastposition'};
+	    'tablename':'basaltApp_pastposition'};
 
-response = httpPost(prefix + url, data).data;
+prepare()
+{
 
-print('response: ' + response);
-var theResponse = JSON.parse(response);
-print ('timestamp: ' + theResponse.timestamp);
-print ('data: ' + theResponse.data);
+}
+
+//Perform the filter process; function is called for each event in the THL
+
+filter(event)
+{
+
+// Get the array of DBMSData objects
+    data = event.getData();
+
+    // Iterate over the individual DBMSData objects
+    for(i=0;i<data.size();i++)
+    {
+      // Get a single DBMSData object
+      d = data.get(i);
+
+      // Process a Statement Event; event type is identified by comparing the object class type
+
+      if (d instanceof com.continuent.tungsten.replicator.dbms.StatementData)
+      {
+        // Do statement processing
+    	  logger.info(d.getQuery());
+      }
+      else if (d instanceof com.continuent.tungsten.replicator.dbms.RowChangeData)
+      {
+        // Get an array of all the row changes
+        rows = data.get(i).getRowChanges();
+
+        // Iterate over row changes
+        for(j=0;j<rows.size();j++)
+        {
+          // Get the single row change
+          rowchange = rows.get(j);
+
+          // Identify the row change type
+          if (rowchange.getAction() == "INSERT" || rowchange.getAction() == "UPDATE")
+          {
+        	  logger.info(rowchange.getAction());
+        	  logger.info(rowchange.getTableName());
+        	  logger.info('COLUMNS');
+        	  logger.info(rowchange.getColumnSpec());
+        	  logger.info('VALUES');
+        	  logger.info(rowchange.getColumnValues());
+          } else {
+        	  logger.info(rowchange.getAction());
+          }
+
+      }
+    }
+  }
+}
+
+function doThings() {
+	
+	response = httpPost(prefix + url, data).data;
+	
+	logger.info('response: ' + response);
+	var theResponse = JSON.parse(response);
+	logger.info ('timestamp: ' + theResponse.timestamp);
+	logger.info ('data: ' + theResponse.data);
+}
 
 function httpGet(theUrl){
 	var con = new java.net.URL(theUrl).openConnection();
@@ -50,7 +107,7 @@ function httpPost(theUrl, data, contentType){
 	con.setDoOutput(true);
 	con.setDoInput(true);
 	con.setAllowUserInteraction(false);
-	print('ABOUT TO POST:' + JSON.stringify(data));
+	logger.info('ABOUT TO POST:' + JSON.stringify(data));
 	write(con.getOutputStream(), data);
 	return asResponse(con);
 }
