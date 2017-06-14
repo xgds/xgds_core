@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+import traceback
 import json
 import datetime
 from dateutil.parser import parse as dateparser
@@ -25,11 +26,18 @@ from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
+from django.core.serializers import serialize
+
 
 from geocamUtil.models.ExtrasDotField import ExtrasDotField
 from geocamUtil.loader import LazyGetModelByName
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
+
 
 from xgds_core.util import get100Years
+
+if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+    from xgds_core.util import publishRedisSSE
 
 
 class Constant(models.Model):
@@ -326,9 +334,25 @@ class AbstractConditionHistory(models.Model):
     status = models.CharField(null=True, blank=True, max_length=128)    # id on the xGDS side in case we want to map this condition to something
     jsonData = ExtrasDotField(null=True, blank=True)                    # dot dictionary to hold the raw data and any extra data
 
+    def toJson(self):
+        return serialize('json', [self.condition, self], use_natural_foreign_keys=True)
+        
     def populate(self, condition_data_dict, save=True):
         if save:
             self.save()
+
+    def broadcast(self):
+        # By the time you call this you know that this instance has been newly inserted into the database and needs to broadcast itself
+        try:
+            json_condition_history = self.toJson()
+            if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
+                result = {'status': 'success',
+                          'data': json_condition_history}
+                json_string = json.dumps(result, cls=DatetimeJsonEncoder)
+                publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
+                return json_string
+        except:
+            traceback.print_exc()
 
     class Meta:
         abstract = True
@@ -342,3 +366,23 @@ class NameManager(models.Manager):
 
     def get_by_natural_key(self, name):
         return self.get(name=name)
+
+
+class BroadcastMixin(object):
+    
+    def getBroadcastChannel(self):
+        return 'sse'
+    
+    def getSseType(self):
+        return self.__class__.cls_type().lower()
+
+    def broadcast(self):
+        # By the time you call this you know that this instance has been newly inserted into the database and needs to broadcast itself
+        try:
+            result = self.toMapDict()
+            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
+            if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+                publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
+            return result
+        except:
+            traceback.print_exc()

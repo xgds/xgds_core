@@ -26,6 +26,17 @@ getLocalTime = function(utctime, destTimeZone) {
 	return moment(utctime).tz(destTimeZone);
 };
 
+/*
+ * Take a time that is in utc and convert it to the dest time zone but keeping the same time.
+ * For example, if the original time is date 20:00:00 utc, the result will be date 20:00:00 desttimezone
+ */
+patchTimeZone = function(utctime, destTimeZone) {
+	var result = utctime.clone();
+	result.tz(destTimeZone);
+	result.subtract(result.utcOffset(), 'minutes');
+	return result;
+}
+
 DEFAULT_TIME_FORMAT = "MM/DD/YY HH:mm:ss z"
 
 /*

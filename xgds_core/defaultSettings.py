@@ -63,3 +63,8 @@ BOWER_INSTALLED_APPS += ['moment',
                          'gridstack#0.2.6']
 
 FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Extend this map to hold tablename to class mappings for those classes that support rebroadcast after tungsten replication
+# for example, past position, current position, condition
+XGDS_CORE_REBROADCAST_MAP = getOrCreateDict('XGDS_CORE_REBROADCAST_MAP')
+XGDS_CORE_REBROADCAST_MAP['xgds_core_conditionhistory'] = 'xgds_core.ConditionHistory'
