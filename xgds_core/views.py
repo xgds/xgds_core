@@ -47,9 +47,9 @@ from django.core.cache import caches
 from django.http import (HttpResponse,
                          HttpResponseNotAllowed)
 
-from xgds_core.models import TimeZoneHistory
 from geocamUtil.loader import LazyGetModelByName
 
+from xgds_core.models import TimeZoneHistory, DbServerInfo
 from xgds_core.models import RelayFile, RelayEvent
 from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
@@ -428,13 +428,11 @@ def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
         
     
 def dataInsert(request):
-    
     body = request.body
     data = json.loads(body)
     # first check if pk could be originally from this database
     pk = data['pk']
-    if False:
-    #if not keyFromExternalServer(pk):
+    if not DbServerInfo.keyFromExternalServer(pk):
         return
     
     # if not see if the tablename maps to a supported broadcast model.
