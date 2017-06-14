@@ -375,13 +375,13 @@ def setCondition(request):
 
         condition_data = request.POST.get('data', '{}')
         condition_history = condition.populate(source_time, condition_data)
-        
-        json_condition_history = serialize('json', [condition, condition_history], use_natural_foreign_keys=True)
-        result = {'status': 'success',
-                  'data': json_condition_history}
-        
-        if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
-            publishRedisSSE(condition.getRedisSSEChannel(), 'condition', json_condition_history)
+        result = condition_history.broadcast()
+#         json_condition_history = serialize('json', [condition, condition_history], use_natural_foreign_keys=True)
+#         result = {'status': 'success',
+#                   'data': json_condition_history}
+#         
+#         if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
+#             publishRedisSSE(condition.getRedisSSEChannel(), 'condition', json_condition_history)
 
         return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder)
     
@@ -427,7 +427,29 @@ def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
         return JsonResponse({}, status=httplib.NO_CONTENT)
         
     
+def dataInsert(request):
     
+    body = request.body
+    data = json.loads(body)
+    # first check if pk could be originally from this database
+    pk = data['pk']
+    if False:
+    #if not keyFromExternalServer(pk):
+        return
     
+    # if not see if the tablename maps to a supported broadcast model.
+    tablename = data['tablename']
+    if not tablename in settings.XGDS_CORE_REBROADCAST_MAP:
+        return
     
-
+    # if so look up the model object instance from the table name and pk
+    modelname = settings.XGDS_CORE_REBROADCAST_MAP[tablename]
+    LAZY_MODEL = LazyGetModelByName(modelname)
+    
+    # and then broadcast it
+    theModel = LAZY_MODEL.get().objects.get(pk=pk)
+    theModel.broadcast()
+    
+    result = {'data':'broadcast',
+              'timestamp':datetime.datetime.now(pytz.utc)}
+    return JsonResponse(result, encoder=DatetimeJsonEncoder)
