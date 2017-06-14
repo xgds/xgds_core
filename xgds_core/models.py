@@ -395,8 +395,7 @@ class DbServerInfo(models.Model):
         return (myPkIncrement != 1) and ((pk % myPkIncrement) != myPkOffset)
 
     variableName = models.CharField(max_length=64, primary_key=True, db_column='VARIABLE_NAME')
-    variableValue = models.IntegerField(null=True, blank=True, max_length=1024,
-                                        db_column='VARIABLE_VALUE')
+    variableValue = models.IntegerField(null=True, blank=True, db_column='VARIABLE_VALUE')
 
     class Meta:
         db_table = 'global_variables'
