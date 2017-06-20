@@ -451,3 +451,9 @@ def dataInsert(request):
     result = {'data':'broadcast',
               'timestamp':datetime.datetime.now(pytz.utc)}
     return JsonResponse(result, encoder=DatetimeJsonEncoder)
+
+
+def getRebroadcastTableNames(request):
+    rebroadcastMap = settings.XGDS_CORE_REBROADCAST_MAP
+    return JsonResponse(list(rebroadcastMap.keys()), safe=False)
+    
