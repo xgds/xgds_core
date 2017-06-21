@@ -1,40 +1,66 @@
 //__BEGIN_LICENSE__
-//Copyright (c) 2015, United States Government, as represented by the 
-//Administrator of the National Aeronautics and Space Administration. 
+//Copyright (c) 2015, United States Government, as represented by the
+//Administrator of the National Aeronautics and Space Administration.
 //All rights reserved.
 
-//The xGDS platform is licensed under the Apache License, Version 2.0 
-//(the "License"); you may not use this file except in compliance with the License. 
-//You may obtain a copy of the License at 
+//The xGDS platform is licensed under the Apache License, Version 2.0
+//(the "License"); you may not use this file except in compliance with the License.
+//You may obtain a copy of the License at
 //http://www.apache.org/licenses/LICENSE-2.0.
 
-//Unless required by applicable law or agreed to in writing, software distributed 
-//under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-//CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+//Unless required by applicable law or agreed to in writing, software distributed
+//under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+//CONDITIONS OF ANY KIND, either express or implied. See the License for the
 //specific language governing permissions and limitations under the License.
 //__END_LICENSE__
 
 //This simple javascript is called by tungsten replicator after it does an insertion.
-//To test in your virtual machine, type 
+//To test in your virtual machine, type
 //rhino handle_data_insertion.js
 
 //naive java implementation variant, if curl is not available
 var prefix = 'http://localhost:8181';
+var tableListUrl = '/xgds_core/rebroadcast/tableNames/'
 var url = '/xgds_core/tungsten/dataInsert/';
-//test data for Tamar's computer
-var data = {'pk':14173083,
-	    'tablename':'basaltApp_pastposition'};
+var httpStatusOK = 200;
 
-prepare()
+var tableNames = [];
+var getTableNames = function() {
+    // TODO: Manage exceptions on HTTP GET
+    resp = httpGet(prefix + tableListUrl);
+    if (resp.statusCode == httpStatusOK) {   // Only process data if we get OK status code
+        tableNamesStr = resp.data;
+        tableNames = JSON.parse(tableNamesStr);
+    }
+    logger.info("TABLE LIST: " + tableNames);
+    return tableNames;
+}
+
+function getMethods(obj) {
+    var result = [];
+    for (var id in obj) {
+        try {
+            result.push(id + ": " + obj[id].toString());
+        } catch (err) {
+            result.push(id + ": inaccessible");
+        }
+    }
+    return result;
+}
+
+var prepare = function()
 {
-
+    getTableNames();
 }
 
 //Perform the filter process; function is called for each event in the THL
 
-filter(event)
+var filter= function(event)
 {
-
+    if (tableNames.length == 0) {
+        logger.info("NO TABLES IN LIST!");
+        return;
+    }
 // Get the array of DBMSData objects
     data = event.getData();
 
@@ -62,19 +88,46 @@ filter(event)
           // Get the single row change
           rowchange = rows.get(j);
 
-          // Identify the row change type
-          if (rowchange.getAction() == "INSERT" || rowchange.getAction() == "UPDATE")
-          {
-        	  logger.info(rowchange.getAction());
-        	  logger.info(rowchange.getTableName());
-        	  logger.info('COLUMNS');
-        	  logger.info(rowchange.getColumnSpec());
-        	  logger.info('VALUES');
-        	  logger.info(rowchange.getColumnValues());
-          } else {
-        	  logger.info(rowchange.getAction());
-          }
+            // Identify the row change type
+            if (rowchange.getAction() == "INSERT" || rowchange.getAction() == "UPDATE")
+            {
+                logger.info(rowchange.getAction());
+                logger.info('TABLE NAME: ' + rowchange.getTableName());
+                var colSpecs = rowchange.getColumnSpec();
+                var idIndex = -1;
+                logger.info('COL SPEC SIZE: ' + colSpecs.size());
 
+                for (var c=0; c<colSpecs.size(); c++) {
+                    logger.info(c);
+                    logger.info(colSpecs.get(c));
+                    var colName = colSpecs.get(c).getName();
+                    var colLength = colSpecs.get(c).getLength();
+                    logger.info('COL NAME: ' + colName + '(' + colLength +')');
+
+                    if (colName == 'id'){
+                        logger.info('COLUMN ID FOUND ');
+                        idIndex = c;
+                        break;
+                    }
+                }
+
+
+                if (rowchange.getTableName() == "geocamTrack_linestyle"){
+                    var colValues = rowchange.getColumnValues();
+                    logger.info("ROWS CHANGED: " + colValues.size());
+                    for (var r=0; r<colValues.size(); r++) {
+                        var foundPKValue = colValues.get(r).get(0).getValue();
+                        var styleName = colValues.get(r).get(1).getValue();
+                        var styleColor = colValues.get(r).get(2).getValue();
+                        logger.info('PK: ' + foundPKValue);
+                        logger.info('Style Name: ' + java.lang.String(styleName));
+                        logger.info('Style Color: ' + java.lang.String(styleColor));
+                    }
+                }
+                //logger.info(rowchange.getColumnSpec());
+            } else {
+                logger.info(rowchange.getAction());
+            }
       }
     }
   }
@@ -113,8 +166,8 @@ function httpPost(theUrl, data, contentType){
 }
 
 function asResponse(con){
-	var d = read(con.inputStream);
-	return {data : d, statusCode : con.responseCode};
+    var d = read(con.inputStream);
+    return {data : d, statusCode : con.responseCode};
 }
 
 function write(outputStream, data){
