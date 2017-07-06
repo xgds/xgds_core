@@ -75,7 +75,8 @@ var filter= function(event)
       if (d instanceof com.continuent.tungsten.replicator.dbms.StatementData)
       {
         // Do statement processing
-    	  logger.info(d.getQuery());
+    	  logger.info('STATEMENT UPDATE:');
+    	  logger.info('  ' + d.getQuery());
       }
       else if (d instanceof com.continuent.tungsten.replicator.dbms.RowChangeData)
       {
