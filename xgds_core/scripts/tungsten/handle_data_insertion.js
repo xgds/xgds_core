@@ -85,52 +85,48 @@ var filter= function(event)
         // Iterate over row changes
         for(j=0;j<rows.size();j++)
         {
-          // Get the single row change
-          rowchange = rows.get(j);
+        	// Get the single row change
+        	rowchange = rows.get(j);
 
-            // Identify the row change type
-            if (rowchange.getAction() == "INSERT" || rowchange.getAction() == "UPDATE")
-            {
-                logger.info(rowchange.getAction());
-                logger.info('TABLE NAME: ' + rowchange.getTableName());
-                var colSpecs = rowchange.getColumnSpec();
-                var idIndex = -1;
-                logger.info('COL SPEC SIZE: ' + colSpecs.size());
+        	// Identify the row change type
 
-                for (var c=0; c<colSpecs.size(); c++) {
-                    logger.info(c);
-                    logger.info(colSpecs.get(c));
-                    var colName = colSpecs.get(c).getName();
-                    var colLength = colSpecs.get(c).getLength();
-                    logger.info('COL NAME: ' + colName + '(' + colLength +')');
+        	logger.info(rowchange.getAction());
+        	logger.info('TABLE NAME: ' + rowchange.getTableName());
+        	var colSpecs = rowchange.getColumnSpec();
+        	var idIndex = -1;
+        	logger.info('COL SPEC SIZE: ' + colSpecs.size());
 
-                    if (colName == 'id'){
-                        logger.info('COLUMN ID FOUND ');
-                        idIndex = c;
-                        break;
-                    }
-                }
+        	for (var c=0; c<colSpecs.size(); c++) {
+        		logger.info(c);
+        		logger.info(colSpecs.get(c));
+        		var colName = colSpecs.get(c).getName();
+        		var colLength = colSpecs.get(c).getLength();
+        		logger.info('COL NAME: ' + colName + '(' + colLength +')');
 
+        		if (colName == 'id'){
+        			logger.info('COLUMN ID FOUND ');
+        			idIndex = c;
+        			break;
+        		}
+        	}
 
-                if (rowchange.getTableName() == "geocamTrack_linestyle"){
-                    var colValues = rowchange.getColumnValues();
-                    logger.info("ROWS CHANGED: " + colValues.size());
-                    for (var r=0; r<colValues.size(); r++) {
-                        var foundPKValue = colValues.get(r).get(0).getValue();
-                        var styleName = colValues.get(r).get(1).getValue();
-                        var styleColor = colValues.get(r).get(2).getValue();
-                        logger.info('PK: ' + foundPKValue);
-                        logger.info('Style Name: ' + java.lang.String(styleName));
-                        logger.info('Style Color: ' + java.lang.String(styleColor));
-                    }
-                }
-                //logger.info(rowchange.getColumnSpec());
-            } else {
-                logger.info(rowchange.getAction());
-            }
+        	logger.info('ROW CHANGE ACTION: ' + rowchange.getAction());
+        	if (rowchange.getTableName() == "geocamTrack_linestyle"){
+        		var colValues = rowchange.getColumnValues();
+        		logger.info("ROWS CHANGED: " + colValues.size());
+        		for (var r=0; r<colValues.size(); r++) {
+        			var foundPKValue = colValues.get(r).get(0).getValue();
+        			var styleName = colValues.get(r).get(1).getValue();
+        			var styleColor = colValues.get(r).get(2).getValue();
+        			logger.info('PK: ' + foundPKValue);
+        			logger.info('Style Name: ' + java.lang.String(styleName));
+        			logger.info('Style Color: ' + java.lang.String(styleColor));
+        		}
+        	}
+        	//logger.info(rowchange.getColumnSpec());
+        }
       }
     }
-  }
 }
 
 function doThings() {
