@@ -112,6 +112,7 @@ var filter= function(event)
         	}
 
         	logger.info('ROW CHANGE ACTION: ' + rowchange.getAction());
+        	logger.info('ROW KEYS: ' + rowchange.getKeyValues());
         	if (rowchange.getTableName() == "geocamTrack_linestyle"){
         		var colValues = rowchange.getColumnValues();
         		logger.info("ROWS CHANGED: " + colValues.size());
