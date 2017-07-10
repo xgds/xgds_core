@@ -23,6 +23,8 @@ var prefix = 'http://localhost:8181';
 var tableListUrl = '/xgds_core/rebroadcast/tableNames/'
 var url = '/xgds_core/tungsten/dataInsert/';
 var httpStatusOK = 200;
+var colTypeInt = 4;
+var colTypeString = 12;
 
 var tableNames = [];
 var getTableNames = function() {
@@ -112,7 +114,11 @@ var filter= function(event)
         	}
 
         	logger.info('ROW CHANGE ACTION: ' + rowchange.getAction());
-        	logger.info('ROW KEYS: ' + rowchange.getKeyValues());
+        	var rowKeys = rowchange.getKeyValues();
+        	var rowKeyTypes = rowchange.getKeySpec();
+        	for (var i=0; i<rowKeys.size(); i++) {
+        		logger.info('ROW KEYS[' + i + ']: ' + rowKeys[i].getValue() + ' (' + rowKeyTypes[i] + ')');
+        	}
         	if (rowchange.getTableName() == "geocamTrack_linestyle"){
         		var colValues = rowchange.getColumnValues();
         		logger.info("ROWS CHANGED: " + colValues.size());
