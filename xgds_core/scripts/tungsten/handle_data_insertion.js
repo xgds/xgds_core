@@ -117,7 +117,7 @@ var filter= function(event)
         	var rowKeys = rowchange.getKeyValues();
         	var rowKeyTypes = rowchange.getKeySpec();
         	for (var i=0; i<rowKeys.size(); i++) {
-        		logger.info('ROW KEYS[' + i + ']: ' + rowKeys[i].getValue() + ' (' + rowKeyTypes[i] + ')');
+        		logger.info('ROW KEYS[' + i + ']: ' + rowKeys.get(i).getValue() + ' (' + rowKeyTypes.get(i) + ')');
         	}
         	if (rowchange.getTableName() == "geocamTrack_linestyle"){
         		var colValues = rowchange.getColumnValues();
