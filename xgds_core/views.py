@@ -453,7 +453,7 @@ def dataInsert(request):
     return JsonResponse(result, encoder=DatetimeJsonEncoder)
 
 
-def getRebroadcastTableNames(request):
+def getRebroadcastTableNamesAndKeys(request):
     rebroadcastMap = settings.XGDS_CORE_REBROADCAST_MAP
-    return JsonResponse(list(rebroadcastMap.keys()), safe=False)
+    return JsonResponse(rebroadcastMap, safe=False)
     

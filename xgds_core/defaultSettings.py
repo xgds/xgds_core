@@ -67,4 +67,5 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 # Extend this map to hold tablename to class mappings for those classes that support rebroadcast after tungsten replication
 # for example, past position, current position, condition
 XGDS_CORE_REBROADCAST_MAP = getOrCreateDict('XGDS_CORE_REBROADCAST_MAP')
-XGDS_CORE_REBROADCAST_MAP['xgds_core_conditionhistory'] = 'xgds_core.ConditionHistory'
+XGDS_CORE_REBROADCAST_MAP.update({'xgds_core_conditionhistory':{'modelName':'xgds_core.ConditionHistory', 'pkColNum':1, 'pkType': 'int'},
+                                  'geocamTrack_linestyle': {'modelName':'geocamTrack.LineStyle', 'pkColNum':1, 'pkType': 'int'}})

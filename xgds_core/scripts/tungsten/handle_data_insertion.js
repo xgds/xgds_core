@@ -20,22 +20,22 @@
 
 //naive java implementation variant, if curl is not available
 var prefix = 'http://localhost:8181';
-var tableListUrl = '/xgds_core/rebroadcast/tableNames/'
+var tableListUrl = '/xgds_core/rebroadcast/tableNamesAndKeys/'
 var url = '/xgds_core/tungsten/dataInsert/';
 var httpStatusOK = 200;
 var colTypeInt = 4;
 var colTypeString = 12;
 
-var tableNames = [];
-var getTableNames = function() {
+var tableNamesAndKeys = {};
+var getTableNamesAndKeys = function() {
     // TODO: Manage exceptions on HTTP GET
     resp = httpGet(prefix + tableListUrl);
     if (resp.statusCode == httpStatusOK) {   // Only process data if we get OK status code
         tableNamesStr = resp.data;
-        tableNames = JSON.parse(tableNamesStr);
+        tableNamesAndKeys = JSON.parse(tableNamesStr);
     }
     logger.info("TABLE LIST: " + tableNames);
-    return tableNames;
+    return tableNamesAndKeys;
 }
 
 function getMethods(obj) {
@@ -52,14 +52,14 @@ function getMethods(obj) {
 
 var prepare = function()
 {
-    getTableNames();
+    getTableNamesAndKeys();
 }
 
 //Perform the filter process; function is called for each event in the THL
 
 var filter= function(event)
 {
-    if (tableNames.length == 0) {
+    if (tableNamesAndKeys.keys().length == 0) {
         logger.info("NO TABLES IN LIST!");
         return;
     }
@@ -95,6 +95,7 @@ var filter= function(event)
 
         	logger.info(rowchange.getAction());
         	logger.info('TABLE NAME: ' + rowchange.getTableName());
+        	var tableName = rowchange.getTableName();
         	var colSpecs = rowchange.getColumnSpec();
         	var idIndex = -1;
         	logger.info('COL SPEC SIZE: ' + colSpecs.size());
@@ -119,16 +120,16 @@ var filter= function(event)
         	for (var i=0; i<rowKeys.size(); i++) {
         	    logger.info('ROW KEYS[' + i + ']: ' + rowKeys.get(i).get(0).getValue() + ' (' + rowKeyTypes.get(i).getTypeDescription() + ' - ' + rowKeyTypes.get(i).getIndex() + ')');
         	}
-        	if (rowchange.getTableName() == "geocamTrack_linestyle"){
+        	if (tableNamesAndKeys[tableName]){
         		var colValues = rowchange.getColumnValues();
         		logger.info("ROWS CHANGED: " + colValues.size());
         		for (var r=0; r<colValues.size(); r++) {
-        			var foundPKValue = colValues.get(r).get(0).getValue();
-        			var styleName = colValues.get(r).get(1).getValue();
-        			var styleColor = colValues.get(r).get(2).getValue();
+        			var foundPKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum).getValue();
+//        			var styleName = colValues.get(r).get(1).getValue();
+//        			var styleColor = colValues.get(r).get(2).getValue();
         			logger.info('PK: ' + foundPKValue);
-        			logger.info('Style Name: ' + java.lang.String(styleName));
-        			logger.info('Style Color: ' + java.lang.String(styleColor));
+//        			logger.info('Style Name: ' + java.lang.String(styleName));
+//        			logger.info('Style Color: ' + java.lang.String(styleColor));
         		}
         	}
         	//logger.info(rowchange.getColumnSpec());
