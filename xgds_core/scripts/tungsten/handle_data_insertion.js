@@ -34,7 +34,7 @@ var getTableNamesAndKeys = function() {
         tableNamesStr = resp.data;
         tableNamesAndKeys = JSON.parse(tableNamesStr);
     }
-    logger.info("TABLE LIST: " + tableNames);
+    logger.info("TABLE LIST: " + tableNamesAndKeys);
     return tableNamesAndKeys;
 }
 
