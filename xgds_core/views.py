@@ -292,14 +292,19 @@ def helpPopup(request, help_content_path, help_title):
                    'help_content_path': help_content_path},
                   )
 
-def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True):
+def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, update=False):
     # first see if there is an existing relayEvent
     content_type=ContentType.objects.get_for_model(dataProduct)
     object_id=dataProduct.pk
-    existingEvents = RelayEvent.objects.filter(content_type=content_type, object_id=object_id)
-    if existingEvents.count():
-        event = existingEvents[0]
-    else:
+    
+    #see if we already have an event for this type and PK, if we don't support updates to the same PK
+    event = None
+    if not update:
+        existingEvents = RelayEvent.objects.filter(content_type=content_type, object_id=object_id)
+        if existingEvents.count():
+            event = existingEvents[0]
+    
+    if not event:
         event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
                            object_id=dataProduct.pk,
                            acquisition_time=dataProduct.acquisition_time,
@@ -307,11 +312,12 @@ def addRelayFiles(dataProduct, filesToSave, serializedForm, url, broadcast=True)
                            url=url)
         event.save()
 
-    for k,f in filesToSave.iteritems():
-        relayFile = RelayFile(file_to_send=f,
-                              file_key=k,
-                              relay_event_id=event.pk)
-        relayFile.save()
+    if filesToSave:
+        for k,f in filesToSave.iteritems():
+            relayFile = RelayFile(file_to_send=f,
+                                  file_key=k,
+                                  relay_event_id=event.pk)
+            relayFile.save()
         
     #fire REDIS event if REDIS is on
     if settings.XGDS_CORE_REDIS and broadcast:
