@@ -59,7 +59,7 @@ var prepare = function()
 
 var filter= function(event)
 {
-    if (tableNamesAndKeys.keys().length == 0) {
+    if (Object.keys(tableNamesAndKeys).length == 0) {
         logger.info("NO TABLES IN LIST!");
         return;
     }
