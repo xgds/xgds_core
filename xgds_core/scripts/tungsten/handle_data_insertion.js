@@ -133,7 +133,7 @@ var filter= function(event)
         			return;
         		}
         		pkType = rowKeyTypes.get(0).getType();
-        		for (int i=0; i<rowKeys.size(); i++) {
+        		for (var i=0; i<rowKeys.size(); i++) {
         			switch (pkType) {
         			case colTypeInt:
         				pkValue = rowKeys.get(i).get(0).getValue();
