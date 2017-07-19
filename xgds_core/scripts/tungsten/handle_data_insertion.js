@@ -154,12 +154,14 @@ var filter= function(event)
         		logger.info("ROWS INSERTED: " + colValues.size());
         		for (var r=0; r<colValues.size(); r++) {
         			var pkType = tableNamesAndKeys[tableName].pkType;
+        			var pkColNum = tableNamesAndKeys[tableName].pkColNum;
         			logger.info("TYPE from django: " + pkType);
+        			logger.info("PK column: " + pkColNum);
         			if (pkType == "int") {
-        				pKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
+        				pkValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
         				logger.info("INT case");
         			} else {
-        				pKValue = java.lang.String(colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue());
+        				pkValue = java.lang.String(colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue());
         				logger.info("STRING case");
         			}
         			logger.info("DOING " + dbAction + " on table: " + tableName + " for PK: " + pkValue);
