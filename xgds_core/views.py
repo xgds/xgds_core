@@ -433,21 +433,20 @@ def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
         return JsonResponse({}, status=httplib.NO_CONTENT)
         
     
-def dataInsert(request):
-    body = request.body
-    data = json.loads(body)
+def dataInsert(request, action, tablename, pk):
+    if action == 'DELETE':
+        return
+
     # first check if pk could be originally from this database
-    pk = data['pk']
     if not DbServerInfo.keyFromExternalServer(pk):
         return
     
     # if not see if the tablename maps to a supported broadcast model.
-    tablename = data['tablename']
     if not tablename in settings.XGDS_CORE_REBROADCAST_MAP:
         return
     
     # if so look up the model object instance from the table name and pk
-    modelname = settings.XGDS_CORE_REBROADCAST_MAP[tablename]
+    modelname = settings.XGDS_CORE_REBROADCAST_MAP[tablename]['modelName']
     LAZY_MODEL = LazyGetModelByName(modelname)
     
     # and then broadcast it

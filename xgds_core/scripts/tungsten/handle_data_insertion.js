@@ -21,7 +21,7 @@
 //naive java implementation variant, if curl is not available
 var prefix = 'http://localhost:8181';
 var tableListUrl = '/xgds_core/rebroadcast/tableNamesAndKeys/'
-var url = '/xgds_core/tungsten/dataInsert/';
+var url = '/xgds_core/tungsten/dataInsert/';  //action/tablename/pk
 var httpStatusOK = 200;
 var colTypeInt = 4;
 var colTypeVarchar = 12;
@@ -172,6 +172,14 @@ var filter= function(event)
 //      			logger.info('Style Color: ' + java.lang.String(styleColor));
         		}
         	}
+        	
+        	if (pkValue != -1){
+        		var fullUrl = prefix + url + dbAction + '/' + tableName + '/' + pkValue;
+        		logger.info('calling ' + fullUrl);
+        		var response = httpGet(fullUrl);
+        		logger.info(response);
+        	}
+
         	//logger.info(rowchange.getColumnSpec());
         }
       }

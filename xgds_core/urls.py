@@ -47,7 +47,7 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^relay/$',views.receiveRelay, {'loginRequired': False}, 'receive_relay'),
                url(r'^condition/set/$',views.setCondition, {'loginRequired': False}, 'xgds_core_set_condition'),
                url(r'^condition/activeJSON/$',views.getConditionActiveJSON, {}, 'xgds_core_get_condition_active_json'),
-               url(r'^tungsten/dataInsert/$',views.dataInsert, {'loginRequired': False}, 'xgds_core_data_insert'),
+               url(r'^tungsten/dataInsert/(?P<action>[\w]*)/(?P<tablename>[\w]*)/(?P<pk>[\w]*)$',views.dataInsert, {'loginRequired': False}, 'xgds_core_data_insert'),
                url(r'^rebroadcast/tableNamesAndKeys/$', views.getRebroadcastTableNamesAndKeys, {'loginRequired': False}, 'xgds_core_rebroadcast_tablenames_keys'),
                
 #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
