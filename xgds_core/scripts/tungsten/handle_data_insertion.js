@@ -24,7 +24,7 @@ var tableListUrl = '/xgds_core/rebroadcast/tableNamesAndKeys/'
 var url = '/xgds_core/tungsten/dataInsert/';
 var httpStatusOK = 200;
 var colTypeInt = 4;
-var colTypeString = 12;
+var colTypeVarchar = 12;
 
 var tableNamesAndKeys = {};
 var getTableNamesAndKeys = function() {
@@ -95,49 +95,79 @@ var filter= function(event)
 
         	logger.info(rowchange.getAction());
         	var tableName = rowchange.getTableName();
-                logger.info('TABLE NAME: ' + tableName);
+        	logger.info('TABLE NAME: ' + tableName);
 
-                if (!tableNamesAndKeys[tableName]) {
-                    logger.info("SKIPPING TABLE: " + tableName);
-                    return;
-                }
-            
-        	var colSpecs = rowchange.getColumnSpec();
-        	var idIndex = -1;
-        	logger.info('COL SPEC SIZE: ' + colSpecs.size());
-
-        	for (var c=0; c<colSpecs.size(); c++) {
-        		logger.info(c);
-        		logger.info(colSpecs.get(c));
-        		var colName = colSpecs.get(c).getName();
-        		var colLength = colSpecs.get(c).getLength();
-        		logger.info('COL NAME: ' + colName + '(' + colLength +')');
-
-        		if (colName == 'id'){
-        			logger.info('COLUMN ID FOUND ');
-        			idIndex = c;
-        			break;
-        		}
+        	if (!tableNamesAndKeys[tableName]) {
+        		logger.info("SKIPPING TABLE: " + tableName);
+        		return;
         	}
 
-                var dbAction = rowchange.getAction();
+//        	var colSpecs = rowchange.getColumnSpec();
+//        	var idIndex = -1;
+//        	logger.info('COL SPEC SIZE: ' + colSpecs.size());
+
+//        	for (var c=0; c<colSpecs.size(); c++) {
+//        		logger.info(c);
+//        		logger.info(colSpecs.get(c));
+//        		var colName = colSpecs.get(c).getName();
+//        		var colLength = colSpecs.get(c).getLength();
+//        		logger.info('COL NAME: ' + colName + '(' + colLength +')');
+//
+//        		if (colName == 'id'){
+//        			logger.info('COLUMN ID FOUND ');
+//        			idIndex = c;
+//        			break;
+//        		}
+//        	}
+
+        	var dbAction = rowchange.getAction();
         	logger.info('ROW CHANGE ACTION: ' + dbAction);
-        	var rowKeys = rowchange.getKeyValues();
-        	var rowKeyTypes = rowchange.getKeySpec();
-        	for (var i=0; i<rowKeys.size(); i++) {
-        	    logger.info('ROW KEYS[' + i + ']: ' + rowKeys.get(i).get(0).getValue() + ' (' + rowKeyTypes.get(i).getType() + ' - ' + rowKeyTypes.get(i).getIndex() + ')');
-        	}
-        	if (tableNamesAndKeys[tableName]){
+        	var pkType = 0;
+        	var pkValue = -1;
+        	
+        	if ((dbAction == "UPDATE") || (dbAction == "DELETE")) {
+        		var rowKeys = rowchange.getKeyValues();
+        		var rowKeyTypes = rowchange.getKeySpec();
+        		if (rowKeysTypes.size() != 1) {
+        			logger.info("ONLY Single Column PK's supported for table: " + tableName + " - " + rowKeyTypes.size());
+        			return;
+        		}
+        		pkType = rowKeyTypes.get(0).getType();
+        		for (int i=0; i<rowKeys.size(); i++) {
+        			switch (pkType) {
+        			case colTypeInt:
+        				pkValue = rowKeys.get(i).get(0).getValue();
+        				break;
+        			case colTypeVarchar:
+        				pkValue = java.lang.String(rowKeys.get(i).get(0).getValue())
+        				break;
+        			default:
+        				logger.info("TYPE code " + pkType + " not recognized for PK in table: " + tableName);
+        				break;
+        			}
+        			logger.info("DOING " + dbAction + " on table: " + tableName + " for PK: " + pkValue);
+        		}
+        	}	
+        	
+        	if (dbAction == "INSERT") {
         		var colValues = rowchange.getColumnValues();
-        		logger.info("ROWS CHANGED: " + colValues.size());
+        		logger.info("ROWS INSERTED: " + colValues.size());
         		for (var r=0; r<colValues.size(); r++) {
-        		        var pKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
-                                var pkType = tableNamesAndKeys[tableName].pkType;
-//        			var styleName = colValues.get(r).get(1).getValue();
-//        			var styleColor = colValues.get(r).get(2).getValue();
-        			logger.info('PK: (' + pkType + ')' + pKValue);
-//        			logger.info('Style Name: ' + java.lang.String(styleName));
-//        			logger.info('Style Color: ' + java.lang.String(styleColor));
+        			var pkType = tableNamesAndKeys[tableName].pkType;
+        			switch (pkType) {
+        			case "int":
+        				pKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
+        				break;
+        			case "string":
+        				pKValue = java.lang.String(colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue());
+        				break;
+        			}
+        			logger.info("DOING " + dbAction + " on table: " + tableName + " for PK: " + pkValue);
+//      			var styleName = colValues.get(r).get(1).getValue();
+//      			var styleColor = colValues.get(r).get(2).getValue();
+//        			logger.info('PK: (' + pkType + ')' + pKValue);
+//      			logger.info('Style Name: ' + java.lang.String(styleName));
+//      			logger.info('Style Color: ' + java.lang.String(styleColor));
         		}
         	}
         	//logger.info(rowchange.getColumnSpec());
