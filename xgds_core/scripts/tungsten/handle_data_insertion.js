@@ -94,8 +94,14 @@ var filter= function(event)
         	// Identify the row change type
 
         	logger.info(rowchange.getAction());
-        	logger.info('TABLE NAME: ' + rowchange.getTableName());
         	var tableName = rowchange.getTableName();
+                logger.info('TABLE NAME: ' + tableName);
+
+                if (!tableNamesAndKeys[tableName]) {
+                    logger.info("SKIPPING TABLE: " + tableName);
+                    return;
+                }
+            
         	var colSpecs = rowchange.getColumnSpec();
         	var idIndex = -1;
         	logger.info('COL SPEC SIZE: ' + colSpecs.size());
@@ -114,20 +120,22 @@ var filter= function(event)
         		}
         	}
 
-        	logger.info('ROW CHANGE ACTION: ' + rowchange.getAction());
+                var dbAction = rowchange.getAction();
+        	logger.info('ROW CHANGE ACTION: ' + dbAction);
         	var rowKeys = rowchange.getKeyValues();
         	var rowKeyTypes = rowchange.getKeySpec();
         	for (var i=0; i<rowKeys.size(); i++) {
-        	    logger.info('ROW KEYS[' + i + ']: ' + rowKeys.get(i).get(0).getValue() + ' (' + rowKeyTypes.get(i).getTypeDescription() + ' - ' + rowKeyTypes.get(i).getIndex() + ')');
+        	    logger.info('ROW KEYS[' + i + ']: ' + rowKeys.get(i).get(0).getValue() + ' (' + rowKeyTypes.get(i).getType() + ' - ' + rowKeyTypes.get(i).getIndex() + ')');
         	}
         	if (tableNamesAndKeys[tableName]){
         		var colValues = rowchange.getColumnValues();
         		logger.info("ROWS CHANGED: " + colValues.size());
         		for (var r=0; r<colValues.size(); r++) {
-        			var foundPKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum).getValue();
+        		        var pKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
+                                var pkType = tableNamesAndKeys[tableName].pkType;
 //        			var styleName = colValues.get(r).get(1).getValue();
 //        			var styleColor = colValues.get(r).get(2).getValue();
-        			logger.info('PK: ' + foundPKValue);
+        			logger.info('PK: (' + pkType + ')' + pKValue);
 //        			logger.info('Style Name: ' + java.lang.String(styleName));
 //        			logger.info('Style Color: ' + java.lang.String(styleColor));
         		}
