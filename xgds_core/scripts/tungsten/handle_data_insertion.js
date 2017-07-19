@@ -155,13 +155,12 @@ var filter= function(event)
         		for (var r=0; r<colValues.size(); r++) {
         			var pkType = tableNamesAndKeys[tableName].pkType;
         			logger.info("TYPE from django: " + pkType);
-        			switch (pkType) {
-        			case "int":
+        			if (pkType == "int") {
         				pKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
-        				break;
-        			case "string":
+        				logger.info("INT case);
+        			} else {
         				pKValue = java.lang.String(colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue());
-        				break;
+        				logger.info("STRING case);
         			}
         			logger.info("DOING " + dbAction + " on table: " + tableName + " for PK: " + pkValue);
 //      			var styleName = colValues.get(r).get(1).getValue();
