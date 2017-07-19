@@ -128,7 +128,7 @@ var filter= function(event)
         	if ((dbAction == "UPDATE") || (dbAction == "DELETE")) {
         		var rowKeys = rowchange.getKeyValues();
         		var rowKeyTypes = rowchange.getKeySpec();
-        		if (rowKeysTypes.size() != 1) {
+        		if (rowKeyTypes.size() != 1) {
         			logger.info("ONLY Single Column PK's supported for table: " + tableName + " - " + rowKeyTypes.size());
         			return;
         		}
