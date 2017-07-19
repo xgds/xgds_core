@@ -21,7 +21,7 @@ from django.conf import settings
 from dal.autocomplete import Select2QuerySetView
 
 import xgds_core.views as views
-import xgds_core.util as util
+import xgds_core.redisUtil as redisUtil
 import xgds_core.typeahead as typeahead
 from xgds_core.models import XgdsUser
 
@@ -56,4 +56,4 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                ]
 
 if settings.XGDS_CORE_REDIS:
-    urlpatterns.append(url(r'^sseActiveChannels/$', util.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
+    urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
