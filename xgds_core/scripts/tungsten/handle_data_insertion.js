@@ -154,6 +154,7 @@ var filter= function(event)
         		logger.info("ROWS INSERTED: " + colValues.size());
         		for (var r=0; r<colValues.size(); r++) {
         			var pkType = tableNamesAndKeys[tableName].pkType;
+        			logger.info("TYPE from django: " + pkType);
         			switch (pkType) {
         			case "int":
         				pKValue = colValues.get(r).get(tableNamesAndKeys[tableName].pkColNum-1).getValue();
