@@ -54,8 +54,8 @@ from xgds_core.models import RelayFile, RelayEvent
 from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 if settings.XGDS_CORE_REDIS:
-    from xgds_core.util import queueRedisData
-    from xgds_core.util import publishRedisSSE
+    from xgds_core.redisUtil import queueRedisData
+    from xgds_core.redisUtil import publishRedisSSE
 
 
 def buildFilterDict(theFilter):

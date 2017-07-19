@@ -37,7 +37,7 @@ from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 from xgds_core.util import get100Years
 
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
-    from xgds_core.util import publishRedisSSE
+    from xgds_core.redisUtil import publishRedisSSE
 
 
 class Constant(models.Model):

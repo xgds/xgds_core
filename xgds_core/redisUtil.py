@@ -14,21 +14,21 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
-from dateutil.relativedelta import relativedelta
-from django.utils import timezone
-import urlparse
+from django.conf import settings
+import json
+from django.http import JsonResponse
 
+if settings.XGDS_CORE_REDIS:
+    import redis
+    rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
 
-def get100Years():
-    theNow = timezone.now() + relativedelta(years=100)
-    return theNow
-
-def addPort(url, port, http=True):
-    ''' Add a port to a url '''
-    if port:
-        parsed = urlparse.urlparse(url)
-        replaced = parsed._replace(netloc="{}:{}".format(parsed.hostname, port))
-        if http:
-            replaced = replaced._replace(scheme='http')
-        return replaced.geturl()
-    return url
+    def queueRedisData(channel, jsonString):
+        rs.lpush(channel, jsonString)
+        
+    def publishRedisSSE(channel, sse_type, jsonString):
+        message_string = json.dumps({'type':sse_type, 'data': jsonString})
+        rs.publish(channel, message_string)
+        
+    def getSseActiveChannels(request):
+        # Look up the active channels we are using for SSE
+        return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)

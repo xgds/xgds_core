@@ -10,7 +10,7 @@ import django
 django.setup()
 
 from django.conf import settings
-from xgds_core.util import publishRedisSSE
+from xgds_core.redisUtil import publishRedisSSE
 
 count = 0
 
