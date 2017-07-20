@@ -20,6 +20,8 @@ import requests
 import traceback
 import datetime
 import logging
+import threading
+from urlparse import urlparse
 
 import django
 django.setup()
@@ -28,29 +30,70 @@ from django.conf import settings
 from xgds_core.models import RelayEvent, RelayFile
 
 rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
+nicknames = []
+hostlist = None
 
-def relayListener(timeout, hosturl):
+def runRelayListeners(timeout):
+    threads = []
+    for index, hosturl in enumerate(hostlist):
+        #logging.info('BUILDING THREAD FOR ' + hosturl)
+        print 'BUILDING THREAD FOR ' + hosturl
+        relayThread = threading.Thread(target=relayListener, name=hosturl, args=(timeout, hosturl, nicknames[index]))
+        threads.append(relayThread)
+        relayThread.start()
+    return threads
+
+def propagateRelaysToHosts():
+#     logging.info('PROPAGATING RELAYS TO HOST CHANNELS')
+    print 'PROPAGATING RELAYS TO HOST CHANNELS'
+    while True:
+        latest_relay = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, -1, -1)
+        while latest_relay:
+            print str(latest_relay)
+#             logging.info(str(latest_relay))
+            for nickname in nicknames:
+                print 'sending thing to ' + settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_'+ nickname
+                rs.lpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, latest_relay[1])
+            latest_relay = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, -1, -1)
+        
+        latest_relay = rs.brpop(settings.XGDS_CORE_REDIS_RELAY_CHANNEL)
+#         logging.info(str(latest_relay))
+        print str(latest_relay)
+        for nickname in nicknames:
+            print 'sending thing to ' + settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_'+ nickname
+            rs.lpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, latest_relay[1])
+        
+    
+def relayListener(timeout, hosturl, nickname):
     # callback from Redis to handle stored data and files that are waiting to be relayed
-    logging.info('RELAY LISTENER RUNNING')
+#     logging.info('RELAY LISTENER RUNNING FOR ' + hosturl)
+    print 'RELAY LISTENER RUNNING FOR ' + hosturl
+    
     while True:
         # see if we had already active relays
-        active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE, -1, -1)
+        active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
         while active:
             # handle previously active event
-            relayData(active[0], timeout, hosturl)
+            relayData(active[0], timeout, hosturl, nickname)
+
             # get next one
-            active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE, -1, -1)
+            active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
     
         # handle newly broadcast data to relay
-        active = rs.brpoplpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
-        relayData(active, timeout, hosturl)
+        active = rs.brpoplpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname)
+#         logging.info('just got an active thing for ' + nickname)
+#         logging.info(active)
+        print 'just got an active thing for ' + nickname
+        print active
+        relayData(active, timeout, hosturl, nickname)
     
     
-def relayData(active, timeout, hosturl):
+def relayData(active, timeout, hosturl, nickname):
     # actually do the relaying to the remote host
     try:
         event = RelayEvent.objects.get(pk=json.loads(active)['relay_event_pk'])
-        logging.info('RELAY BEGIN %d' % event.pk)
+#         logging.info('RELAY BEGIN %d' % event.pk)
+        print 'RELAY BEGIN %d' % event.pk
         url = "%s%s" % (hosturl, '/xgds_core/relay/')
         files = {}
         for f in event.relayfile_set.all():
@@ -60,8 +103,9 @@ def relayData(active, timeout, hosturl):
         if response.status_code == requests.codes.ok:
             event.relay_success_time = datetime.datetime.utcnow()
             event.save()
-            rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE)
-            logging.info('RELAY SUCCESS %d' % event.pk)
+            rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname)
+            print 'RELAY SUCCESS %d' % event.pk
+#             logging.info('RELAY SUCCESS %d' % event.pk)
         else:
             logging.warning('RELAY FAIL %d. Status Code: %d' % (event.pk, response.status_code))
             
@@ -72,7 +116,7 @@ def relayData(active, timeout, hosturl):
 
 def main():
     import optparse
-    parser = optparse.OptionParser('usage: %prog hosturl')
+    parser = optparse.OptionParser('usage: %prog hosturls')
     parser.add_option('-t', '--timeout',
                       default=30,
                       help='Timeout in seconds for response from HTTP relay post.')
@@ -81,7 +125,15 @@ def main():
         parser.error('expected hosturl as argument (http://shore.xgds.org for example)')
     logging.basicConfig(level=logging.DEBUG)
 
-    relayListener(opts.timeout, args[0])
+    global hostlist
+    hostlist = args[0].split(',')
+    for hosturl in hostlist:
+        netloc = urlparse(hosturl).netloc
+        nicknames.append(netloc.split(':')[0])
+
+    runRelayListeners(opts.timeout)
+    propagateRelaysToHosts()
+    
 
 if __name__ == '__main__':
     main()
