@@ -58,12 +58,7 @@ getLocalTimeString = function(utctime, destTimeZone, format) {
 };
 
 getUTCTime = function(localtime, localTimeZone){
-	var zone = moment.tz.zone(localTimeZone);
-	var hoursOffset = zone.parse(localtime)/60;
-	var localtimeoffset = localtime + '-' +  hoursOffset + ':00';
-	var theMoment = moment(localtimeoffset, 'MM/DD/YY HH:mm:ssZ');
-	theMoment.tz(localTimeZone);
-	return theMoment.tz('Etc/UTC');
-//	
-//	return moment(localtime).tz(localTimeZone).tz('Etc/UTC')
+	
+	var theMoment = moment.tz(localtime, "MM/DD/YY hh:mm:ss", localTimeZone);
+	return theMoment.utc();
 }
