@@ -221,13 +221,15 @@ class RelayEvent(models.Model):
     relay_success_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)
     serialized_form = models.TextField()
     url = models.CharField(max_length=128)
+    is_update = models.BooleanField(default=False)
     
     def getSerializedData(self):
         result = {'object_id':self.object_id,
                   'content_type_app_label': self.content_type.app_label,
                   'content_type_model': self.content_type.model,
                   'url': self.url,
-                  'serialized_form': self.serialized_form}
+                  'serialized_form': self.serialized_form,
+                  'is_update': self.is_update}
         return result
     
     def toRelayJson(self):
@@ -371,6 +373,7 @@ class NameManager(models.Manager):
 # NOTE! This is a special model that is matched to the schema of MySQL's 
 # information_schema DB global_variables table. That table must be mapped
 # into this application's database using a MySQL view declaration.
+# create view xgds_basalt.global_variables as select * from information_schema.global_variables;
 
 class DbServerInfo(models.Model):
     @classmethod
@@ -399,6 +402,7 @@ class DbServerInfo(models.Model):
 
     class Meta:
         db_table = 'global_variables'
+        managed = False
 
 
 class BroadcastMixin(object):

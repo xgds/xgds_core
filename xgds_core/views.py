@@ -20,6 +20,7 @@ import glob
 import json
 import datetime
 import httplib
+import threading
 from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
@@ -49,8 +50,7 @@ from django.http import (HttpResponse,
 
 from geocamUtil.loader import LazyGetModelByName
 
-from xgds_core.models import TimeZoneHistory, DbServerInfo
-from xgds_core.models import RelayFile, RelayEvent
+from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
 from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 if settings.XGDS_CORE_REDIS:
@@ -305,11 +305,17 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
             event = existingEvents[0]
     
     if not event:
+        try:
+            acquisition_time = dataProduct.acquisition_time
+        except:
+            acquisition_time = timezone.now()
+            
         event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
                            object_id=dataProduct.pk,
-                           acquisition_time=dataProduct.acquisition_time,
+                           acquisition_time=acquisition_time,
                            serialized_form=serializedForm,
-                           url=url)
+                           url=url,
+                           is_update=update)
         event.save()
 
     if filesToSave:
@@ -321,45 +327,67 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
         
     #fire REDIS event if REDIS is on
     if settings.XGDS_CORE_REDIS and broadcast:
-        queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, event.toRelayJson())
-        event.relay_start_time = datetime.datetime.utcnow()
-        event.save()
+        #TODO insert delay if we have xgds_core_constant delay set, start a new thread
+        delay = getDelay()
+        if delay:
+            # there is a delay
+            t = threading.Timer(delay, fireRelay, [event])
+            t.start()
+        else:
+            # there is no delay
+            fireRelay(event)
 
+def getDelay():
+    try:
+        return int(Constant.objects.get(name='delay').value)
+    except:
+        return 0
+
+def fireRelay(event):
+    queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, event.toRelayJson())
+    event.relay_start_time = datetime.datetime.utcnow()
+    event.save()
 
 def receiveRelay(request):
     object_id = request.POST.get('object_id')
     content_type_app_label = request.POST.get('content_type_app_label')
     content_type_model = request.POST.get('content_type_model')
     ct = ContentType.objects.get(model=content_type_model, app_label=content_type_app_label)
-    try:
-        foundObject = ct.get_object_for_this_type(pk=object_id)
-        # return success, we already have it
-        return HttpResponse(json.dumps({'exists': 'true', 
-                                        'json': {'pk': object_id,
-                                                 'content_type_app_label': content_type_app_label,
-                                                 'content_type_model': content_type_model}}), 
-                            content_type='application/json')
-        
-    except:
-        # we don't have this object already, call the original url to submit
-        url = request.POST.get('url')
-        serialized_form = request.POST.get('serialized_form')
-        serialized_form_dict = json.loads(serialized_form)
-        
-        # add the original form information back to the request
-        mutable = request.POST._mutable
-        request.POST._mutable = True
-        for k,v in serialized_form_dict.iteritems():
-            request.POST[k]=v
-        request.POST._mutable = mutable
-        
-        view, view_args, view_kwargs = resolve(url)
-        if 'loginRequired' in view_kwargs:
-            del view_kwargs['loginRequired']
+    
+    if not request.POST.get('is_update'): 
         try:
-            return view(request, **view_kwargs)
+            foundObject = ct.get_object_for_this_type(pk=object_id)
+            
+            # return success, we already have it
+            return HttpResponse(json.dumps({'exists': 'true', 
+                                            'json': {'pk': object_id,
+                                                     'content_type_app_label': content_type_app_label,
+                                                     'content_type_model': content_type_model}}), 
+                                content_type='application/json')
+            
         except:
-            traceback.print_exc()
+            pass
+        
+    # either we are updating or 
+    # we don't have this object already, call the original url to submit
+    url = request.POST.get('url')
+    serialized_form = request.POST.get('serialized_form')
+    serialized_form_dict = json.loads(serialized_form)
+    
+    # add the original form information back to the request
+    mutable = request.POST._mutable
+    request.POST._mutable = True
+    for k,v in serialized_form_dict.iteritems():
+        request.POST[k]=v
+    request.POST._mutable = mutable
+    
+    view, view_args, view_kwargs = resolve(url)
+    if 'loginRequired' in view_kwargs:
+        del view_kwargs['loginRequired']
+    try:
+        return view(request, **view_kwargs)
+    except:
+        traceback.print_exc()
 
 
 CONDITION_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_MODEL)
