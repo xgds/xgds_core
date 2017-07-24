@@ -437,9 +437,15 @@ def dataInsert(request, action, tablename, pk):
     if action == 'DELETE':
         return
 
+    # TODO do not need this block
     # first check if pk could be originally from this database
-    if not DbServerInfo.keyFromExternalServer(pk):
-        return
+    if pk.isdigit():
+        if not DbServerInfo.keyFromExternalServer(int(pk)):
+            print 'DATA INSERT FOR OURSELVES: %s %s' % (tablename, pk)
+            return
+    else:
+        print 'DATA INSERT FOR NON DIGIT PK %s %s' % (tablename, pk)
+        
     
     # if not see if the tablename maps to a supported broadcast model.
     if not tablename in settings.XGDS_CORE_REBROADCAST_MAP:
