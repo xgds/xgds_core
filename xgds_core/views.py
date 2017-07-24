@@ -465,21 +465,24 @@ def dataInsert(request, action, tablename, pk):
     if action == 'DELETE':
         return
 
-    # first check if pk could be originally from this database
-    if not DbServerInfo.keyFromExternalServer(pk):
-        return
-    
     # if not see if the tablename maps to a supported broadcast model.
     if not tablename in settings.XGDS_CORE_REBROADCAST_MAP:
         return
     
+    # TODO the data will not yet be in the database so instead we will stick this on a new REDIS queue
+    # This will be used by yet another daemon with is the rebroadcast daemon (running with django)
+    # That will read the action, tablename and pk off of redis queue and try to do the below functions
+    # if the object exists in the db which it should by then it will be removed from redis queueif settings.XGDS_CORE_REDIS:
+    if settings.XGDS_CORE_REDIS:
+        queueRedisData(settings.XGDS_CORE_REDIS_REBROADCAST, json.dumps({'action':action, 'tablename': tablename, 'pk': pk}))
+    
     # if so look up the model object instance from the table name and pk
-    modelname = settings.XGDS_CORE_REBROADCAST_MAP[tablename]['modelName']
-    LAZY_MODEL = LazyGetModelByName(modelname)
+    #modelname = settings.XGDS_CORE_REBROADCAST_MAP[tablename]['modelName']
+    #LAZY_MODEL = LazyGetModelByName(modelname)
     
     # and then broadcast it
-    theModel = LAZY_MODEL.get().objects.get(pk=pk)
-    theModel.broadcast()
+    #theModel = LAZY_MODEL.get().objects.get(pk=pk)
+    #theModel.broadcast()
     
     result = {'data':'broadcast',
               'timestamp':datetime.datetime.now(pytz.utc)}
