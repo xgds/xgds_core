@@ -53,7 +53,7 @@ def propagateRelaysToHosts():
 #             logging.info(str(latest_relay))
             for nickname in nicknames:
                 print 'sending thing to ' + settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_'+ nickname
-                rs.lpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, latest_relay[1])
+                rs.lpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, latest_relay[0])
             latest_relay = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, -1, -1)
         
         latest_relay = rs.brpop(settings.XGDS_CORE_REDIS_RELAY_CHANNEL)
@@ -61,7 +61,7 @@ def propagateRelaysToHosts():
         print str(latest_relay)
         for nickname in nicknames:
             print 'sending thing to ' + settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_'+ nickname
-            rs.lpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, latest_relay[1])
+            rs.lpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, latest_relay[0])
         
     
 def relayListener(timeout, hosturl, nickname):
