@@ -300,6 +300,16 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
     #see if we already have an event for this type and PK, if we don't support updates to the same PK
     event = None
     if not update:
+        try:
+            if object_id.is_numeric():
+                isExternal = DbServerInfo.keyFromExternalServer(object_id)
+                if isExternal:
+                    print 'You were trying to re-relay something from outside %s %d' % (content_type, object_id)
+                    return
+        except:
+            pass
+
+        # you are not updating, this should be a new relay event that you are either adding a file to or you'll have to make a new one
         existingEvents = RelayEvent.objects.filter(content_type=content_type, object_id=object_id)
         if existingEvents.count():
             event = existingEvents[0]

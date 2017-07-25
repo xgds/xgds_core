@@ -17,6 +17,7 @@
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 import urlparse
+import requests
 
 
 def get100Years():
@@ -32,3 +33,18 @@ def addPort(url, port, http=True):
             replaced = replaced._replace(scheme='http')
         return replaced.geturl()
     return url
+
+def callUrl(url, username, password, method='GET'):
+    if not username:
+        if method == 'POST':
+            return requests.post(url)
+        elif method == 'GET':
+            return requests.get(url)
+    else:
+        s = requests.Session()
+        s.auth = (username, password)
+        if method == 'POST':
+            return s.post(url)
+        elif method == 'GET':
+            return s.get(url)
+    
