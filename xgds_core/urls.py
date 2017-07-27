@@ -56,4 +56,4 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                ]
 
 if settings.XGDS_CORE_REDIS:
-    urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
+    urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {'loginRequired': False}, 'xgds_core_sse_active_channels'))
