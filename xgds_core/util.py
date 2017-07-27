@@ -50,7 +50,8 @@ def callUrl(url, username, password, method='GET'):
     
 def deletePostKey(post, theKey):
     mutable = post._mutable
-    post._mutable = True
-    del post[theKey]
-    post._mutable = mutable
+    if theKey in post:
+        post._mutable = True
+        del post[theKey]
+        post._mutable = mutable
     return post
