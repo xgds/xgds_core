@@ -427,7 +427,7 @@ def setCondition(request):
 #         if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
 #             publishRedisSSE(condition.getRedisSSEChannel(), 'condition', json_condition_history)
 
-        return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder)
+        return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder, safe=False)
     
     except Exception as e:
         traceback.print_exc()
@@ -435,7 +435,7 @@ def setCondition(request):
                        'error': str(e)
                        }
         return JsonResponse(json.dumps(result_dict),
-                            status=httplib.NOT_ACCEPTABLE)
+                            status=httplib.NOT_ACCEPTABLE, safe=False)
 
 
 def getConditionActiveJSON(request, range=12, filter=None, filterDict={}):
