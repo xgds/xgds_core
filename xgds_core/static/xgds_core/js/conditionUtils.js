@@ -28,6 +28,9 @@ $.extend(condition, {
 	handleConditionEvent: function(event){
 		try {
 			var receivedCondition = JSON.parse(event.data);
+			if ('data' in receivedCondition){
+				receivedCondition = JSON.parse(receivedCondition.data);
+			}
 			condition.updateColor(receivedCondition);
 			$('#conditionDiv').html(condition.getMessage(receivedCondition));
 		} catch(err){
@@ -67,7 +70,7 @@ $.extend(condition, {
             dataType: 'json',
             success: $.proxy(function(data) {
             	if (!_.isEmpty(data)){
-            		var fakeEvent = {data: data};
+            		var fakeEvent = {'data': {'data': data}};
             		condition.handleConditionEvent(fakeEvent);
             	}
             }, this)
