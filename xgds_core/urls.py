@@ -34,7 +34,7 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^update_session', views.update_session, {}, 'update_session'),
                url(r'^update_cookie', views.update_cookie, {}, 'update_cookie'),
                url(r'^handlebar_string/(?P<handlebarPath>[\s\S]+)$', views.get_handlebar_as_string, {}, 'handlebar_string'),
-               url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {'readOnly': True, 'loginRequired': False, 'securityTags': ['readOnly']}, 'get_db_attachment'),
+               url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {}, 'get_db_attachment'),
                url(r'^live/$', RedirectView.as_view(url=settings.XGDS_CORE_LIVE_INDEX_URL, permanent=False), name='live_index'),
                url(r'^error', TemplateView.as_view(template_name='xgds_core/error.html'), {}, 'error'),
                url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(), {}, 'view_json_modelName'),
@@ -44,11 +44,11 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                url(r'^(?P<model_name>[\w]+[\.]*[\w]*).json$', typeahead.getTypeaheadJson, {}, 'xgds_core_model_json'),
                url(r'^complete/User.json/$', typeahead.XSelect2QuerySetView.as_view(model=XgdsUser), name='select2_model_user'),
                url(r'^complete/(?P<model_name>[\w]+[\.]*[\w]*).json/$',typeahead.getSelectJson2, name='select2_model'),
-               url(r'^relay/$',views.receiveRelay, {'loginRequired': False}, 'receive_relay'),
-               url(r'^condition/set/$',views.setCondition, {'loginRequired': False}, 'xgds_core_set_condition'),
+               url(r'^relay/$',views.receiveRelay, {}, 'receive_relay'),
+               url(r'^condition/set/$',views.setCondition, {}, 'xgds_core_set_condition'),
                url(r'^condition/activeJSON/$',views.getConditionActiveJSON, {}, 'xgds_core_get_condition_active_json'),
-               url(r'^tungsten/dataInsert/(?P<action>[\w]*)/(?P<tablename>[\w]*)/(?P<pk>[\w]*)$',views.dataInsert, {'loginRequired': False}, 'xgds_core_data_insert'),
-               url(r'^rebroadcast/tableNamesAndKeys/$', views.getRebroadcastTableNamesAndKeys, {'loginRequired': False}, 'xgds_core_rebroadcast_tablenames_keys'),
+               url(r'^tungsten/dataInsert/(?P<action>[\w]*)/(?P<tablename>[\w]*)/(?P<pk>[\w]*)$',views.dataInsert, {}, 'xgds_core_data_insert'),
+               url(r'^rebroadcast/tableNamesAndKeys/$', views.getRebroadcastTableNamesAndKeys, {}, 'xgds_core_rebroadcast_tablenames_keys'),
                
 #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
 #                url(r'^condition/range/(?P<range>[\d]+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_range'),
@@ -56,4 +56,4 @@ urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds
                ]
 
 if settings.XGDS_CORE_REDIS:
-    urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {'loginRequired': False}, 'xgds_core_sse_active_channels'))
+    urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
