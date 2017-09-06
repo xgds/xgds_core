@@ -53,10 +53,6 @@ from geocamUtil.loader import LazyGetModelByName
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
 from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
-if settings.XGDS_CORE_REDIS:
-    from xgds_core.redisUtil import queueRedisData
-    from xgds_core.redisUtil import publishRedisSSE
-
 
 def buildFilterDict(theFilter):
     if isinstance(theFilter, dict):
@@ -420,12 +416,6 @@ def setCondition(request):
         condition_data = request.POST.get('data', '{}')
         condition_history = condition.populate(source_time, condition_data)
         result = condition_history.broadcast()
-#         json_condition_history = serialize('json', [condition, condition_history], use_natural_foreign_keys=True)
-#         result = {'status': 'success',
-#                   'data': json_condition_history}
-#         
-#         if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
-#             publishRedisSSE(condition.getRedisSSEChannel(), 'condition', json_condition_history)
 
         return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder, safe=False)
     
