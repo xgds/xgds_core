@@ -53,6 +53,8 @@ from geocamUtil.loader import LazyGetModelByName
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
 from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
+if settings.XGDS_CORE_REDIS:
+    from xgds_core.redisUtil import queueRedisData
 
 def buildFilterDict(theFilter):
     if isinstance(theFilter, dict):
