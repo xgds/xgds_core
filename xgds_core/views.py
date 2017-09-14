@@ -385,8 +385,11 @@ def receiveRelay(request):
     # add the original form information back to the request
     mutable = request.POST._mutable
     request.POST._mutable = True
-    for k,v in serialized_form_dict.iteritems():
-        request.POST[k]=v
+    try:
+        for k,v in serialized_form_dict.iteritems():
+            request.POST[k]=v
+    except:
+        pass
     request.POST._mutable = mutable
     
     view, view_args, view_kwargs = resolve(url)
