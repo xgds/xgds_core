@@ -236,6 +236,10 @@ class RelayEvent(models.Model):
         result = {'relay_event_pk': self.pk}
         return json.dumps(result)
 
+    def __unicode__(self):
+        return "%d: %s" % (self.pk, self.url)
+
+
 class RelayFile(models.Model):
     file_to_send = models.FileField(upload_to=getRelayFileName, max_length=256)
     file_key = models.CharField(max_length=64)
