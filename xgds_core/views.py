@@ -318,8 +318,8 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
         except:
             acquisition_time = timezone.now()
             
-        event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
-                           object_id=dataProduct.pk,
+        event = RelayEvent(content_type=content_type,
+                           object_id=object_id,
                            acquisition_time=acquisition_time,
                            serialized_form=serializedForm,
                            url=url,
@@ -357,6 +357,7 @@ def fireRelay(event):
     event.save()
 
 def receiveRelay(request):
+
     object_id = request.POST.get('object_id')
     content_type_app_label = request.POST.get('content_type_app_label')
     content_type_model = request.POST.get('content_type_model')
