@@ -55,8 +55,6 @@ from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 if settings.XGDS_CORE_REDIS:
     from xgds_core.redisUtil import queueRedisData
-    from xgds_core.redisUtil import publishRedisSSE
-
 
 def buildFilterDict(theFilter):
     if isinstance(theFilter, dict):
@@ -320,8 +318,8 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
         except:
             acquisition_time = timezone.now()
             
-        event = RelayEvent(content_type=ContentType.objects.get_for_model(dataProduct),
-                           object_id=dataProduct.pk,
+        event = RelayEvent(content_type=content_type,
+                           object_id=object_id,
                            acquisition_time=acquisition_time,
                            serialized_form=serializedForm,
                            url=url,
@@ -359,6 +357,7 @@ def fireRelay(event):
     event.save()
 
 def receiveRelay(request):
+
     object_id = request.POST.get('object_id')
     content_type_app_label = request.POST.get('content_type_app_label')
     content_type_model = request.POST.get('content_type_model')
@@ -387,8 +386,11 @@ def receiveRelay(request):
     # add the original form information back to the request
     mutable = request.POST._mutable
     request.POST._mutable = True
-    for k,v in serialized_form_dict.iteritems():
-        request.POST[k]=v
+    try:
+        for k,v in serialized_form_dict.iteritems():
+            request.POST[k]=v
+    except:
+        pass
     request.POST._mutable = mutable
     
     view, view_args, view_kwargs = resolve(url)
@@ -420,12 +422,6 @@ def setCondition(request):
         condition_data = request.POST.get('data', '{}')
         condition_history = condition.populate(source_time, condition_data)
         result = condition_history.broadcast()
-#         json_condition_history = serialize('json', [condition, condition_history], use_natural_foreign_keys=True)
-#         result = {'status': 'success',
-#                   'data': json_condition_history}
-#         
-#         if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
-#             publishRedisSSE(condition.getRedisSSEChannel(), 'condition', json_condition_history)
 
         return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder, safe=False)
     
