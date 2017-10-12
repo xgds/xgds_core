@@ -14,46 +14,20 @@
 # specific language governing permissions and limitations under the License.
 #__END_LICENSE__
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic.base import TemplateView, RedirectView
 from django.conf import settings
 
-from dal.autocomplete import Select2QuerySetView
-
 import xgds_core.views as views
-import xgds_core.redisUtil as redisUtil
-import xgds_core.typeahead as typeahead
-from xgds_core.models import XgdsUser
 
-urlpatterns = [url(r'^gridstack_test$', TemplateView.as_view(template_name='xgds_core/gridstack_test.html'), {}, 'gridstack_test'),
-               url(r'^gridstack_generic_test$', TemplateView.as_view(template_name='xgds_core/gridstack_generic_test.html'), {}, 'gridstack_generic_test'),
-               url(r'^gridstack_generic_oursite$', TemplateView.as_view(template_name='xgds_core/gridstack_generic_oursite.html'), {}, 'gridstack_test_oursite'),
-               url(r'^gridstack_test_bootstrap$', TemplateView.as_view(template_name='xgds_core/gridstack_test_bootstrap.html'), {}, 'gridstack_test_bootstrap'),
-               url(r'^test_bootstrap$', TemplateView.as_view(template_name='xgds_core/test_bootstrap.html'), {}, 'gridstack_test'),
-               url(r'^test_bootstrap4$', TemplateView.as_view(template_name='test/hello_bootstrap.html'), {}, 'test_bootstrap4'),
-               url(r'^update_session', views.update_session, {}, 'update_session'),
+urlpatterns = [url(r'^update_session', views.update_session, {}, 'update_session'),
                url(r'^update_cookie', views.update_cookie, {}, 'update_cookie'),
                url(r'^handlebar_string/(?P<handlebarPath>[\s\S]+)$', views.get_handlebar_as_string, {}, 'handlebar_string'),
                url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {}, 'get_db_attachment'),
                url(r'^live/$', RedirectView.as_view(url=settings.XGDS_CORE_LIVE_INDEX_URL, permanent=False), name='live_index'),
                url(r'^error', TemplateView.as_view(template_name='xgds_core/error.html'), {}, 'error'),
-               url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(), {}, 'view_json_modelName'),
-               #url(r'^view/(?P<modelName>\w+)/(?P<filter>(([\w]+|[a-zA-Z0-9:._\-\s]+),*)+)$', views.OrderListJson.as_view(), {}, 'view_json_modelName_filter'),
                url(r'^help/(?P<help_content_path>[\s\S]+)/(?P<help_title>[\s\S]+)$', views.helpPopup, {}, 'help_popup'),
-               url(r'^users.json$', typeahead.getTypeaheadUsers, {}, 'xgds_core_users_json'),
-               url(r'^(?P<model_name>[\w]+[\.]*[\w]*).json$', typeahead.getTypeaheadJson, {}, 'xgds_core_model_json'),
-               url(r'^complete/User.json/$', typeahead.XSelect2QuerySetView.as_view(model=XgdsUser), name='select2_model_user'),
-               url(r'^complete/(?P<model_name>[\w]+[\.]*[\w]*).json/$',typeahead.getSelectJson2, name='select2_model'),
-               url(r'^relay/$',views.receiveRelay, {}, 'receive_relay'),
-               url(r'^condition/set/$',views.setCondition, {}, 'xgds_core_set_condition'),
-               url(r'^condition/activeJSON/$',views.getConditionActiveJSON, {}, 'xgds_core_get_condition_active_json'),
-               url(r'^tungsten/dataInsert/(?P<action>[\w]*)/(?P<tablename>[\w]*)/(?P<pk>[\w]*)$',views.dataInsert, {}, 'xgds_core_data_insert'),
-               url(r'^rebroadcast/tableNamesAndKeys/$', views.getRebroadcastTableNamesAndKeys, {}, 'xgds_core_rebroadcast_tablenames_keys'),
-               
-#                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
-#                url(r'^condition/range/(?P<range>[\d]+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_range'),
-               
+               url(r'^rest/', include('xgds_core.restUrls')),
+               url('', include('xgds_core.restUrls')),
                ]
 
-if settings.XGDS_CORE_REDIS:
-    urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
