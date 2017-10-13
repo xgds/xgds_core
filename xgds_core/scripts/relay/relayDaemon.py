@@ -24,6 +24,7 @@ import threading
 from urlparse import urlparse
 
 import django
+#from __builtin__ import None
 django.setup()
 
 from django.conf import settings
@@ -32,6 +33,7 @@ from xgds_core.models import RelayEvent, RelayFile
 rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
 nicknames = []
 hostlist = None
+auth = {}
 
 def runRelayListeners(timeout):
     threads = []
@@ -102,13 +104,14 @@ def relayData(active, timeout, hosturl, nickname):
         event = RelayEvent.objects.get(pk=int(active_dict['relay_event_pk']))
 #         logging.info('RELAY BEGIN %d' % event.pk)
         print 'RELAY BEGIN %d' % event.pk
-        url = "%s%s" % (hosturl, '/xgds_core/relay/')
+        url = "%s%s" % (hosturl, '/xgds_core/rest/relay/')
         files = {}
         for f in event.relayfile_set.all():
             files[f.file_key] = f.file_to_send
         #TODO handle pk matching and check for the pk and type somehow
         print 'about to post ' 
-        response = requests.post(url, data=event.getSerializedData(), files=files, timeout=timeout)
+        #TODO add auth to response
+        response = requests.post(url, data=event.getSerializedData(), files=files, timeout=timeout, auth=(auth['username'], auth['password']))
         if response.status_code == requests.codes.ok:
             print 'success response'
             event.relay_success_time = datetime.datetime.utcnow()
@@ -128,22 +131,35 @@ def relayData(active, timeout, hosturl, nickname):
 
 
 def main():
+    print 'HALLO'
     import optparse
     parser = optparse.OptionParser('usage: %prog hosturls')
     parser.add_option('-t', '--timeout',
                       default=30,
                       help='Timeout in seconds for response from HTTP relay post.')
+    
+    parser.add_option('-u', '--username', default='irg', help='username for xgds auth')
+    parser.add_option('-p', '--password', help='authtoken for xgds authentication.  Can get it from https://xgds_server_name/accounts/rest/genToken/<username>')
+    
     opts, args = parser.parse_args()
     if not args:
         parser.error('expected hosturl as argument (http://shore.xgds.org for example)')
     logging.basicConfig(level=logging.DEBUG)
+    
+    if not opts.password:
+        parser.error('password is required')
+    
+    global auth
+    auth['username'] = opts.username
+    auth['password'] = opts.password
 
     global hostlist
     hostlist = args[0].split(',')
     for hosturl in hostlist:
         netloc = urlparse(hosturl).netloc
         nicknames.append(netloc.split(':')[0])
-
+    
+        
     runRelayListeners(opts.timeout)
     propagateRelaysToHosts()
     
