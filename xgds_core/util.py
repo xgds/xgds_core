@@ -58,3 +58,13 @@ def deletePostKey(post, theKey):
     except:
         pass
     return post
+
+def insertIntoPath(original, insertion='rest'):
+    ''' Insert a string after the first block in a path, for example
+    /my/original/path,insertion
+    /my/INSERTION/original/path
+    '''
+    slashIndex = original.index('/',1)
+    newString = '%s/%s%s' % (original[0:slashIndex], insertion, original[slashIndex:len(original)])
+    return newString
+

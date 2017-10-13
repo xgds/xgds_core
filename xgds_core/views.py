@@ -394,8 +394,8 @@ def receiveRelay(request):
     request.POST._mutable = mutable
     
     view, view_args, view_kwargs = resolve(url)
-    if 'loginRequired' in view_kwargs:
-        del view_kwargs['loginRequired']
+#     if 'loginRequired' in view_kwargs:
+#         del view_kwargs['loginRequired']
     try:
         return view(request, **view_kwargs)
     except:
