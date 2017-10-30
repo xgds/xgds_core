@@ -309,7 +309,7 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
             pass
 
         # you are not updating, this should be a new relay event that you are either adding a file to or you'll have to make a new one
-        existingEvents = RelayEvent.objects.filter(content_type=content_type, object_id=object_id)
+        existingEvents = RelayEvent.objects.filter(content_type=content_type, object_id=object_id, hostname=settings.HOSTNAME)
         if existingEvents.count():
             event = existingEvents[0]
     

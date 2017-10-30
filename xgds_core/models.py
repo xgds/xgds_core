@@ -222,6 +222,7 @@ class RelayEvent(models.Model):
     serialized_form = models.TextField()
     url = models.CharField(max_length=128)
     is_update = models.BooleanField(default=False)
+    hostname = models.CharField(max_length=32, default=settings.HOSTNAME)
     
     def getSerializedData(self):
         result = {'object_id':self.object_id,
