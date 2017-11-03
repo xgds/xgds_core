@@ -14,6 +14,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+import time
 import redis
 import json
 import requests
@@ -78,13 +79,15 @@ def relayListener(timeout, hosturl, nickname):
         active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
         while active:
             # handle previously active event
-            relayData(active[0], timeout, hosturl, nickname)
-
-            # clean it out
-            rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname)
+            worked = relayData(active[0], timeout, hosturl, nickname)
 
             # get next one
-            active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
+            if worked:
+                active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
+            else:
+                # relay failed.
+                # wait for 10 seconds and try the same active item again
+                time.sleep(10.0)
     
         # handle newly broadcast data to relay
         active = rs.brpoplpush(settings.XGDS_CORE_REDIS_RELAY_CHANNEL + '_' + nickname, settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname)
@@ -118,6 +121,7 @@ def relayData(active, timeout, hosturl, nickname):
             event.save()
             rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname)
             print 'RELAY SUCCESS %d' % event.pk
+            return True
 #             logging.info('RELAY SUCCESS %d' % event.pk)
         else:
             logging.warning('RELAY FAIL %d. Status Code: %d' % (event.pk, response.status_code))
@@ -128,6 +132,8 @@ def relayData(active, timeout, hosturl, nickname):
         print str(e)
         logging.warning('ERROR IN RELAY DATA')
         traceback.print_exc()
+    
+    return False
 
 
 def main():
