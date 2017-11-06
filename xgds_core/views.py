@@ -417,7 +417,11 @@ def setCondition(request):
         condition_source = request.POST.get('source')
         condition_source_id = request.POST.get('id', None)
         if condition_source_id:
-            condition, created = CONDITION_MODEL.get().objects.get_or_create(source=condition_source, source_id=condition_source_id)
+            conditions = CONDITION_MODEL.get().objects.filter(source=condition_source, source_id=condition_source_id)
+            if not conditions:
+                condition = CONDITION_MODEL.get()(source=condition_source, source_id=condition_source_id)
+            else:
+                condition = conditions.last()
         else:
             condition = CONDITION_MODEL.get()(source=condition_source)
 
