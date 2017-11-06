@@ -32,7 +32,6 @@
 		{% endblock preLayout %}
 		
     	xgds_gridstack.initializeGridstack();
-    	xgds_gridstack.loadGrid(window.location.href);
     	{% block otherJSInit %}
 		{% endblock otherJSInit %}
 	});
@@ -90,7 +89,7 @@
 			{% block buttonrowRight %}
 			{% endblock buttonrowRight %}
 				<button id="gridstack_toggleAll" class='btn btn-primary fa fa-lock my-1' role='button' style="color:white; max-height:1.8rem; margin-left: 10px;" onclick="xgds_gridstack.handleToggleAllClick();"></button>
-		        <button id="gridstack_reset" class='btn btn-primary my-1' role='button' style="color:white; max-height:1.8rem; margin-left: 2px;" onclick="xgds_gridstack.resetGrid(window.location.href);">Reset Grid</button>
+		        <button id="gridstack_reset" class='btn btn-primary my-1' role='button' style="color:white; max-height:1.8rem; margin-left: 2px;" onclick="xgds_gridstack.resetGrid(window.location.href);">Reset Layout</button>
         </div>
 	</div>
 	{% block preDashboard %}

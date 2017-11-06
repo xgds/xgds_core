@@ -42,6 +42,7 @@ $.extend(xgds_gridstack,{
 	    
 	    xgds_gridstack.bindMapResize(container);
 	    xgds_gridstack.bindChanges();
+	    xgds_gridstack.loadGrid(window.location.href);
 	},
 
 	addItem: function(item, x, y, width, height){
