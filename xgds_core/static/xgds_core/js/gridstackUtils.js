@@ -160,7 +160,7 @@ $.extend(xgds_gridstack,{
 	    // this.THE_GRIDSTACK.removeAll();
 		if (this.getGrid != null){
 			var serializedData = this.getGrid(location);
-			var items = GridStackUI.Utils.sort(this.serializedData);
+			var items = GridStackUI.Utils.sort(serializedData);
 			_.each(items, function (node) {
 				// this.grid.addWidget($('<div><div class="grid-stack-item-content" /><div/>'),
 				//     node.x, node.y, node.width, node.height);
@@ -172,9 +172,14 @@ $.extend(xgds_gridstack,{
 
 	getGrid: function(location){
 		if (Cookies.get("gridstack_" + location) != null){
-			var data = JSON.parse(Cookies.get("gridstack_" + location));
+			var data = Cookies.getJSON("gridstack_" + location);
 			return data;
 		}
+	},
+
+	resetGrid: function(location){
+		if (Cookies.get("gridstack_" + location) != null)
+			Cookies.remove("gridstack_" + location);
 	},
 
 	toggleAllPins: function(open) {
