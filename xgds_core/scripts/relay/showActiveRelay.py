@@ -41,16 +41,14 @@ def listEvents():
     
 def main():
     import optparse
-    parser = optparse.OptionParser('usage: %prog hostname')
-    parser.add_option('-h', '--host', default='boat.xgds.org', help='where the relay is pushing to')
+    parser = optparse.OptionParser('usage: %prog dest')
+    parser.add_option('-d', '--dest', default='boat.xgds.org', help='where the relay is pushing to')
     parser.add_option('-e', '--eventPK', default=None, help='PK of event to delete')
     
     opts, args = parser.parse_args()
-    if not args:
-        parser.error('expected hosturl as argument (http://shore.xgds.org for example)')
     
     global queuename
-    queuename = settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + opts.host
+    queuename = settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + opts.dest
     
     listEvents()
     
