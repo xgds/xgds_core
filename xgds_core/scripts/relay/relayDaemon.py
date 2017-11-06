@@ -81,10 +81,9 @@ def relayListener(timeout, hosturl, nickname):
             # handle previously active event
             worked = relayData(active[0], timeout, hosturl, nickname)
 
-            # get next one
-            if worked:
-                active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
-            else:
+            # get last one, in case we removed a bad one from outside
+            active = rs.lrange(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname, -1, -1)
+            if not worked:
                 # relay failed.
                 # wait for 10 seconds and try the same active item again
                 time.sleep(10.0)
@@ -137,7 +136,6 @@ def relayData(active, timeout, hosturl, nickname):
 
 
 def main():
-    print 'HALLO'
     import optparse
     parser = optparse.OptionParser('usage: %prog hosturls')
     parser.add_option('-t', '--timeout',

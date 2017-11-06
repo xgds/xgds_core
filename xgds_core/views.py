@@ -305,7 +305,8 @@ def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, upda
                 print 'You were trying to re-relay something from outside %s %d' % (content_type, object_pk_int)
                 return
         except:
-            print 'Relay problem, not update and object id is %s' % object_id
+            print 'Relay problem, CHECK YOUR DATABASE FOR GLOBAL VARIABLES not update and object id is %s' % object_id
+            traceback.print_exc()
             pass
 
         # you are not updating, this should be a new relay event that you are either adding a file to or you'll have to make a new one
