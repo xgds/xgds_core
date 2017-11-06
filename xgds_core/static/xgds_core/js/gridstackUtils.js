@@ -133,51 +133,50 @@ $.extend(xgds_gridstack,{
 	},
 	
 	bindChanges: function() {
-
-//		$('.grid-stack').on('change', function(event, items) {
-//			console.log(items);
-//		    //serializeWidgetMap(items);
-//		});
+		var _this = this;
+		$('.grid-stack').on('change', function(event, items) {
+		   	_this.saveGrid(window.location.href)
+		});
 	},
 
-	loadGrid: function() {
-	    this.THE_GRIDSTACK.removeAll();
-	    var items = GridStackUI.Utils.sort(this.serializedData);
-	    _.each(items, function (node) {
-	        this.grid.addWidget($('<div><div class="grid-stack-item-content" /><div/>'),
-	            node.x, node.y, node.width, node.height);
-	    }, this);
-	},
-
-	saveGrid: function(){
+	saveGrid: function(location){
 	    var serializedData = _.map($('.grid-stack > .grid-stack-item:visible'), function (el) {
+	    	var elid = el.id;
 	        el = $(el);
 	        var node = el.data('_gridstack_node');
 	        return {
 	            x: node.x,
 	            y: node.y,
 	            width: node.width,
-	            height: node.height
+	            height: node.height,
+				elid: elid
 	        };
 	    });
-	    
-	    var key = window.location.href;
-	    var jsonData = JSON.stringify({ key: serializedData});  
-	    $.ajax( { url: "{% url 'xgds_notes_record' %}",
-	    	      type: "POST",
-	    	      dataType: 'json',
-	    	      data: jsonData,
-	    	      success: function(data)
-	    	        {
-	    	    	  console.log(data);
-	    	        },
-	    	        error: function(data)
-	    	        {
-	    	        	console.log("boo");
-	    	        }
-	    	    });
-//	    $('#saved-data').val(JSON.stringify(this.serializedData, null, '    '));
+
+	    Cookies.set("gridstack_" + location, serializedData);
 	},
+
+	loadGrid: function(location) {
+	    // this.THE_GRIDSTACK.removeAll();
+		if (this.getGrid != null){
+			var serializedData = this.getGrid(location);
+			var items = GridStackUI.Utils.sort(this.serializedData);
+			_.each(items, function (node) {
+				// this.grid.addWidget($('<div><div class="grid-stack-item-content" /><div/>'),
+				//     node.x, node.y, node.width, node.height);
+				this.THE_GRIDSTACK.move(document.getElementById(node.elid), node.x, node.y);
+				this.THE_GRIDSTACK.resize(document.getElementById(node.elid), node.width, node.height);
+			}, this);
+		}
+	},
+
+	getGrid: function(location){
+		if (Cookies.get("gridstack_" + location) != null){
+			var data = JSON.parse(Cookies.get("gridstack_" + location));
+			return data;
+		}
+	},
+
 	toggleAllPins: function(open) {
 		$('.grid-stack-item').each(function() {
 			if (open){
