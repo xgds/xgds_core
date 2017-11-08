@@ -49,12 +49,12 @@ from django.http import (HttpResponse,
                          HttpResponseNotAllowed)
 
 from geocamUtil.loader import LazyGetModelByName
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
-from apps.geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 if settings.XGDS_CORE_REDIS:
-    from xgds_core.redisUtil import queueRedisData
+    from xgds_core.redisUtil import queueRedisData, publishRedisSSEAtTime, callRemoteRebroadcast
 
 def buildFilterDict(theFilter):
     if isinstance(theFilter, dict):
@@ -355,7 +355,7 @@ def getDelay():
 
 def fireRelay(event):
     queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, event.toRelayJson())
-    event.relay_start_time = datetime.datetime.utcnow()
+    event.relay_start_time = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     event.save()
 
 def receiveRelay(request):
@@ -504,4 +504,7 @@ def dataInsert(request, action, tablename, pk):
 def getRebroadcastTableNamesAndKeys(request):
     rebroadcastMap = settings.XGDS_CORE_REBROADCAST_MAP
     return JsonResponse(rebroadcastMap, safe=False)
-    
+
+
+
+

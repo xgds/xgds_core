@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 import time
+import pytz
 import redis
 import json
 import requests
@@ -116,7 +117,7 @@ def relayData(active, timeout, hosturl, nickname):
         response = requests.post(url, data=event.getSerializedData(), files=files, timeout=timeout, auth=(auth['username'], auth['password']))
         if response.status_code == requests.codes.ok:
             print 'success response'
-            event.relay_success_time = datetime.datetime.utcnow()
+            event.relay_success_time = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
             event.save()
             rs.rpop(settings.XGDS_CORE_REDIS_RELAY_ACTIVE + '_' + nickname)
             print 'RELAY SUCCESS %d' % event.pk

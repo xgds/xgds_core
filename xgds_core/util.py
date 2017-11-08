@@ -34,17 +34,17 @@ def addPort(url, port, http=True):
         return replaced.geturl()
     return url
 
-def callUrl(url, username, password, method='GET'):
+def callUrl(url, username, password, method='GET', data=None):
     if not username:
         if method == 'POST':
-            return requests.post(url)
+            return requests.post(url, data=data)
         elif method == 'GET':
             return requests.get(url)
     else:
         s = requests.Session()
         s.auth = (username, password)
         if method == 'POST':
-            return s.post(url)
+            return s.post(url, data=data)
         elif method == 'GET':
             return s.get(url)
     
@@ -67,4 +67,5 @@ def insertIntoPath(original, insertion='rest'):
     slashIndex = original.index('/',1)
     newString = '%s/%s%s' % (original[0:slashIndex], insertion, original[slashIndex:len(original)])
     return newString
+
 

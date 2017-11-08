@@ -35,10 +35,10 @@ from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 
 from xgds_core.util import get100Years
+from xgds_core.redisUtil import callRemoteRebroadcast
 
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
-
 
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
@@ -357,6 +357,7 @@ class AbstractConditionHistory(models.Model):
                           'data': json_condition_history}
                 json_string = json.dumps(result, cls=DatetimeJsonEncoder)
                 publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
+                callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
                 return json_string
         except:
             traceback.print_exc()
@@ -425,6 +426,7 @@ class BroadcastMixin(object):
             json_string = json.dumps(result, cls=DatetimeJsonEncoder)
             if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
                 publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
+                callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
             return result
         except:
             traceback.print_exc()

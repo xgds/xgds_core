@@ -70,3 +70,8 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 XGDS_CORE_REBROADCAST_MAP = getOrCreateDict('XGDS_CORE_REBROADCAST_MAP')
 XGDS_CORE_REBROADCAST_MAP.update({'xgds_core_conditionhistory':{'modelName':'xgds_core.ConditionHistory', 'pkColNum':1, 'pkType': 'int'}})
                                   #'geocamTrack_linestyle': {'modelName':'geocamTrack.LineStyle', 'pkColNum':1, 'pkType': 'int'}})
+
+# For sse rebroadcast on remote machines, set this up in settings.py
+XGDS_CORE_SSE_REBROADCAST_SITES = []
+XGDS_CORE_SSE_REMOTE_USERNAME = ''
+XGDS_CORE_SSE_REMOTE_TOKEN = ''
