@@ -38,7 +38,7 @@ if settings.XGDS_CORE_REDIS:
         
     def publishRedisSSEAtTime(channel, sse_type, jsonString, publishTime):
         publish_info = {"channel": channel,
-                        "publishTime": publishTime,
+                        "publishTime": publishTime.isoformat(),
                         "messageString": {"type":sse_type, "data": jsonString}}
         rebroadcastString = json.dumps(publish_info)
         rs.rpush(settings.XGDS_CORE_REDIS_REBROADCAST, rebroadcastString)
