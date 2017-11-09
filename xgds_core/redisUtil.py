@@ -33,14 +33,14 @@ if settings.XGDS_CORE_REDIS:
         rs.lpush(channel, jsonString)
         
     def publishRedisSSE(channel, sse_type, jsonString):
-        message_string = json.dumps({'type':sse_type, 'data': jsonString})
+        message_string = json.dumps({"type":sse_type, "data": jsonString})
         rs.publish(channel, message_string)
         
     def publishRedisSSEAtTime(channel, sse_type, jsonString, publishTime):
-        publish_info = {'channel': channel,
-                        'publishTime': publishTime,
-                        'messageString': {'type':sse_type, 'data': jsonString}}
-        rebroadcastString = json.dumps(publish_info, cls=DatetimeJsonEncoder)
+        publish_info = {"channel": channel,
+                        "publishTime": publishTime,
+                        "messageString": {"type":sse_type, "data": jsonString}}
+        rebroadcastString = json.dumps(publish_info)
         rs.rpush(settings.XGDS_CORE_REDIS_REBROADCAST, rebroadcastString)
         
     def getSseActiveChannels(request):
@@ -49,12 +49,15 @@ if settings.XGDS_CORE_REDIS:
     
 
 
-def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=datetime.datetime.utcnow()):
+def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=None):
+    if not eventTime:
+        eventTime = datetime.datetime.utcnow()
+
     ''' Rebroadcast this information on the remote machines that are registered in settings.py for a delayed sse event'''
-    data = {'channel':channel,
-            'sseType':sseType,
-            'jsonString': jsonString,
-            'eventTime': eventTime.isoformat()}
+    data = {"channel":channel,
+            "sseType":sseType,
+            "jsonString": jsonString,
+            "eventTime": eventTime.isoformat()}
     
     urlSuffix = '/xgds_core/rest/rebroadcast/sse/'
     username = settings.XGDS_CORE_SSE_REMOTE_USERNAME
@@ -62,4 +65,4 @@ def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=datetime.datet
     
     for remoteSite in settings.XGDS_CORE_SSE_REBROADCAST_SITES:
         url = remoteSite + urlSuffix
-        callUrl(url, username, password, 'POST', data)
+        result  = callUrl(url, username, password, 'POST', data)
