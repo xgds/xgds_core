@@ -17,26 +17,39 @@
  </style>
  {% endblock cssExtras %}
 
-
 {% block jsInit %}
+
+ 	{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE %}
+ 		var preloadImageList = {{ settings.GEOCAM_TRACK_PRELOAD_TRACK_IMAGES|safe }}; 
+    		trackSse.preloadedIcons = $.preloadImages(preloadImageList);
+    	{% endif %}
+    	
 	{% block jsInitPreApp %}
 	{% endblock jsInitPreApp %}
 	
 	$(function(){
 		siteFrames = {% siteframes_dict %};
-    	app.start(appOptions);
-    	app.vent.on("mapSearch:drewFeatures", function(e) {
-        	app.vent.trigger('mapSearch:fit');
-            });
+    		app.start(appOptions);
+    		app.vent.on("mapSearch:drewFeatures", function(e) {
+        		app.vent.trigger('mapSearch:fit');
+        });
+        
         {% block preLayout %}
 		{% endblock preLayout %}
 		
-    	xgds_gridstack.initializeGridstack();
-    	{% block otherJSInit %}
+		{% block initGridstack %}
+    		xgds_gridstack.initializeGridstack();
+    		{% endblock initGridstack %}
+    	
+    		{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE%}
+    			trackSse.initialize();
+    		{% endif %}
+    	
+    		{% block otherJSInit %}
 		{% endblock otherJSInit %}
 	});
 	
-{% endblock %}
+{% endblock jsInit%}
 
 
 {% block scripts %}
@@ -74,6 +87,12 @@
 	<script type="text/javascript" src="{{ EXTERNAL_URL }}gridstack/dist/gridstack.min.js" ></script>
 	<script type="text/javascript" src="{% static 'xgds_core/js/gridstackUtils.js' %}"></script>
 	{% javascript 'custom_map' %}
+	{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE%}
+	{% load sse %}
+	{% setup_sse %}
+	<script type="text/javascript" src="{% static 'geocamTrack/js/trackSseUtils.js' %}"></script>
+	<script type="text/javascript" src="{% static 'geocamTrack/js/olTrackSseUtils.js' %}"></script>
+	{% endif %}
 {% endblock scripts %}
 
 
