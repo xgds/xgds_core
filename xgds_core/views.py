@@ -507,4 +507,28 @@ def getRebroadcastTableNamesAndKeys(request):
 
 
 
+def rebroadcastSse(request):
+    ''' Receive some json information which will allow us to reflect this information on our SSE channels 
+    We will inject delay if we are running in delay.
+    '''
+    if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+        if request.method=='POST':
+            channel = request.POST.get('channel')
+            sseType = request.POST.get('sseType')
+            jsonString = request.POST.get('jsonString')
 
+            # figure out when we want to publish this
+            eventTimeString = request.POST.get('eventTime')
+            delay = getDelay()
+            eventTime = dateparser(eventTimeString)
+            publishTime = eventTime + datetime.timedelta(seconds=delay)
+
+            publishRedisSSEAtTime(channel, sseType, jsonString, publishTime)
+            
+            result = {'data':'broadcast',
+                      'timestamp':datetime.datetime.now(pytz.utc)}
+            return JsonResponse(result, encoder=DatetimeJsonEncoder)
+
+    result = {'data':'fail broadcast',
+              'timestamp':datetime.datetime.now(pytz.utc)}
+    return JsonResponse(result, encoder=DatetimeJsonEncoder, status=406)

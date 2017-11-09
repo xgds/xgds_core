@@ -19,6 +19,7 @@ import datetime
 from dateutil.parser import parse as dateparser
 
 from xgds_core.util import callUrl
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 
 from django.conf import settings
@@ -39,7 +40,7 @@ if settings.XGDS_CORE_REDIS:
         publish_info = {'channel': channel,
                         'publishTime': publishTime,
                         'messageString': {'type':sse_type, 'data': jsonString}}
-        rebroadcastString = json.dumps(publish_info)
+        rebroadcastString = json.dumps(publish_info, cls=DatetimeJsonEncoder)
         rs.rpush(settings.XGDS_CORE_REDIS_REBROADCAST, rebroadcastString)
         
     def getSseActiveChannels(request):
@@ -48,32 +49,12 @@ if settings.XGDS_CORE_REDIS:
     
 
 
-def rebroadcastSse(request):
-    ''' Receive some json information which will allow us to reflect this information on our SSE channels 
-    We will inject delay if we are running in delay.
-    '''
-    if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
-        if request.method=='POST':
-            channel = request.POST.get('channel')
-            sseType = request.POST.get('sseType')
-            jsonString = request.POST.get('jsonString')
-            
-            # figure out when we want to publish this
-            eventTimeString = request.POST.get('eventTime')
-            delay = getDelay()
-            eventTime = dateparser(eventTimeString)
-            publishTime = eventTime + datetime.timedelta(seconds=delay)
-            
-            publishRedisSSEAtTime(channel, sseType, jsonString, publishTime)
-
-    
 def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=datetime.datetime.utcnow()):
-    return # TODO uncomment when ready to test
     ''' Rebroadcast this information on the remote machines that are registered in settings.py for a delayed sse event'''
     data = {'channel':channel,
             'sseType':sseType,
             'jsonString': jsonString,
-            'eventTime': eventTime}
+            'eventTime': eventTime.isoformat()}
     
     urlSuffix = '/xgds_core/rest/rebroadcast/sse/'
     username = settings.XGDS_CORE_SSE_REMOTE_USERNAME

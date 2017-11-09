@@ -24,7 +24,6 @@ import xgds_core.views as views
 import xgds_core.redisUtil as redisUtil
 import xgds_core.typeahead as typeahead
 from xgds_core.models import XgdsUser
-from xgds_core.redisUtil import rebroadcastSse
 
 urlpatterns = [url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(), {}, 'view_json_modelName'),
                url(r'^users.json$', typeahead.getTypeaheadUsers, {}, 'xgds_core_users_json'),
@@ -36,7 +35,7 @@ urlpatterns = [url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(),
                url(r'^condition/activeJSON/$',views.getConditionActiveJSON, {}, 'xgds_core_get_condition_active_json'),
                url(r'^tungsten/dataInsert/(?P<action>[\w]*)/(?P<tablename>[\w]*)/(?P<pk>[\w]*)$',views.dataInsert, {}, 'xgds_core_data_insert'),
                url(r'^rebroadcast/tableNamesAndKeys/$', views.getRebroadcastTableNamesAndKeys, {}, 'xgds_core_rebroadcast_tablenames_keys'),
-               url(r'^rebroadcast/sse/$', redisUtil.rebroadcastSse, {}, 'xgds_core_rebroadcast_sse'),
+               url(r'^rebroadcast/sse/$', views.rebroadcastSse, {}, 'xgds_core_rebroadcast_sse'),
                url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {}, 'get_db_attachment'),
 
 #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),

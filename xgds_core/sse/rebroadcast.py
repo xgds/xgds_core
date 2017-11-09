@@ -17,6 +17,8 @@
 
 import logging
 import time
+from dateutil.parser import parse as dateparser
+
 import redis
 import json
 import traceback
@@ -28,6 +30,7 @@ django.setup()
 
 from django.conf import settings
 
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 rs = redis.Redis()
 
 '''
@@ -38,25 +41,27 @@ IF we are ever getting data in non sequential time order this could block this w
 We are not expecting that now.
 '''
 def main():
-    logging.info('STARTING REBROADCAST')
+    logging.warning('*** starting up ***')
     while True:
-        logging.info('**** ABOUT TO BLOCK FOR NEXT THINGY ****')
-        next = rs.brpop(settings.XGDS_CORE_REDIS_REBROADCAST)
-        logging.info('***** NEW THINGY *****')
-        logging.info(next)
-        publishTime = next['publishTime']
+        #logging.warning('**** ABOUT TO BLOCK FOR NEXT THINGY ****')
+        channel, next = rs.blpop(settings.XGDS_CORE_REDIS_REBROADCAST)
+        #logging.warning('***** NEW THINGY *****')
+        nextDict = json.loads(next)
+        publishTime = dateparser(nextDict['publishTime'])
         now = datetime.datetime.utcnow()
         
         if publishTime > now:
             delta = publishTime - now
             deltaSeconds = delta.seconds
+            #logging.warning('SLEEPING FOR SECONDS %d' % deltaSeconds)
             time.sleep(deltaSeconds)
         
-        channel = next['channel']
-        messageString = next['messageString']
+        channel = nextDict['channel']
+        messageString = nextDict['messageString']
         # publish to the right sse queue
-        logging.info('PUBLISHING')
-        rs.publish(channel, messageString)
+        #logging.warning('PUBLISHING CHANNEL: %s ' % channel)
+        rs.publish(channel, json.dumps(messageString, cls=DatetimeJsonEncoder))
+        #logging.warning('DONE PUBLISHING')
             
 
 if __name__ == '__main__':
