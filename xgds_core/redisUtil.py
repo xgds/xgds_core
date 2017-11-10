@@ -18,7 +18,6 @@ import json
 import datetime
 from dateutil.parser import parse as dateparser
 
-from xgds_core.util import callUrl
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 
@@ -65,4 +64,11 @@ def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=None):
     
     for remoteSite in settings.XGDS_CORE_SSE_REBROADCAST_SITES:
         url = remoteSite + urlSuffix
-        result  = callUrl(url, username, password, 'POST', data, True)
+        
+        config = {'url':url,
+                  'username': username,
+                  'password': password,
+                  'method': 'POST',
+                  'data': data}
+        queueRedisData(settings.XGDS_CORE_REDIS_SESSION_MANAGER, json.dumps(config, cls=DatetimeJsonEncoder))
+  

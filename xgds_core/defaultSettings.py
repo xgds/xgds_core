@@ -47,6 +47,7 @@ XGDS_CORE_REDIS = False
 XGDS_CORE_REDIS_RELAY_CHANNEL = 'dataRelayQueue'
 XGDS_CORE_REDIS_RELAY_ACTIVE = 'dataRelayActive'
 XGDS_CORE_REDIS_REBROADCAST = 'sseRebroadcast'
+XGDS_CORE_REDIS_SESSION_MANAGER = 'sessionManager'
 
 # override to include SSE; right now we are based on flask-sse nginx and redis
 XGDS_SSE = False

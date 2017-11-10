@@ -16,10 +16,12 @@
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from django.conf import settings
 import urlparse
+import json
 import requests
-from django.core.cache import caches
-cache = caches['default']
+from redisUtil import queueRedisData
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 def get100Years():
     theNow = timezone.now() + relativedelta(years=100)
@@ -36,19 +38,18 @@ def addPort(url, port, http=True):
     return url
 
 
-def getSharedSession(url):
-    parsed = urlparse.urlparse(url)
-    key = parsed.scheme + '//' + parsed.netloc
-    s = cache.get(key)
-    if not s:
-        s = requests.Session()
-        cache.set(key, s)
-    return s
-    
-    
 def callUrl(url, username, password, method='GET', data=None, shareSession=False):
+    ''' WARNING If you are calling this a lot of times then you will be opening a new connection and instead it should
+    be run outside with a  pycroraptor service.'''
     if shareSession:
-        s = getSharedSession(url)
+        # POST THIS ON SHARED SESSION FOR REDIS
+        config = {'url':url,
+                 'username': username,
+                 'password': password,
+                 'method': method,
+                 'data': data}
+        queueRedisData(settings.XGDS_CORE_REDIS_SESSION_MANAGER, json.dumps(config, cls=DatetimeJsonEncoder))
+        return
     else:
         s = requests.Session()
     if username:
