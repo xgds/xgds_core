@@ -42,7 +42,7 @@ $.extend(xgds_gridstack,{
 	    
 	    xgds_gridstack.bindMapResize(container);
 	    xgds_gridstack.bindChanges();
-	    xgds_gridstack.loadGrid(window.location.href);
+	    xgds_gridstack.loadGrid(window.location.pathname);
 	},
 
 	addItem: function(item, x, y, width, height){
@@ -136,7 +136,7 @@ $.extend(xgds_gridstack,{
 	bindChanges: function() {
 		var _this = this;
 		$('.grid-stack').on('change', function(event, items) {
-		   	_this.saveGrid(window.location.href)
+		   	_this.saveGrid(window.location.pathname)
 		});
 	},
 
@@ -153,8 +153,10 @@ $.extend(xgds_gridstack,{
 				elid: elid
 	        };
 	    });
+		var url = location.split("/");
+		url = url[1] + "/" + url[2];
 
-	    Cookies.set("gridstack_" + location, serializedData);
+	    Cookies.set("gridstack_" + url, serializedData);
 	},
 
 	loadGrid: function(location) {
@@ -172,15 +174,21 @@ $.extend(xgds_gridstack,{
 	},
 
 	getGrid: function(location){
-		if (Cookies.get("gridstack_" + location) != null){
-			var data = Cookies.getJSON("gridstack_" + location);
+		var url = location.split("/");
+		url = url[1] + "/" + url[2];
+
+		if (Cookies.get("gridstack_" + url) != null){
+			var data = Cookies.getJSON("gridstack_" + url);
 			return data;
 		}
 	},
 
 	resetGrid: function(location){
-		if (Cookies.get("gridstack_" + location) != null)
-			Cookies.remove("gridstack_" + location);
+		var url = location.split("/");
+		url = url[1] + "/" + url[2];
+
+		if (Cookies.get("gridstack_" + url) != null)
+			Cookies.remove("gridstack_" + url);
 	},
 
 	toggleAllPins: function(open) {
