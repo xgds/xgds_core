@@ -65,4 +65,4 @@ def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=None):
     
     for remoteSite in settings.XGDS_CORE_SSE_REBROADCAST_SITES:
         url = remoteSite + urlSuffix
-        result  = callUrl(url, username, password, 'POST', data)
+        result  = callUrl(url, username, password, 'POST', data, True)

@@ -18,7 +18,8 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 import urlparse
 import requests
-
+from django.core.cache import caches
+cache = caches['default']
 
 def get100Years():
     theNow = timezone.now() + relativedelta(years=100)
@@ -34,19 +35,29 @@ def addPort(url, port, http=True):
         return replaced.geturl()
     return url
 
-def callUrl(url, username, password, method='GET', data=None):
-    if not username:
-        if method == 'POST':
-            return requests.post(url, data=data)
-        elif method == 'GET':
-            return requests.get(url)
+
+def getSharedSession(url):
+    parsed = urlparse.urlparse(url)
+    key = parsed.scheme + '//' + parsed.netloc
+    s = cache.get(key)
+    if not s:
+        s = requests.Session()
+        cache.set(key, s)
+    return s
+    
+    
+def callUrl(url, username, password, method='GET', data=None, shareSession=False):
+    if shareSession:
+        s = getSharedSession(url)
     else:
         s = requests.Session()
+    if username:
         s.auth = (username, password)
-        if method == 'POST':
-            return s.post(url, data=data)
-        elif method == 'GET':
-            return s.get(url)
+    if method == 'POST':
+        return s.post(url, data=data)
+    elif method == 'GET':
+        return s.get(url)
+
     
 def deletePostKey(post, theKey):
     try:
