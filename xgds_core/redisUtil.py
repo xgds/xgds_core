@@ -61,14 +61,12 @@ def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=None):
     urlSuffix = '/xgds_core/rest/rebroadcast/sse/'
     username = settings.XGDS_CORE_SSE_REMOTE_USERNAME
     password = settings.XGDS_CORE_SSE_REMOTE_TOKEN
-    
+    config = {'username': username,
+              'password': password,
+              'method': 'POST',
+              'data': data}
+
     for remoteSite in settings.XGDS_CORE_SSE_REBROADCAST_SITES:
-        url = remoteSite + urlSuffix
-        
-        config = {'url':url,
-                  'username': username,
-                  'password': password,
-                  'method': 'POST',
-                  'data': data}
+        config['url'] = remoteSite + urlSuffix
         queueRedisData(settings.XGDS_CORE_REDIS_SESSION_MANAGER, json.dumps(config, cls=DatetimeJsonEncoder))
   
