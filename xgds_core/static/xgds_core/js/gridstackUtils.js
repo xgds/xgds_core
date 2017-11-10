@@ -156,7 +156,6 @@ $.extend(xgds_gridstack,{
 		var url = location.split("/");
 		url = url[1] + "/" + url[2];
 
-		console.log(url);
 	    Cookies.set("gridstack_" + url, serializedData);
 	},
 
