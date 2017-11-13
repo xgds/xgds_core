@@ -76,3 +76,6 @@ XGDS_CORE_REBROADCAST_MAP.update({'xgds_core_conditionhistory':{'modelName':'xgd
 XGDS_CORE_SSE_REBROADCAST_SITES = []
 XGDS_CORE_SSE_REMOTE_USERNAME = ''
 XGDS_CORE_SSE_REMOTE_TOKEN = ''
+
+# TODO override this for the channels you will broadcast conditions on
+XGDS_SSE_CONDITION_CHANNELS = ['sse']

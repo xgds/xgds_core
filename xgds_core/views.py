@@ -532,3 +532,8 @@ def rebroadcastSse(request):
     result = {'data':'fail broadcast',
               'timestamp':datetime.datetime.now(pytz.utc)}
     return JsonResponse(result, encoder=DatetimeJsonEncoder, status=406)
+
+
+def getSseActiveConditions(request):
+    # Look up the active conditions we are using for SSE
+    return JsonResponse(settings.XGDS_SSE_CONDITION_CHANNELS, safe=False)

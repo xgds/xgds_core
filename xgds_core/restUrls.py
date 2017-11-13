@@ -45,3 +45,4 @@ urlpatterns = [url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(),
 
 if settings.XGDS_CORE_REDIS:
     urlpatterns.append(url(r'^sseActiveChannels/$', redisUtil.getSseActiveChannels, {}, 'xgds_core_sse_active_channels'))
+    urlpatterns.append(url(r'^sseActiveConditions/$', views.getSseActiveConditions, {}, 'xgds_core_sse_active_condition_channels'))
