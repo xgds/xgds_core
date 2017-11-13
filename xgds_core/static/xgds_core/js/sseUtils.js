@@ -65,12 +65,21 @@ $.extend(sse, {
 			// in case there is no such page
 		}
 	},
+	allChannels: function(theFunction, channels){
+		for (var i=0; i<channels.length; i++){
+			var channel = channels[i];
+			if (channel != 'sse') {
+				theFunction(channel);
+			}
+		}
+	},
 	activeChannels: undefined,
-	getChannels: function() {
+	getChannelsUrl: '/xgds_core/sseActiveChannels',
+	getChannels: function(url) {
 		// get the active channels over AJAX
 		if (sse.activeChannels === undefined){
 			$.ajax({
-	            url: '/xgds_core/sseActiveChannels',
+	            url: sse.getChannelsUrl,
 	            dataType: 'json',
 	            async: false,
 	            success: $.proxy(function(data) {
@@ -90,15 +99,23 @@ $.extend(sse, {
 		}
 		return 'sse';
 	},
-	subscribe: function(event_type, callback, channel) {
-		if (channel != undefined) {
-			var source = new EventSource("/sse/stream?channel=" + channel);
-			source.addEventListener(event_type, callback, false);
-			return source;
+	subscribe: function(event_type, callback, channels) {
+		if (channels != undefined) {
+			if (!_.isArray(channels)) {
+				channels = [channels];
+			}
+			for (var i=0; i<channels.length; i++){
+				var channel = channels[i];
+				console.log('SUBSCRIBING TO ' + channel + ':' + event_type);
+
+                var source = new EventSource("/sse/stream?channel=" + channel);
+                source.addEventListener(event_type, callback, false);
+            }
 		} else {
-			sse.getChannels();
-			for (var i=0; i<sse.activeChannels.length; i++){
-				var channel = sse.activeChannels[i];
+			var allChannels = sse.getChannels();
+			for (var i=0; i<allChannels.length; i++){
+				var channel = allChannels[i];
+				console.log('SUBSCRIBING TO ' + channel + ':' + event_type);
 				var source = new EventSource("/sse/stream?channel=" + channel);
 				source.addEventListener(event_type, callback, false);
 			}

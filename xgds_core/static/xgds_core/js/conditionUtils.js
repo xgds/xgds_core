@@ -22,8 +22,22 @@ $.extend(condition, {
 		condition.subscribe();
 		condition.getCurrentConditions();
 	},
+	getChannels: function() {
+		// get the active channels over AJAX
+		if (this.activeChannels === undefined){
+			$.ajax({
+	            url: '/xgds_core/sseActiveConditions',
+	            dataType: 'json',
+	            async: false,
+	            success: $.proxy(function(data) {
+	                this.activeChannels = data;
+	            }, this)
+	          });
+		}
+		return this.activeChannels;
+	},
 	subscribe: function() {
-		sse.subscribe('condition', condition.handleConditionEvent)
+		sse.subscribe('condition', condition.handleConditionEvent, condition.getChannels());
 	},
 	handleConditionEvent: function(event){
 		try {
