@@ -79,3 +79,8 @@ XGDS_CORE_SSE_REMOTE_TOKEN = ''
 
 # TODO override this for the channels you will broadcast conditions on
 XGDS_SSE_CONDITION_CHANNELS = ['sse']
+
+# Settings for running Open Web Analytics
+INCLUDE_OWA_TRACKING = False
+OWA_SITE_URL = ""
+OWA_SITE_ID = ""
