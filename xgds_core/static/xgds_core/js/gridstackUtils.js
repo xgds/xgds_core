@@ -183,12 +183,14 @@ $.extend(xgds_gridstack,{
 		}
 	},
 
-	resetGrid: function(location){
-		var url = location.split("/");
+	resetGrid: function(loc){
+		var url = loc.split("/");
 		url = url[1] + "/" + url[2];
 
 		if (Cookies.get("gridstack_" + url) != null)
 			Cookies.remove("gridstack_" + url);
+
+		location.reload();
 	},
 
 	toggleAllPins: function(open) {
