@@ -106,7 +106,7 @@ $.extend(sse, {
 			}
 			for (var i=0; i<channels.length; i++){
 				var channel = channels[i];
-				console.log('SUBSCRIBING TO ' + channel + ':' + event_type);
+				//console.log('SUBSCRIBING TO ' + channel + ':' + event_type);
 
                 var source = new EventSource("/sse/stream?channel=" + channel);
                 source.addEventListener(event_type, callback, false);
@@ -115,7 +115,7 @@ $.extend(sse, {
 			var allChannels = sse.getChannels();
 			for (var i=0; i<allChannels.length; i++){
 				var channel = allChannels[i];
-				console.log('SUBSCRIBING TO ' + channel + ':' + event_type);
+				//console.log('SUBSCRIBING TO ' + channel + ':' + event_type);
 				var source = new EventSource("/sse/stream?channel=" + channel);
 				source.addEventListener(event_type, callback, false);
 			}
