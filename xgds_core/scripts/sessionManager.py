@@ -74,11 +74,15 @@ def handleQueue():
         while True and counter < MAX_SEND_ATTEMPTS:
             try:
                 counter += 1
+                if counter == MAX_SEND_ATTEMPTS:
+                    print 'LAST ATTEMPT'
                 callUrl(config)
                 break
             except:
                 # wait for SLEEP_TIME seconds and try the same active item again
+                print 'HIT EXCEPTION, retrying ...'
                 time.sleep(SLEEP_TIME)
+        
 
 
 def main():
