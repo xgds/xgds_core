@@ -15,36 +15,37 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 import time
-import pytz
 import redis
 import json
 import requests
-import traceback
-import datetime
 import logging
 import urlparse
-import threading
+from requests.adapters import HTTPAdapter
 
 import django
-#from __builtin__ import None
 django.setup()
 
 from django.conf import settings
 
 rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
 nicknames = []
-hostlist = None
 auth = {}
 
 sessions = {}
 
+TIMEOUT = 15
+MAX_RETRIES = 3 # HTTP REQUEST RETRIES
+SLEEP_TIME = 5.0
+MAX_SEND_ATTEMPTS = 3
+
+
 def getSession(url):
-    #url = config['url']
     parsed = urlparse.urlparse(url)
     key = parsed.scheme + '//' + parsed.netloc
     
     if key not in sessions:
         s = requests.Session()
+        s.mount(key, HTTPAdapter(max_retries=MAX_RETRIES))
         sessions[key] = s
     
     logging.warning('session count: %d' % len(sessions))
@@ -58,9 +59,10 @@ def callUrl(config):
     if config['username']:
         s.auth = (config['username'], config['password'])
     if config['method'] == 'POST':
-        return s.post(config['url'], data=config['data'])
+        return s.post(config['url'], data=config['data'], timeout=TIMEOUT)
     elif config['method'] == 'GET':
-        return s.get(config['url']) 
+        return s.get(config['url'], timeout=TIMEOUT)
+
 
 def handleQueue():
     logging.warning('*** starting up ***')
@@ -68,10 +70,20 @@ def handleQueue():
         logging.warning('**** ABOUT TO BLOCK FOR NEXT URL ****')
         channel, next = rs.brpop(settings.XGDS_CORE_REDIS_SESSION_MANAGER)
         config = json.loads(next)
-        callUrl(config)
+        counter = 0
+        while True and counter < MAX_SEND_ATTEMPTS:
+            try:
+                counter += 1
+                callUrl(config)
+                break
+            except:
+                # wait for SLEEP_TIME seconds and try the same active item again
+                time.sleep(SLEEP_TIME)
+
 
 def main():
     handleQueue()
+
 
 if __name__ == '__main__':
     main()
