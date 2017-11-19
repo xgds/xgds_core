@@ -20,7 +20,10 @@ from django.conf import settings
 import urlparse
 import json
 import requests
-from redisUtil import queueRedisData
+if settings.XGDS_CORE_REDIS:
+    from redisUtil import queueRedisData
+
+
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 def get100Years():
@@ -41,7 +44,7 @@ def addPort(url, port, http=True):
 def callUrl(url, username, password, method='GET', data=None, shareSession=False):
     ''' WARNING If you are calling this a lot of times then you will be opening a new connection and instead it should
     be run outside with a  pycroraptor service.'''
-    if shareSession:
+    if shareSession and settings.XGDS_CORE_REDIS:
         # POST THIS ON SHARED SESSION FOR REDIS
         config = {'url':url,
                  'username': username,
