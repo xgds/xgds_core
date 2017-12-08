@@ -10,3 +10,4 @@
 /xgds_core/build
 TEST
 /xgds_core/migrations/
+node_modules
