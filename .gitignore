@@ -11,3 +11,4 @@
 TEST
 /xgds_core/migrations/
 node_modules
+dist

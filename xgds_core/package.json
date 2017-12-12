@@ -13,9 +13,12 @@
     "moment-range": "^3.1.0",
     "moment-timezone": "^0.5.14"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "copy-dir": "^0.3.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "node node/prepublish.js"
   },
   "author": "",
   "license": "ISC"
