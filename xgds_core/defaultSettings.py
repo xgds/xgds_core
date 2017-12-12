@@ -36,6 +36,10 @@ settings object will not know about the default value!
 """
 from geocamUtil.SettingsUtil import getOrCreateArray, getOrCreateDict
 
+STATICFILES_DIRS = [
+    'dist'
+]
+
 XGDS_CORE_TEMPLATE_DEBUG = False # If this is true, handlebars templates will not be cached.
 XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictionary to store directories of handlebars to load based on class name
 XGDS_CORE_LIVE_INDEX_URL = '/'
