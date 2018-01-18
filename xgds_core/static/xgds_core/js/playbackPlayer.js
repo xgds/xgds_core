@@ -74,7 +74,11 @@ $.extend(playback, {
 	
 	removeListener: function(listener) {
 		// stop it first
-		listener.pause();
+		try {
+			listener.pause();
+		} catch (err){
+			// noop, there may not be a pause function
+		}
 		playback.listeners = _.without(playback.listeners, listener);
 	},
 	
@@ -118,7 +122,11 @@ $.extend(playback, {
 	pauseListeners : function() {
 		for (var i=0; i < playback.listeners.length; i++) {
 			var listener = playback.listeners[i];
-			listener.pause();
+			try {
+                listener.pause();
+            } catch (err){
+				// noop, there may not be a pause function
+			}
 		}
 	},
 
