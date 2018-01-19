@@ -282,6 +282,45 @@ class OrderListJson(BaseDatatableView):
             qs = qs[-last:]
         
         return qs.distinct()
+
+    # Filter a queryset using the simple search box above the datatable
+    def filter_queryset_simple_search(self, qs, search):
+        if search:
+            self.buildQuery(str(search))
+            tagsQuery = self.model.buildTagsQuery(search)
+            if tagsQuery:
+                self.addQuery(Q(**tagsQuery))
+            if self.queries:
+                qs = qs.filter(self.queries)
+            noteQuery = self.model.buildNoteQuery(search)
+            if noteQuery:
+                qs = qs.filter(noteQuery)
+
+        last = self.request.POST.get(u'last', -1)
+        if last > 0:
+            qs = qs[-last:]
+
+        return qs.distinct()
+
+    def filter_queryset_advanced_search(self, qs, searchDict):
+        if searchDict:
+            for key in searchDict:
+                self.buildAdvancedQuery(key, searchDict[key])
+            qs = qs.filter(self.formQueries)
+
+        return qs.distinct()
+
+    def buildAdvancedQuery(self, key, value):
+        if (unicode(value).isnumeric()):
+            self.addAndQuery(Q(**{key:value}))
+        else:
+            self.addAndQuery(Q(**{key + '__icontains': value}))
+
+    def addAndQuery(self, query):
+        if self.formQueries:
+            self.formQueries &= query
+        else:
+            self.formQueries = query
     
 def helpPopup(request, help_content_path, help_title):
     return render(request,
