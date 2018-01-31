@@ -57,12 +57,7 @@ XGDS_SSE_CHANNELS = ['sse']
 XGDS_CORE_CONDITION_MODEL = "xgds_core.Condition"
 XGDS_CORE_CONDITION_HISTORY_MODEL = "xgds_core.ConditionHistory"
 
-BOWER_INSTALLED_APPS = getOrCreateArray('BOWER_INSTALLED_APPS')
-BOWER_INSTALLED_APPS += ['moment',
-                         'moment-timezone',
-                         'moment-duration-format',
-                         'moment-range#2.1.0',
-                         'gridstack#0.2.6']
+
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 

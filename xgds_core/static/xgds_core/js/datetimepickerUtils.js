@@ -14,7 +14,7 @@
 //specific language governing permissions and limitations under the License.
 // __END_LICENSE__
 
-// this depends on moment.js, moment-timezone.js,  jqueryui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js
+// this depends on moment.js, moment-timezone.js,  jquery-ui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js
 
 /*
  * Add a date time picker on an input field
