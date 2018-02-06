@@ -106,6 +106,9 @@ class SearchableModel(object):
         """
         Return a list of the values for rendering in tables or on the map
         """
+        if columns[0] == 'checkbox':
+            columns = columns[1:]  # ignore the checkbox column
+
         return [self.renderColumn(column) for column in columns]
     
     def toMapDict(self):
@@ -113,8 +116,7 @@ class SearchableModel(object):
         Return a reduced dictionary that will be turned to JSON for rendering in a map
         """
         columns = settings.XGDS_MAP_SERVER_JS_MAP[self.cls_type()]['columns']
-        columns = columns[1:] #ignore the checkbox column
-        values =  self.toMapList(columns)
+        values = self.toMapList(columns)
         result = dict(zip(columns, values))
         return result
     
