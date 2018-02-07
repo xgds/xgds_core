@@ -221,7 +221,7 @@ class OrderListJson(BaseDatatableView):
             self.formQueries = query
         
     def buildQuery(self, search):
-        self.queries = None
+        # self.queries = None
         if search:
             try:
                 for key in self.model.getSearchableFields():
@@ -273,16 +273,25 @@ class OrderListJson(BaseDatatableView):
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
         if search:
-            self.buildQuery(str(search))
-            tagsQuery = self.model.buildTagsQuery(search)
-            if tagsQuery:
-                self.addQuery(Q(**tagsQuery))
+            words = []
+            if " or " in search:
+                words = search.split(" or ")
+            else:
+                words.append(search)
+
+            for word in words:
+                print word
+                self.buildQuery(str(word))
+                tagsQuery = self.model.buildTagsQuery(word)
+                if tagsQuery:
+                    self.addQuery(Q(**tagsQuery))
+                noteQuery = self.model.buildNoteQuery(word)
+
             if self.queries:
                 qs = qs.filter(self.queries)
-            noteQuery = self.model.buildNoteQuery(search)
             if noteQuery:
                 qs = qs.filter(noteQuery)
-        
+
         last = self.request.POST.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
@@ -292,13 +301,22 @@ class OrderListJson(BaseDatatableView):
     # Filter a queryset using the simple search box above the datatable
     def filter_queryset_simple_search(self, qs, search):
         if search:
-            self.buildQuery(str(search))
-            tagsQuery = self.model.buildTagsQuery(search)
-            if tagsQuery:
-                self.addQuery(Q(**tagsQuery))
+            words = []
+            if " or " in search:
+                words = search.split(" or ")
+            else:
+                words.append(search)
+
+            for word in words:
+                print word
+                self.buildQuery(str(word))
+                tagsQuery = self.model.buildTagsQuery(word)
+                if tagsQuery:
+                    self.addQuery(Q(**tagsQuery))
+                noteQuery = self.model.buildNoteQuery(word)
+
             if self.queries:
                 qs = qs.filter(self.queries)
-            noteQuery = self.model.buildNoteQuery(search)
             if noteQuery:
                 qs = qs.filter(noteQuery)
 
