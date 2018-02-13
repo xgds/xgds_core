@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+
+{% block siteSection %}Login{% endblock %}
+
+{% block contents %}
+<h3>Login - Basalt</h3>
+
+{% if form.errors %}
+<p>Invalid username or password. Please try again.</p>
+{% endif %}
+
+<form method="post" action="">
+<table>
+<tbody><tr><th><label for="id_username">Username:</label></th><td><input type="text" name="httpd_username" autofocus="" required="" id="httpd_username" maxlength="254"></td></tr>
+<tr><th><label for="id_password">Password:</label></th><td><input type="password" name="httpd_password" required="" id="httpd_password"></td></tr>
+<tr><td></td><td><a href="{% url 'user-registration' %}" class="btn btn-primary mr-1">register</a><input type="submit" value="login" /></td></tr>
+</tbody>
+</table>
+
+<input type="hidden" name="next" value="{{ next }}" />
+{% csrf_token %}
+</form>
+<p>
+    <a href="{% url 'reset-password' %}">Need a password reset?</a>
+</p>
+
+{% endblock %}
