@@ -4,7 +4,7 @@
 {% block siteSection %}Login{% endblock %}
 
 {% block contents %}
-<h3>Login - Basalt</h3>
+<h3>Login - {{ settings.SITE_TITLE }}</h3>
 
 {% if form.errors %}
 <p>Invalid username or password. Please try again.</p>
