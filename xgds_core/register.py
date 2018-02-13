@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from django.core import mail
 
 from django.conf import settings
-from basaltApp.forms import UserRegistrationForm, EmailFeedbackForm
+from xgds_core.forms import UserRegistrationForm, EmailFeedbackForm
 from rest_framework.authtoken.models import Token
 from django.http import JsonResponse
 
