@@ -24,10 +24,6 @@ from django.utils.functional import lazy
 
 from geocamUtil.loader import LazyGetModelByName
 
-from models import EV, PxrfDataProduct, AsdDataProduct, FtirDataProduct
-
-GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_PLANNER2_GROUP_FLIGHT_MODEL)
-
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     comments = forms.CharField(required=False, label="Introduce yourself", widget=forms.Textarea)
