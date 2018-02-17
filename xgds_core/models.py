@@ -36,6 +36,8 @@ from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.util import get100Years
 from xgds_core.redisUtil import callRemoteRebroadcast
+from fastkml import kml, styles
+from shapely.geometry import Point, LineString, Polygon
 
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
@@ -210,6 +212,19 @@ class SearchableModel(object):
     @classmethod
     def buildNoteQuery(cls, search_value):
         return None
+
+    def to_kml(self, id, name, description, lat, lon):
+        alt = 0.0
+        ns = '{http://www.opengis.net/kml/2.2}'
+        kmlStyles = []
+        innerIconStyle = styles.IconStyle(id="blueStyle", color="#4286f4")
+        iconStyle = styles.Style(ns=ns, id="blueIcon", styles=[innerIconStyle])
+        kmlStyles.append(iconStyle)
+
+        placemark = kml.Placemark(ns, id, name, description, kmlStyles)
+        placemark.geometry = Point([(lon, lat, alt)])
+
+        return placemark
     
 def getRelayFileName(instance, filename):
     return settings.XGDS_CORE_RELAY_SUBDIRECTORY + filename

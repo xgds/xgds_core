@@ -220,12 +220,12 @@ class OrderListJson(BaseDatatableView):
         else:
             self.formQueries = query
         
-    def buildQuery(self, search):
+    def buildQuery(self, search, connector="or"):
         # self.queries = None
         if search:
             try:
                 for key in self.model.getSearchableFields():
-                    self.addQuery(Q(**{key+'__icontains':search}))
+                    self.addQuery(Q(**{key + '__icontains': search}))
                 
                 if unicode(search).isnumeric():
                     for key in self.model.getSearchableNumericFields():
@@ -274,18 +274,25 @@ class OrderListJson(BaseDatatableView):
         search = self.request.POST.get(u'search[value]', None)
         if search:
             words = []
+            counter = 0
             if " or " in search:
                 words = search.split(" or ")
             else:
                 words.append(search)
 
             for word in words:
-                print word
-                self.buildQuery(str(word))
-                tagsQuery = self.model.buildTagsQuery(word)
-                if tagsQuery:
-                    self.addQuery(Q(**tagsQuery))
-                noteQuery = self.model.buildNoteQuery(word)
+                if word == "and" or word == "or":
+                    if word == "and":
+                        self.buildQuery(str(word), "and")
+                    else:
+                        self.buildQuery(str(word))
+                else:
+                    self.buildQuery(str(word))
+                    tagsQuery = self.model.buildTagsQuery(word)
+                    if tagsQuery:
+                        self.addQuery(Q(**tagsQuery))
+                    noteQuery = self.model.buildNoteQuery(word)
+                counter += 1;
 
             if self.queries:
                 qs = qs.filter(self.queries)
@@ -302,6 +309,7 @@ class OrderListJson(BaseDatatableView):
     def filter_queryset_simple_search(self, qs, search):
         if search:
             words = []
+            counter = 0
             if " or " in search:
                 words = search.split(" or ")
             else:
@@ -309,11 +317,15 @@ class OrderListJson(BaseDatatableView):
 
             for word in words:
                 print word
-                self.buildQuery(str(word))
-                tagsQuery = self.model.buildTagsQuery(word)
-                if tagsQuery:
-                    self.addQuery(Q(**tagsQuery))
-                noteQuery = self.model.buildNoteQuery(word)
+                if (word == "and" or word == "or"):
+                    self.buildQuery(str(word))
+                else:
+                    self.buildQuery(str(word))
+                    tagsQuery = self.model.buildTagsQuery(word)
+                    if tagsQuery:
+                        self.addQuery(Q(**tagsQuery))
+                    noteQuery = self.model.buildNoteQuery(word)
+                counter += 1;
 
             if self.queries:
                 qs = qs.filter(self.queries)
