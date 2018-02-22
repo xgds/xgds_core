@@ -216,12 +216,12 @@ class SearchableModel(object):
     def to_kml(self, id, name, description, lat, lon):
         alt = 0.0
         ns = '{http://www.opengis.net/kml/2.2}'
-        kmlStyles = []
-        innerIconStyle = styles.IconStyle(id="blueStyle", color="#4286f4")
-        iconStyle = styles.Style(ns=ns, id="blueIcon", styles=[innerIconStyle])
-        kmlStyles.append(iconStyle)
+        # kmlStyles = []
+        # innerIconStyle = styles.IconStyle(id="blueStyle", color="#4286f4")
+        # iconStyle = styles.Style(ns=ns, id="blueIcon", styles=[innerIconStyle])
+        # kmlStyles.append(iconStyle)
 
-        placemark = kml.Placemark(ns, id, name, description, kmlStyles)
+        placemark = kml.Placemark(ns, id, name, description)
         placemark.geometry = Point([(lon, lat, alt)])
 
         return placemark
