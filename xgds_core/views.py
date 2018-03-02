@@ -208,11 +208,19 @@ class OrderListJson(BaseDatatableView):
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
 
-    def addQuery(self, query):
+    def addQuery(self, query, type):
         if self.queries:
-            self.queries |= query
+            if (type == "and"):
+                self.queries &= query
+            else:
+                self.queries |= query
         else:
             self.queries = query
+    # def addQuery(self, query):
+    #     if self.queries:
+    #         self.queries |= query
+    #     else:
+    #         self.queries = query
 
     def addAndQuery(self, query):
         if self.formQueries:
@@ -220,12 +228,12 @@ class OrderListJson(BaseDatatableView):
         else:
             self.formQueries = query
         
-    def buildQuery(self, search, connector="or"):
+    def buildQuery(self, search, type):
         # self.queries = None
         if search:
             try:
                 for key in self.model.getSearchableFields():
-                    self.addQuery(Q(**{key + '__icontains': search}))
+                    self.addQuery(Q(**{key + '__icontains': search}), type)
                 
                 if unicode(search).isnumeric():
                     for key in self.model.getSearchableNumericFields():
@@ -233,13 +241,13 @@ class OrderListJson(BaseDatatableView):
             except:
                 try:
                     self.model._meta.get_field('name')
-                    self.addQuery(Q(**{'name__icontains':search}))
+                    self.addQuery(Q(**{'name__icontains':search}), type)
                 except:
                     pass
                 
                 try:
                     self.model._meta.get_field('description')
-                    self.addQuery(Q(**{'description__icontains':search}))
+                    self.addQuery(Q(**{'description__icontains':search}), type)
                 except:
                     pass
         
@@ -275,25 +283,21 @@ class OrderListJson(BaseDatatableView):
         if search:
             words = []
             counter = 0
-            if " or " in search:
-                words = search.split(" or ")
+            if " " in search:
+                words = search.split(" ")
             else:
                 words.append(search)
 
-            for word in words:
-                if word == "and" or word == "or":
-                    if word == "and":
-                        self.buildQuery(str(word), "and")
-                    else:
-                        self.buildQuery(str(word))
-                else:
-                    self.buildQuery(str(word))
-                    tagsQuery = self.model.buildTagsQuery(word)
-                    if tagsQuery:
-                        self.addQuery(Q(**tagsQuery))
-                    noteQuery = self.model.buildNoteQuery(word)
-                counter += 1;
+            while (counter < len(words)):
+                print str(words[counter])
+                self.buildQuery(str(words[counter]), str(words[counter-1]))
+                tagsQuery = self.model.buildTagsQuery(words[counter])
+                if tagsQuery:
+                    self.addQuery(Q(**tagsQuery))
+                noteQuery = self.model.buildNoteQuery(words[counter])
+                counter += 2;
 
+            print self.queries
             if self.queries:
                 qs = qs.filter(self.queries)
             if noteQuery:
