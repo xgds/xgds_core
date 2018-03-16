@@ -172,7 +172,10 @@ class OrderListJson(BaseDatatableView):
     
     # dictionary that is for our filter
     filterDict = {}
-    
+
+    # Array to hold the query for each individual word
+    queriesArray = []
+
     # to hold the Q queries for or-ing a search
     queries = None
     
@@ -207,50 +210,53 @@ class OrderListJson(BaseDatatableView):
 
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
-
-    def addQuery(self, query, type):
-        if self.queries:
-            if (type == "and"):
-                self.queries &= query
-            else:
-                self.queries |= query
+    def addOrQuery(self, queries, query):
+        if queries:
+            queries |= query
         else:
-            self.queries = query
-    # def addQuery(self, query):
-    #     if self.queries:
-    #         self.queries |= query
-    #     else:
-    #         self.queries = query
+            queries = query
+        return queries
 
     def addAndQuery(self, query):
         if self.formQueries:
             self.formQueries &= query
         else:
             self.formQueries = query
-        
-    def buildQuery(self, search, type):
+
+    def addQuery(self, query, type):
+        if (self.queries and query and type == "and"):
+            self.queries &= query
+        elif (self.queries and query and type == "or"):
+            self.queries |= query
+        else:
+            self.queries = query
+
+    def buildSearchableFieldsQuery(self, search):
         # self.queries = None
         if search:
+            queries = None
             try:
                 for key in self.model.getSearchableFields():
-                    self.addQuery(Q(**{key + '__icontains': search}), type)
-                
+                    queries = self.addOrQuery(queries, Q(**{key + '__icontains': search}))
+
                 if unicode(search).isnumeric():
                     for key in self.model.getSearchableNumericFields():
-                        self.addQuery(Q(**{key:search}))
+                        queries = self.addOrQuery(queries, Q(**{key: search}))
             except:
                 try:
                     self.model._meta.get_field('name')
-                    self.addQuery(Q(**{'name__icontains':search}), type)
+                    queries = self.addOrQuery(queries, Q(**{'name__icontains': search}))
                 except:
                     pass
-                
+
                 try:
                     self.model._meta.get_field('description')
-                    self.addQuery(Q(**{'description__icontains':search}), type)
+                    queries = self.addOrQuery(queries, Q(**{'description__icontains': search}))
                 except:
                     pass
-        
+
+            return queries
+
     def buildFilterDict(self, theFilter):
         dictEntries = str(theFilter).split(",")
         for entry in dictEntries:
@@ -275,33 +281,10 @@ class OrderListJson(BaseDatatableView):
                 today = timezone.localtime(timezone.now()).date()
                 filterDict = { timesearchField + '__gt': today}
                 qs = qs.filter(**filterDict)
-        
-        
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        if search:
-            words = []
-            counter = 0
-            if " " in search:
-                words = search.split(" ")
-            else:
-                words.append(search)
-
-            while (counter < len(words)):
-                print str(words[counter])
-                self.buildQuery(str(words[counter]), str(words[counter-1]))
-                tagsQuery = self.model.buildTagsQuery(words[counter])
-                if tagsQuery:
-                    self.addQuery(Q(**tagsQuery))
-                noteQuery = self.model.buildNoteQuery(words[counter])
-                counter += 2;
-
-            print self.queries
-            if self.queries:
-                qs = qs.filter(self.queries)
-            if noteQuery:
-                qs = qs.filter(noteQuery)
+        qs = self.filter_queryset_simple_search(qs, search)
 
         last = self.request.POST.get(u'last', -1)
         if last > 0:
@@ -314,22 +297,32 @@ class OrderListJson(BaseDatatableView):
         if search:
             words = []
             counter = 0
-            if " or " in search:
-                words = search.split(" or ")
+            if " " in search:
+                words = search.split(" ")
             else:
                 words.append(search)
 
-            for word in words:
-                print word
-                if (word == "and" or word == "or"):
-                    self.buildQuery(str(word))
+            fieldsQuery = None
+            self.queriesArray = []
+            while (counter < len(words)):
+                if (counter % 2 == 0):
+                    fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
+                    self.queriesArray.append(fieldsQuery)
                 else:
-                    self.buildQuery(str(word))
-                    tagsQuery = self.model.buildTagsQuery(word)
-                    if tagsQuery:
-                        self.addQuery(Q(**tagsQuery))
-                    noteQuery = self.model.buildNoteQuery(word)
-                counter += 1;
+                    self.queriesArray.append(str(words[counter]))
+                tagsQuery = self.model.buildTagsQuery(words[counter])
+                if tagsQuery:
+                    self.addOrQuery(Q(**tagsQuery))
+                noteQuery = self.model.buildNoteQuery(words[counter])
+                counter += 1
+
+            counter = 0
+            while (counter < len(self.queriesArray)):
+                if (counter == 0):
+                    self.addQuery(self.queriesArray[counter], "")
+                else:
+                    self.addQuery(self.queriesArray[counter], self.queriesArray[counter-1])
+                counter += 2;
 
             if self.queries:
                 qs = qs.filter(self.queries)
