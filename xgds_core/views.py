@@ -284,7 +284,8 @@ class OrderListJson(BaseDatatableView):
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        qs = self.filter_queryset_simple_search(qs, search)
+        tags = self.request.POST.get(u'tags', None)
+        qs = self.filter_queryset_simple_search(qs, search, tags)
 
         last = self.request.POST.get(u'last', -1)
         if last > 0:
@@ -293,7 +294,9 @@ class OrderListJson(BaseDatatableView):
         return qs.distinct()
 
     # Filter a queryset using the simple search box above the datatable
-    def filter_queryset_simple_search(self, qs, search):
+    def filter_queryset_simple_search(self, qs, search, tags):
+        tagsQuery = None
+        noteQuery = None
         if search:
             words = []
             counter = 0
@@ -310,9 +313,6 @@ class OrderListJson(BaseDatatableView):
                     self.queriesArray.append(fieldsQuery)
                 else:
                     self.queriesArray.append(str(words[counter]))
-                tagsQuery = self.model.buildTagsQuery(words[counter])
-                if tagsQuery:
-                    self.addOrQuery(Q(**tagsQuery))
                 noteQuery = self.model.buildNoteQuery(words[counter])
                 counter += 1
 
@@ -321,13 +321,36 @@ class OrderListJson(BaseDatatableView):
                 if (counter == 0):
                     self.addQuery(self.queriesArray[counter], "")
                 else:
-                    self.addQuery(self.queriesArray[counter], self.queriesArray[counter-1])
+                    self.addQuery(self.queriesArray[counter], self.queriesArray[counter - 1])
                 counter += 2;
 
             if self.queries:
                 qs = qs.filter(self.queries)
-            if noteQuery:
-                qs = qs.filter(noteQuery)
+
+        if (tags):
+            tagPks = []
+            if (self.request.POST.get(u'modelName', None) != "Note"):
+                Note = LazyGetModelByName(getattr(settings, 'XGDS_NOTES_NOTE_MODEL'))
+                for object in qs:
+                    notes = Note.get().objects.filter(object_id=object.pk)
+                    if (len(notes) > 0):
+                        # print(notes.tags)
+                        for note in notes:
+                            if (tags in note.tag_names):
+                                tagPks.append(object.pk)
+                                continue
+                if (len(tagPks) > 0):
+                    qs = qs.filter(pk__in=tagPks)
+            else:
+                tagsQuery = self.model.buildTagsQuery(tags)
+                if tagsQuery:
+                    tagsQuery = Q(**tagsQuery)
+
+                if tagsQuery:
+                    qs = qs.filter(tagsQuery)
+
+        if noteQuery:
+            qs = qs.filter(noteQuery)
 
         return qs.distinct()
 
