@@ -16,7 +16,6 @@
 
 from django.conf.urls import url
 from django.contrib import auth
-<<<<<<< HEAD
 from django.conf import settings
 
 from xgds_core import register
