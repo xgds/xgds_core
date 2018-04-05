@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block contents %}
+<form method="post" action="{% url 'user-registration' %}">
+<table>
+{{ register_form.as_table }}
+</table>
+<input type="submit" value="Register"/>
+</form>
+{% if form.errors %}
+<p>Form has errors</p>
+{% endif %}
+{% endblock contents %}

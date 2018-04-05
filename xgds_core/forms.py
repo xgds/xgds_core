@@ -16,11 +16,14 @@
 import pytz
 import traceback
 
+from django import forms
 from django.forms.models import ModelChoiceField, ModelForm
-from django.forms import BooleanField, CharField, IntegerField, FloatField, DecimalField, ChoiceField, DateTimeField
+from django.forms import BooleanField, CharField, EmailField, IntegerField, FloatField, DecimalField, ChoiceField, DateTimeField
 from xgds_core.models import NamedURL
 from django.db.models.fields import *
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 from geocamUtil import TimeUtil
 
@@ -124,3 +127,29 @@ class SearchForm(ModelForm):
 
     class Meta: 
         abstract = True
+
+
+class UserRegistrationForm(UserCreationForm):
+    email = forms.EmailField()
+    comments = forms.CharField(required=False, label="Introduce yourself", widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        super(UserRegistrationForm, self).__init__(*args, **kwargs)
+        # Hack to modify the sequence in which the fields are rendered
+        self.fields.keyOrder = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'comments']
+
+    def clean_email(self):
+        "Ensure that email addresses are unique for new users."
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with that email address already exists.")
+        return email
+
+    class Meta:
+        model = User
+        fields = ("username", 'first_name', 'last_name', 'email', 'password1', 'password2', 'comments')
+
+
+class EmailFeedbackForm(forms.Form):
+    reply_to = forms.EmailField(required=False, label="Your email address")
+    email_content = forms.CharField(widget=forms.Textarea, label="Message")
