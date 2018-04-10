@@ -35,9 +35,7 @@ Examples
 
 KRex2_PastPosition.yaml::
 
-.. code-block
-
-# This file describes poses provided by KRex2 as part of the BRAILLE project
+.. # This file describes poses provided by KRex2 as part of the BRAILLE project
 name: KRex2.PastPosition
 class: xgds_braille_app.PastPosition
 extension: tsv
