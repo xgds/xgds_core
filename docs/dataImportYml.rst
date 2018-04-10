@@ -35,78 +35,77 @@ Examples
 
 KRex2_PastPosition.yaml::
 
-.. # This file describes poses provided by KRex2 as part of the BRAILLE project
-name: KRex2.PastPosition
-class: xgds_braille_app.PastPosition
-extension: tsv
-delimiter: \t
-fields:
-- name: vehicle__name
-  default: KRex2
-  type: string
-- name: timestamp
-  type: datetime
-- name: longitude
-  type: float
-  min: -180.0
-  max: 180.0
-- name: latitude
-  type: float
-  min: -90.0
-  max: 90.0
-  units: degrees
-- name: altitude
-  type: float
-  units: meters
-- name: yaw
-  type: float
-  min: -math.pi
-  max: math.pi
-  units: radians
-- name: pitch
-  type: float
-  min: -math.pi
-  max: math.pi
-  units: radians
-- name: roll
-  type: float
-  min: -math.pi
-  max: math.pi
-  units: radians
-::
+.. code-block: yaml
+   # This file describes poses provided by KRex2 as part of the BRAILLE project
+   name: KRex2.PastPosition
+   class: xgds_braille_app.PastPosition
+   extension: tsv
+   delimiter: \t
+   fields:
+   - name: vehicle__name
+     default: KRex2
+     type: string
+   - name: timestamp
+     type: datetime
+   - name: longitude
+     type: float
+     min: -180.0
+     max: 180.0
+   - name: latitude
+     type: float
+     min: -90.0
+     max: 90.0
+     units: degrees
+   - name: altitude
+     type: float
+     units: meters
+   - name: yaw
+     type: float
+     min: -math.pi
+     max: math.pi
+     units: radians
+   - name: pitch
+     type: float
+     min: -math.pi
+     max: math.pi
+     units: radians
+   - name: roll
+     type: float
+     min: -math.pi
+     max: math.pi
+     units: radians
 
 Hercules_TempProbe.yaml::
 
-.. code-block
+.. code-block: yaml
 
-
-name:Hercules.TempProbe
-class: xgds_subsea_app.TempProbe
-extension: TEM
-delimiter: \t
-defaults:
- - name: vehicle__name
-   value: Hercules
-fields:
- - name: data_type
-   default: TEM
-   type: string
-   skip: true
- - name: timestamp
-   type: datetime
- - name: instrument_name
-   type: string
-   default: TEMPPROBE
- - name: temperature_group
-   comment: This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
-   type: regex
-   regex: (-?\d*[.]*\d*)([KFCkfc])+
+   name:Hercules.TempProbe
+   class: xgds_subsea_app.TempProbe
+   extension: TEM
+   delimiter: \t
+   defaults:
+    - name: vehicle__name
+      value: Hercules
    fields:
-   - name : temperature
-     type : float
-   - name: units
-     type: string
-     default: C
+    - name: data_type
+      default: TEM
+      type: string
+      skip: true
+    - name: timestamp
+      type: datetime
+    - name: instrument_name
+      type: string
+      default: TEMPPROBE
+    - name: temperature_group
+      comment: This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
+      type: regex
+      regex: (-?\d*[.]*\d*)([KFCkfc])+
+      fields:
+      - name : temperature
+        type : float
+      - name: units
+        type: string
+        default: C
 
 
 
