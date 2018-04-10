@@ -35,6 +35,7 @@ Examples
 
 KRex2_PastPosition.yaml::
 
+.. code-block:: yaml
 # This file describes poses provided by KRex2 as part of the BRAILLE project
 name: KRex2.PastPosition
 class: xgds_braille_app.PastPosition
@@ -77,6 +78,7 @@ fields:
 
 Hercules_TempProbe.yaml::
 
+.. code-block:: yaml
 name:Hercules.TempProbe
 class: xgds_subsea_app.TempProbe
 extension: TEM
@@ -146,9 +148,9 @@ interpretation of other members.
 +------------------+----------------+-----------------+------------------------------------+
 |Member            |Type            |Values           |Meaning                             |
 +==================+================+=================+====================================+
-|``name``          |string          | required        |The name of the data importer       |
+|``name``          |string          |required         |The name of the data importer       |
 +------------------+----------------+-----------------+------------------------------------+
-|``class``         |string          | required        |The fully qualified Python name of  |
+|``class``         |string          |required         |The fully qualified Python name of  |
 |                  |                |                 |the Django model that will be used  |
 |                  |                |                 |for data import described by this   |
 |                  |                |                 |Data Import YAML file.              |
@@ -158,9 +160,9 @@ interpretation of other members.
 |``delimiter``     |string          |optional         |Whatever character will be used     |
 |                  |                |                 |to separate data, typically , or \t |
 +------------------+----------------+-----------------+------------------------------------+
-|``fields``        |list            | required        |A list of field specifications.     |
+|``fields``        |list            |required         |A list of field specifications.     |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            | optional        |A list of defaults     |
+|``defaults``      |list            |optional         |A list of defaults                  |
 +------------------+----------------+-----------------+------------------------------------+
 
 .. _DefaultSpecification:
@@ -172,12 +174,11 @@ A Field Specification defines name value pairs for any fields that should be set
 
 +-------------------+----------------+-----------------+------------------------------------+
 |Member             |Type            |Values           |Meaning                             |
-+-------------------+----------------+-----------------+------------------------------------+
-+-------------------+----------------+-----------------+------------------------------------+
-|``name``           | string         |required         |The exact name of the Python model  |
++===================+================+=================+====================================+
+|``name``           |string          |required         |The exact name of the Python model  |
 |                   |                |                 |field     	        	    		|
 +-------------------+----------------+-----------------+------------------------------------+
-|``value``          | any            |                 |The value to assign to the field.   |
+|``value``          |                |                 |The value to assign to the field.   |
 +-------------------+----------------+-----------------+------------------------------------+
 
 .. _FieldSpecification:
@@ -189,8 +190,7 @@ A Field Specification defines the mapping between the columnar data in the impor
 
 +-------------------+----------------+-----------------+------------------------------------+
 |Member             |Type            |Values           |Meaning                             |
-+-------------------+----------------+-----------------+------------------------------------+
-+-------------------+----------------+-----------------+------------------------------------+
++===================+================+=================+====================================+
 |``name``           | string         |required         |The exact name of the Python model  |
 |                   |                |                 |field     	        	    		|
 +-------------------+----------------+-----------------+------------------------------------+
@@ -210,9 +210,9 @@ A Field Specification defines the mapping between the columnar data in the impor
 +-------------------+----------------+-----------------+------------------------------------+
 |``max``            |                |optional         |Maximum value, inclusive            |
 +-------------------+----------------+-----------------+------------------------------------+
-|``units``          | string         |optional         |The expected units of measure       |
+|``units``          |string          |optional         |The expected units of measure       |
 +-------------------+----------------+-----------------+------------------------------------+
-|``regex``          | regex string   |optional         |Regex to use to parse the value.    |
+|``regex``          |regex string    |optional         |Regex to use to parse the value.    |
 +-------------------+----------------+-----------------+------------------------------------+
 |``fields``         |list            | optional        |In the case of a regex field, this  |
 |                   |                |                 |will process the regex values into  |
