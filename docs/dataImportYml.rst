@@ -73,7 +73,7 @@ fields:
   min: -math.pi
   max: math.pi
   units: radians
-
+::
 
 Hercules_TempProbe.yaml::
 
