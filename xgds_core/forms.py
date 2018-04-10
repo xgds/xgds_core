@@ -21,6 +21,8 @@ from django.forms import BooleanField, CharField, IntegerField, FloatField, Deci
 from xgds_core.models import NamedURL
 from django.db.models.fields import *
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 from geocamUtil import TimeUtil
 
@@ -124,3 +126,4 @@ class SearchForm(ModelForm):
 
     class Meta: 
         abstract = True
+
