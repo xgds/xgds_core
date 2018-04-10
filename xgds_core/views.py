@@ -313,6 +313,7 @@ class OrderListJson(BaseDatatableView):
                     self.queriesArray.append(fieldsQuery)
                 else:
                     self.queriesArray.append(str(words[counter]))
+                # This doesn't do anything right now - we want to do a sphinx search in the content of the notes that points to the ground model pks
                 noteQuery = self.model.buildNoteQuery(words[counter])
                 counter += 1
 
@@ -328,19 +329,9 @@ class OrderListJson(BaseDatatableView):
                 qs = qs.filter(self.queries)
 
         if (tags):
-            tagPks = []
             if (self.request.POST.get(u'modelName', None) != "Note"):
-                Note = LazyGetModelByName(getattr(settings, 'XGDS_NOTES_NOTE_MODEL'))
-                for object in qs:
-                    notes = Note.get().objects.filter(object_id=object.pk)
-                    if (len(notes) > 0):
-                        # print(notes.tags)
-                        for note in notes:
-                            if (tags in note.tag_names):
-                                tagPks.append(object.pk)
-                                continue
-                if (len(tagPks) > 0):
-                    qs = qs.filter(pk__in=tagPks)
+                qs = self.filter_tags_search(qs, tags)
+
             else:
                 tagsQuery = self.model.buildTagsQuery(tags)
                 if tagsQuery:
@@ -364,6 +355,29 @@ class OrderListJson(BaseDatatableView):
             qs = qs.filter(self.formQueries)
 
         return qs.distinct()
+
+    def filter_tags_search(self, qs, tags):
+        # words = []
+        # counter = 0
+        # if " " in tags:
+        #     words = tags.split(" ")
+        # else:
+        #     words.append(tags)
+
+        tagPks = []
+        Note = LazyGetModelByName(getattr(settings, 'XGDS_NOTES_NOTE_MODEL'))
+        for object in qs:
+            notes = Note.get().objects.filter(object_id=object.pk)
+            if (len(notes) > 0):
+                # print(notes.tags)
+                for note in notes:
+                    if (tags in note.tag_names):
+                        tagPks.append(object.pk)
+                        continue
+        if (len(tagPks) > 0):
+            qs = qs.filter(pk__in=tagPks)
+
+        return qs
     
 def helpPopup(request, help_content_path, help_title):
     return render(request,
