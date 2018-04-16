@@ -165,9 +165,9 @@ interpretation of other members.
 .. _DefaultSpecification:
 
 Default Specification
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
-A Field Specification defines name value pairs for any fields that should be set but are not part of the data imported.
+A Default Specification defines name value pairs for any fields that should be set but are not part of the data imported.
 
 +-------------------+----------------+-----------------+------------------------------------+
 |Member             |Type            |Values           |Meaning                             |
@@ -191,17 +191,22 @@ A Field Specification defines the mapping between the columnar data in the impor
 |``name``           | string         |required         |The exact name of the Python model  |
 |                   |                |                 |field     	        	    		|
 +-------------------+----------------+-----------------+------------------------------------+
-|``type``           | string         |string           |The type   **TODO**  do we want types like this or yml types (str, bool) or python types? |
+|``type``           | string         |string           |The type                            |
 |                   |                |int              |        	        	    		|
 |                   |                |float            |                                    |
 |                   |                |boolean          | 									|
 |                   |                |DateTime         | 									|
 |                   |                |regex            | 									|
+|                   |                |TODO verify      | 									|
 +-------------------+----------------+-----------------+------------------------------------+
 |``skip``           |boolean         | false           |True if this columnar data does not |
 |                   |                |                 |map to a model field.               |
-+------------------+----------------+-----------------+------------------------------------+
-|``default``        |                |optional         |Default value **TODO**    how is this useful at all? if the column is present it must have a value? or this is for if it is missing?  	        	    |
++-------------------+----------------+-----------------+------------------------------------+
+|``default``        |                |optional         |Default value **TODO**        	    |
+|                   |                |                 |how is this useful at all?          |
+|                   |                |                 |if the column is present it must    |
+|                   |                |                 |have a value?  This is for when     |
+|                   |                |                 |it is missing?                      |
 +-------------------+----------------+-----------------+------------------------------------+
 |``min``            |                |optional         |Minimum value, inclusive            |
 +-------------------+----------------+-----------------+------------------------------------+
@@ -213,8 +218,9 @@ A Field Specification defines the mapping between the columnar data in the impor
 +-------------------+----------------+-----------------+------------------------------------+
 |``fields``         |list            | optional        |In the case of a regex field, this  |
 |                   |                |                 |will process the regex values into  |
-|                   |                |                 |the specified model fields. Note    |
-|                   |                |                 |they are not nested within the model|
+|                   |                |                 |the specified model fields. They    |
+|                   |                |                 |are not nested within the model;    |
+|                   |                |                 |it is a flat model object.          |
 +-------------------+----------------+-----------------+------------------------------------+
 
 
