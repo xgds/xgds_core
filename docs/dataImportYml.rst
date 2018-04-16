@@ -167,13 +167,14 @@ interpretation of other members.
 Default Specification
 ~~~~~~~~~~~~~~~~~~~~~
 
-A Default Specification defines name value pairs for any fields that should be set but are not part of the data imported.
+A Default Specification defines name value pairs for any fields that should be set but are
+not part of the data imported.
 
 +-------------------+----------------+-----------------+------------------------------------+
 |Member             |Type            |Values           |Meaning                             |
 +===================+================+=================+====================================+
 |``name``           |string          |required         |The exact name of the Python model  |
-|                   |                |                 |field     	        	    		|
+|                   |                |                 |field                               |
 +-------------------+----------------+-----------------+------------------------------------+
 |``value``          |                |                 |The value to assign to the field.   |
 +-------------------+----------------+-----------------+------------------------------------+
