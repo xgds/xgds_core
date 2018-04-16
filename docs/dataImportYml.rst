@@ -111,7 +111,7 @@ Definitions
 
  * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in `IETF RFC 2119`_.
+   document are to be interpreted as described in `RFC 2119`_.
 
  * YAML elements are defined here: http://yaml.org/spec/1.2/spec.html
    Data Import YAML documents have the standard YAML type, "application/x-yaml".
@@ -252,6 +252,8 @@ class (described in the metadata or container) is one, and can contain many chil
 +------------------+----------------+-----------------+------------------------------------+
 
 .. _ISO 8601: http://www.w3.org/TR/NOTE-datetime
+
+.. _RFC 2119: https://www.ietf.org/rfc/rfc2119.txt
 
 .. _Python String Formatting: http://docs.python.org/3/library/string.html#formatstrings
 
