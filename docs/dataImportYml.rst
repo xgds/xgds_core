@@ -94,7 +94,7 @@ Hercules_TempProbe.yaml::
       type: string
       default: TEMPPROBE
     - name: temperature_group
-      comment: This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
+      # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
       type: regex
       regex: (-?\d*[.]*\d*)([KFCkfc])+
       fields:
@@ -103,8 +103,6 @@ Hercules_TempProbe.yaml::
       - name: units
         type: string
         default: C
-
-
 
 Definitions
 ===========
@@ -157,7 +155,7 @@ interpretation of other members.
 |``extension``     |string          |                 |File extension for import files.    |
 +------------------+----------------+-----------------+------------------------------------+
 |``delimiter``     |string          |optional         |Whatever character will be used     |
-|                  |                |                 |to separate data, typically , or \t |
+|                  |                |                 |to separate data, , or `\t` usually |
 +------------------+----------------+-----------------+------------------------------------+
 |``defaults``      |list            |optional         |A list of defaults                  |
 +------------------+----------------+-----------------+------------------------------------+
