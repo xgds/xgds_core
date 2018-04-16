@@ -35,7 +35,7 @@ Examples
 
 KRex2_PastPosition.yaml::
 
-.. code-block::
+::
 
    # This file describes poses provided by KRex2 as part of the BRAILLE project
    name: KRex2.PastPosition
@@ -78,7 +78,7 @@ KRex2_PastPosition.yaml::
 
 Hercules_TempProbe.yaml::
 
-.. code-block::
+::
 
    name:Hercules.TempProbe
    class: xgds_subsea_app.TempProbe
