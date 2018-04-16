@@ -129,6 +129,8 @@ hierarchy as follows:
 
  * FieldSpecification_
 
+ * ChildSpecification_
+
 
 All structures are collections of name/value pairs where the names
 are strings.
@@ -157,9 +159,12 @@ interpretation of other members.
 |``delimiter``     |string          |optional         |Whatever character will be used     |
 |                  |                |                 |to separate data, typically , or \t |
 +------------------+----------------+-----------------+------------------------------------+
+|``defaults``      |list            |optional         |A list of defaults                  |
++------------------+----------------+-----------------+------------------------------------+
 |``fields``        |list            |required         |A list of field specifications.     |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            |optional         |A list of defaults                  |
+|``children``      |list            |optional         |A list of child specifications;     |
+|                  |                |                 |these will be nested models.        |
 +------------------+----------------+-----------------+------------------------------------+
 
 .. _DefaultSpecification:
@@ -191,7 +196,7 @@ the Python model fields.
 |Member             |Type            |Values           |Meaning                             |
 +===================+================+=================+====================================+
 |``name``           | string         |required         |The exact name of the Python model  |
-|                   |                |                 |field     	        	          		|
+|                   |                |                 |field                               |
 +-------------------+----------------+-----------------+------------------------------------+
 |``type``           | string         |string           |The type                            |
 |                   |                |int              |        	        	            		|
@@ -199,16 +204,11 @@ the Python model fields.
 |                   |                |boolean          | 								                  	|
 |                   |                |DateTime         | 									                  |
 |                   |                |regex            | 									                  |
-|                   |                |TODO verify      | 									                  |
 +-------------------+----------------+-----------------+------------------------------------+
-|``skip``           |boolean         | false           |True if this columnar data does not |
+|``skip``           |boolean         |false            |True if this columnar data does not |
 |                   |                |                 |map to a model field.               |
 +-------------------+----------------+-----------------+------------------------------------+
-|``default``        |                |optional         |Default value **TODO**        	    |
-|                   |                |                 |how is this useful at all?          |
-|                   |                |                 |if the column is present it must    |
-|                   |                |                 |have a value?  This is for when     |
-|                   |                |                 |it is missing?                      |
+|``default``        |                |optional         |Default value                 	    |
 +-------------------+----------------+-----------------+------------------------------------+
 |``min``            |                |optional         |Minimum value, inclusive            |
 +-------------------+----------------+-----------------+------------------------------------+
@@ -225,6 +225,31 @@ the Python model fields.
 |                   |                |                 |it is a flat model object.          |
 +-------------------+----------------+-----------------+------------------------------------+
 
+.. _ChildSpecification:
+
+Child Specification
+~~~~~~~~~~~~~~~~~~~
+
+A Child Specification defines metadata and fields that are part of the child model.  This is a one to many relationship; the parent
+class (described in the metadata or container) is one, and can contain many children.
+
++------------------+----------------+-----------------+------------------------------------+
+|Member            |Type            |Values           |Meaning                             |
++==================+================+=================+====================================+
+|``name``          |string          |required         |The name of the data importer       |
++------------------+----------------+-----------------+------------------------------------+
+|``class``         |string          |required         |The fully qualified Python name of  |
+|                  |                |                 |the Django model that will be used  |
+|                  |                |                 |for data import described by this   |
+|                  |                |                 |Data Import YAML file.              |
++------------------+----------------+-----------------+------------------------------------+
+|``defaults``      |list            |optional         |A list of defaults                  |
++------------------+----------------+-----------------+------------------------------------+
+|``fields``        |list            |required         |A list of field specifications.     |
++------------------+----------------+-----------------+------------------------------------+
+|``children``      |list            |optional         |A list of child specifications;     |
+|                  |                |                 |these will be nested models.        |
++------------------+----------------+-----------------+------------------------------------+
 
 .. _ISO 8601: http://www.w3.org/TR/NOTE-datetime
 
