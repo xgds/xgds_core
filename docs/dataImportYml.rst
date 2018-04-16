@@ -184,21 +184,22 @@ not part of the data imported.
 Field Specification
 ~~~~~~~~~~~~~~~~~~~
 
-A Field Specification defines the mapping between the columnar data in the import file and the Python model fields.
+A Field Specification defines the mapping between the columnar data in the import file and 
+the Python model fields.
 
 +-------------------+----------------+-----------------+------------------------------------+
 |Member             |Type            |Values           |Meaning                             |
 +===================+================+=================+====================================+
 |``name``           | string         |required         |The exact name of the Python model  |
-|                   |                |                 |field     	        	    		|
+|                   |                |                 |field     	        	          		|
 +-------------------+----------------+-----------------+------------------------------------+
 |``type``           | string         |string           |The type                            |
-|                   |                |int              |        	        	    		|
+|                   |                |int              |        	        	            		|
 |                   |                |float            |                                    |
-|                   |                |boolean          | 									|
-|                   |                |DateTime         | 									|
-|                   |                |regex            | 									|
-|                   |                |TODO verify      | 									|
+|                   |                |boolean          | 								                  	|
+|                   |                |DateTime         | 									                  |
+|                   |                |regex            | 									                  |
+|                   |                |TODO verify      | 									                  |
 +-------------------+----------------+-----------------+------------------------------------+
 |``skip``           |boolean         | false           |True if this columnar data does not |
 |                   |                |                 |map to a model field.               |
