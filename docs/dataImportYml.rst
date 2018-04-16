@@ -225,6 +225,39 @@ the Python model fields.
 |                   |                |                 |it is a flat model object.          |
 +-------------------+----------------+-----------------+------------------------------------+
 
++------------------+----------------+-----------------+------------------------------------+
+|Member            |Type            |Values           |Meaning                             |
++==================+================+=================+====================================+
+|``name``          |string          |required         |The exact name of the Python model  |
+|                  |                |                 |field.                              |
++------------------+----------------+-----------------+------------------------------------+
+|``type``          | string         |string           |The type                            |
+|                  |                |int              |                                    |
+|                  |                |float            |                                    |
+|                  |                |boolean          |                                    |
+|                  |                |DateTime         |                                    |
+|                  |                |regex            |                                    |
++------------------+----------------+-----------------+------------------------------------+
+|``skip``          |boolean         |false            |True if this columnar data does not |
+|                  |                |                 |map to a model field.               |
++------------------+----------------+-----------------+------------------------------------+
+|``default``       |                |optional         |Default value                       |
++-------------------+----------------+-----------------+-----------------------------------+
+|``min``           |                |optional         |Minimum value, inclusive            |
++-------------------+----------------+-----------------+-----------------------------------+
+|``max``           |                |optional         |Maximum value, inclusive            |
++-------------------+----------------+-----------------+-----------------------------------+
+|``units``         |string          |optional         |The expected units of measure       |
++-------------------+----------------+-----------------+-----------------------------------+
+|``regex``         |regex string    |optional         |Regex to use to parse the value.    |
++-------------------+----------------+-----------------+-----------------------------------+
+|``fields``        |list            | optional        |In the case of a regex field, this  |
+|                  |                |                 |will process the regex values into  |
+|                  |                |                 |the specified model fields. They    |
+|                  |                |                 |are not nested within the model;    |
+|                  |                |                 |it is a flat model object.          |
++------------------+----------------+-----------------+------------------------------------+
+
 .. _ChildSpecification:
 
 Child Specification
@@ -236,7 +269,7 @@ class (described in the metadata or container) is one, and can contain many chil
 +------------------+----------------+-----------------+------------------------------------+
 |Member            |Type            |Values           |Meaning                             |
 +==================+================+=================+====================================+
-|``name``          |string          |required         |The name of the data importer       |
+|``name``          |string          |required         |The readable name of the model      |
 +------------------+----------------+-----------------+------------------------------------+
 |``class``         |string          |required         |The fully qualified Python name of  |
 |                  |                |                 |the Django model that will be used  |
