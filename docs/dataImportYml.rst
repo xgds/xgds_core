@@ -249,6 +249,13 @@ class (described in the metadata or container) is one, and can contain many chil
 |                  |                |                 |these will be nested models.        |
 +------------------+----------------+-----------------+------------------------------------+
 
+Future Work
+===========
+
+* Data Import YAML should be able to specify flat files (csv / tsv) which contain multiple types of data in one file,
+  for example the .NAV file from OET, wherein each row describes navigation information for differing vehicles.
+
+
 .. _ISO 8601: http://www.w3.org/TR/NOTE-datetime
 
 .. _RFC 2119: https://www.ietf.org/rfc/rfc2119.txt
