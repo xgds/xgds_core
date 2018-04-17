@@ -40,6 +40,7 @@ from xgds_core.redisUtil import callRemoteRebroadcast
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
 
+
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
     units = models.CharField(max_length=32, blank=False)
@@ -210,9 +211,11 @@ class SearchableModel(object):
     @classmethod
     def buildNoteQuery(cls, search_value):
         return None
-    
+
+
 def getRelayFileName(instance, filename):
     return settings.XGDS_CORE_RELAY_SUBDIRECTORY + filename
+
 
 class RelayEvent(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
