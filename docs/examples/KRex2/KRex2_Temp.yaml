@@ -1,5 +1,5 @@
 # This file describes temperature values as provided by the temperature probe from KRex2
-name:KRex2.Temp
+name: KRex2.Temp
 class: xgds_braille_app.Temp
 extension: tsv
 delimiter: \t

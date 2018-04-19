@@ -2,7 +2,7 @@
 name: KRex2.PastPosition
 class: xgds_braille_app.PastPosition
 extension: tsv
-delimiter: \t
+delimiter: '\t'
 fields:
   - name: vehicle__name
     default: KRex2
