@@ -51,10 +51,11 @@ from django.http import (HttpResponse,
 from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
-from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
+from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile, State
 
 if settings.XGDS_CORE_REDIS:
     from xgds_core.redisUtil import queueRedisData, publishRedisSSEAtTime
+
 
 def buildFilterDict(theFilter):
     if isinstance(theFilter, dict):
@@ -569,3 +570,79 @@ def rebroadcastSse(request):
 def getSseActiveConditions(request):
     # Look up the active conditions we are using for SSE
     return JsonResponse(settings.XGDS_SSE_CONDITION_CHANNELS, safe=False)
+
+
+def setState(key, start=None, end=None, values=None, active=True, notes=None):
+    """
+    Store or modify a state in the database.  If you are modifying, it will only pass changes in if they are not none
+    in parameters.
+    :param key: A unique key representing this state, for example flight name.  Defaults to isotime
+    :param start: start time of this state
+    :param end: end time of this state
+    :param values: a dictionary of values to store as JSON.  Must be serializable
+    :param active: boolean for if this is currently active
+    :param notes: optional descriptive notes
+    :return: the state.
+    """
+
+    rightnow = timezone.now()
+    if not key:
+        key = rightnow.isoformat()
+    created = False
+    try:
+        state = State.objects.get(key=key)
+    except:
+        created = True
+        if not start:
+            start = rightnow
+        state = State(key=key, start=start, end=end, notes=notes, active=active)
+
+    if not created:
+        if start:
+            state.start = start
+        if end:
+            state.end = end
+        if notes:
+            state.notes = notes
+        state.active = active
+
+    if values:
+        state.values = json.dumps(values, cls=DatetimeJsonEncoder, separators=(',',':'), indent=0)
+    state.dateModified = rightnow
+    state.save()
+
+    return state
+
+
+def getState(key):
+    """
+    Get the state given the key
+    :param key:
+    :return: the state, or None
+    """
+    try:
+        return State.objects.get(key=key)
+    except:
+        pass
+    return None
+
+
+def getActiveStates():
+    """
+    Get the active states
+    :return: the active states, or None
+    """
+    return State.objects.filter(active=True).all()
+
+
+def endActiveStates():
+    """
+    End all the active states, setting end time to now and active to false
+    :return: the number of states ended.
+    """
+    rightnow = timezone.now()
+    active_states = getActiveStates()
+    count = len(active_states)
+    for state in active_states:
+        setState(state.key, start=None, end=rightnow, active=False)
+    return count

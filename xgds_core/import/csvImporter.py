@@ -23,6 +23,8 @@ except ImportError:
 import csv
 
 from geocamUtil.loader import getModelByName
+from xgds_core.views import getActiveStates, getState,
+
 
 def loadYaml(yamlFile):
     """
@@ -42,7 +44,16 @@ def loadYaml(yamlFile):
     return data
 
 
-def loadCSV(config, csvFile):
+def loadCSV(config, csvFile, state):
+    """
+    Load the CSV file according to the configuration, and store the values in the database using the
+    Django ORM and including any data from the current state.
+    Warning: the model's save method will not be called as we are using bulk_create.
+    :param config: the configuration dictionary
+    :param csvFile: the path to the csv file
+    :param state: the state dictionary to use
+    :return: the number of rows loaded
+    """
     delimiter = ','
     if 'delimiter' in config:
         delimiter = config['delimiter']
@@ -54,16 +65,44 @@ def loadCSV(config, csvFile):
     theModel = getModelByName(config['class'])
     newModels = []
     csvFile = open(csvFile, 'rb')
+    count = 0
     try:
         csvReader = csv.DictReader(csvfile, fieldnames=config['fieldnames'], delimiter=delimiter, quotechar=quotechar)
-        for row in list(csvReader):
+        theList = list(csvReader)
+        count = len(theList)
+        for row in theList:
             row.update(config['defaults'])
             newModels.append(theModel(**row))
         theModel.objects.bulk_create(newModels)
     finally:
         csvFile.close()
+    return count
 
 
-def doImport(yamlFile, csvFile):
+def getStateDict(stateKey):
+    result = {}
+    state = None
+    if stateKey:
+        state = getState(stateKey)
+    else:
+        states = getActiveStates()
+        if states:
+            state = states.last()
+    if state:
+        result = state.values.to_dict()
+    return result
+
+
+def doImport(yamlFile, csvFile, stateKey=None, defaults=None):
+    """
+    Do an import with a path to a configuration yaml file and a path to a csv file
+    :param yamlFile: The path to the yaml configuration file for import
+    :param csvFile: The path to the csv file to import
+    :param stateKey: The state key to look up the active state.  None will use the last active state.
+    :param defaults: Optional additional defaults to add to objects
+    :return: the number of items imported
+    """
     config = loadYaml(yamlFile)
-    loadCSV(config, csvFile)
+    state = getStateDict(stateKey)
+    state.update(defaults)
+    return loadCSV(config, csvFile, state)
