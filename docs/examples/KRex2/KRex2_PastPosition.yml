@@ -36,3 +36,6 @@ fields:
     min: -math.pi
     max: math.pi
     units: radians
+  - name: depth
+    type: float
+    units: meters
