@@ -452,7 +452,7 @@ class State(models.Model):
     dateModified = models.DateTimeField(db_index=True)
     key = models.CharField(max_length=32, db_index=True, unique=True)
     notes = models.CharField(max_length=256, null=True, blank=True)
-    values = ExtrasDotField(default='')
+    values = ExtrasDotField(default='') # a dictionary of name/value pairs that get added for import
 
     def __unicode__(self):
         return u'%s' % (self.key)
