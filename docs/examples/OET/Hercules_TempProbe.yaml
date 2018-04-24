@@ -1,5 +1,5 @@
 # This file describes temperature values as provided by the temperature probe from Hercules
-name:Hercules.TempProbe
+name: Hercules.TempProbe
 class: xgds_subsea_app.TempProbe
 extension: TEM
 delimiter: \t

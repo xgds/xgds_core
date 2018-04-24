@@ -1,5 +1,5 @@
 # This file describes CTD values as provided by the CTD from Hercules
-name:Hercules.CTD
+name: Hercules.CTD
 class: xgds_subsea_app.CTD
 extension: CTD
 delimiter: \t

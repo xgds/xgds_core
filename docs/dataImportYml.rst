@@ -157,6 +157,9 @@ interpretation of other members.
 |``delimiter``     |string          |optional         |Whatever character will be used     |
 |                  |                |                 |to separate data, , or `\t` usually |
 +------------------+----------------+-----------------+------------------------------------+
+|``quotechar``     |string          |optional         |Whatever character will be used     |
+|                  |                |                 |to quote data, usually  `"`        |
++------------------+----------------+-----------------+------------------------------------+
 |``defaults``      |list            |optional         |A list of defaults                  |
 +------------------+----------------+-----------------+------------------------------------+
 |``fields``        |list            |required         |A list of field specifications.     |
