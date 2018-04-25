@@ -80,6 +80,10 @@ INCLUDE_OWA_TRACKING = False
 OWA_SITE_URL = ""
 OWA_SITE_ID = ""
 
+# Add mappings from a dropdown to an import page from the import landing page.
+XGDS_DATA_IMPORTS = {}
+
+
 # Add mappings to the importer for csv importers defined by yaml files
 XGDS_CORE_CSV_IMPORTER = {}
 
