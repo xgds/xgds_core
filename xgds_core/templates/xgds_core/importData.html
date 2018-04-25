@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="alert alert-warning" role="alert">
+If your data is geolocated (has positions) from another source, please upload the GPS or track source first.
+</div>
+<p>Select the type of data to import:</p>
+<div class="form-inline">
+<select id="data_type" class="form-control">
+{% for key, value in settings.XGDS_DATA_IMPORTS.items %}
+    <option value="{{ value }}">{{ key }}</option>
+{% endfor %}
+</select>
+<button id="go_button" class="btn btn-primary ml-2">Go</button>
+{% endblock content %}
+
+{% block jsInit %}
+ $("#go_button").click(function(event){
+ 	event.preventDefault();
+ 	window.location = $("#data_type").val();
+ });
+{% endblock jsInit %}
