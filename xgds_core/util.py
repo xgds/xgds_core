@@ -23,12 +23,13 @@ import requests
 if settings.XGDS_CORE_REDIS:
     from redisUtil import queueRedisData
 
-
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
+
 
 def get100Years():
     theNow = timezone.now() + relativedelta(years=100)
     return theNow
+
 
 def addPort(url, port, http=True):
     ''' Add a port to a url '''
@@ -74,13 +75,15 @@ def deletePostKey(post, theKey):
         pass
     return post
 
+
 def insertIntoPath(original, insertion='rest'):
-    ''' Insert a string after the first block in a path, for example
+    """ Insert a string after the first block in a path, for example
     /my/original/path,insertion
     /my/INSERTION/original/path
-    '''
+    """
     slashIndex = original.index('/',1)
     newString = '%s/%s%s' % (original[0:slashIndex], insertion, original[slashIndex:len(original)])
     return newString
+
 
 

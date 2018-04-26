@@ -42,6 +42,7 @@ from shapely.geometry import Point, LineString, Polygon
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
 
+
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
     units = models.CharField(max_length=32, blank=False)
@@ -64,7 +65,7 @@ class XgdsUser(User):
     class Meta:
         proxy = True
         ordering = ['first_name']
-    
+
     @classmethod
     def getAutocompleteFields(cls):
         return ['first_name', 'last_name']
@@ -181,8 +182,7 @@ class SearchableModel(object):
         except:
             pass
         return None
-    
- 
+
     def getPosition(self):
         if self.position:
             return self.position
@@ -225,9 +225,10 @@ class SearchableModel(object):
         placemark.geometry = Point([(lon, lat, alt)])
 
         return placemark
-    
+
 def getRelayFileName(instance, filename):
     return settings.XGDS_CORE_RELAY_SUBDIRECTORY + filename
+
 
 class RelayEvent(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -264,6 +265,7 @@ class RelayFile(models.Model):
     relay_event = models.ForeignKey(RelayEvent)
 
 CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTORY_MODEL)
+
 
 class AbstractCondition(models.Model):
     source = models.CharField(null=False, blank=False, max_length=64, db_index=True)     # where did this condition originate
@@ -306,7 +308,7 @@ class AbstractCondition(models.Model):
     
         self.save()
         
-        #create relevant condition history
+        # create relevant condition history
         if 'status' in condition_data_dict:
             status = condition_data_dict['status']
         else:
@@ -345,11 +347,12 @@ class AbstractCondition(models.Model):
         return getattr(self, history_name)
     
 
-
 class Condition(AbstractCondition):
     pass
 
+
 DEFAULT_CONDITION_FIELD = lambda: models.ForeignKey('xgds_core.Condition', null=True, blank=True)
+
 
 class AbstractConditionHistory(models.Model):
     condition = 'set to DEFAULT_CONDITION_FIELD() or similar in derived classes'
@@ -386,6 +389,7 @@ class AbstractConditionHistory(models.Model):
 
 class ConditionHistory(AbstractConditionHistory):
     condition = DEFAULT_CONDITION_FIELD()
+
 
 class NameManager(models.Manager):
 
@@ -429,7 +433,7 @@ class DbServerInfo(models.Model):
 
 
 class BroadcastMixin(object):
-    
+
     def getBroadcastChannel(self):
         return 'sse'
     
@@ -447,3 +451,25 @@ class BroadcastMixin(object):
             return result
         except:
             traceback.print_exc()
+
+
+class State(models.Model):
+    """
+    Stores the state as a json blob.  In general, this can be used to record state information
+    in a flexible way.  It is also used to store the most current state, for appending to models
+    during an import (for example, to get whatever extra metadata needs to be stored with those models, such as
+    flight or vehicle).
+    """
+    start = models.DateTimeField(db_index=True)
+    end = models.DateTimeField(db_index=True, null=True, blank=True)
+    active = models.BooleanField(default=False)
+    dateModified = models.DateTimeField(db_index=True)
+    key = models.CharField(max_length=32, db_index=True, unique=True)
+    notes = models.CharField(max_length=256, null=True, blank=True)
+    values = ExtrasDotField(default='') # a dictionary of name/value pairs that get added for import
+
+    def __unicode__(self):
+        return u'%s' % (self.key)
+
+    class Meta:
+        ordering = ['start']

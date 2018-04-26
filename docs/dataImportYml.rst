@@ -35,7 +35,6 @@ Examples
 
 KRex2_PastPosition.yaml::
 
-.. code-block::
    # This file describes poses provided by KRex2 as part of the BRAILLE project
    name: KRex2.PastPosition
    class: xgds_braille_app.PastPosition
@@ -77,7 +76,6 @@ KRex2_PastPosition.yaml::
 
 Hercules_TempProbe.yaml::
 
-.. code-block::
    name:Hercules.TempProbe
    class: xgds_subsea_app.TempProbe
    extension: TEM
@@ -96,7 +94,7 @@ Hercules_TempProbe.yaml::
       type: string
       default: TEMPPROBE
     - name: temperature_group
-      comment: This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
+      # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
       type: regex
       regex: (-?\d*[.]*\d*)([KFCkfc])+
       fields:
@@ -106,14 +104,12 @@ Hercules_TempProbe.yaml::
         type: string
         default: C
 
-
-
 Definitions
 ===========
 
  * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in `IETF RFC 2119`_.
+   document are to be interpreted as described in `RFC 2119`_.
 
  * YAML elements are defined here: http://yaml.org/spec/1.2/spec.html
    Data Import YAML documents have the standard YAML type, "application/x-yaml".
@@ -130,6 +126,8 @@ hierarchy as follows:
  * DefaultSpecification_
 
  * FieldSpecification_
+
+ * ChildSpecification_
 
 
 All structures are collections of name/value pairs where the names
@@ -157,25 +155,32 @@ interpretation of other members.
 |``extension``     |string          |                 |File extension for import files.    |
 +------------------+----------------+-----------------+------------------------------------+
 |``delimiter``     |string          |optional         |Whatever character will be used     |
-|                  |                |                 |to separate data, typically , or \t |
+|                  |                |                 |to separate data, , or `\t` usually |
++------------------+----------------+-----------------+------------------------------------+
+|``quotechar``     |string          |optional         |Whatever character will be used     |
+|                  |                |                 |to quote data, usually  `"`        |
++------------------+----------------+-----------------+------------------------------------+
+|``defaults``      |list            |optional         |A list of defaults                  |
 +------------------+----------------+-----------------+------------------------------------+
 |``fields``        |list            |required         |A list of field specifications.     |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            |optional         |A list of defaults                  |
+|``children``      |list            |optional         |A list of child specifications;     |
+|                  |                |                 |these will be nested models.        |
 +------------------+----------------+-----------------+------------------------------------+
 
 .. _DefaultSpecification:
 
 Default Specification
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
-A Field Specification defines name value pairs for any fields that should be set but are not part of the data imported.
+A Default Specification defines name value pairs for any fields that should be set but are
+not part of the data imported.
 
 +-------------------+----------------+-----------------+------------------------------------+
 |Member             |Type            |Values           |Meaning                             |
 +===================+================+=================+====================================+
 |``name``           |string          |required         |The exact name of the Python model  |
-|                   |                |                 |field     	        	    		|
+|                   |                |                 |field                               |
 +-------------------+----------------+-----------------+------------------------------------+
 |``value``          |                |                 |The value to assign to the field.   |
 +-------------------+----------------+-----------------+------------------------------------+
@@ -185,42 +190,78 @@ A Field Specification defines name value pairs for any fields that should be set
 Field Specification
 ~~~~~~~~~~~~~~~~~~~
 
-A Field Specification defines the mapping between the columnar data in the import file and the Python model fields.
+A Field Specification defines the mapping between the columnar data in the import file and 
+the Python model fields.
 
-+-------------------+----------------+-----------------+------------------------------------+
-|Member             |Type            |Values           |Meaning                             |
-+===================+================+=================+====================================+
-|``name``           | string         |required         |The exact name of the Python model  |
-|                   |                |                 |field     	        	    		|
-+-------------------+----------------+-----------------+------------------------------------+
-|``type``           | string         |string           |The type   **TODO**  do we want types like this or yml types (str, bool) or python types? |
-|                   |                |int              |        	        	    		|
-|                   |                |float            |                                    |
-|                   |                |boolean          | 									|
-|                   |                |DateTime         | 									|
-|                   |                |regex            | 									|
-+-------------------+----------------+-----------------+------------------------------------+
-|``skip``           |boolean         | false           |True if this columnar data does not |
-|                   |                |                 |map to a model field.               |
 +------------------+----------------+-----------------+------------------------------------+
-|``default``        |                |optional         |Default value **TODO**    how is this useful at all? if the column is present it must have a value? or this is for if it is missing?  	        	    |
-+-------------------+----------------+-----------------+------------------------------------+
-|``min``            |                |optional         |Minimum value, inclusive            |
-+-------------------+----------------+-----------------+------------------------------------+
-|``max``            |                |optional         |Maximum value, inclusive            |
-+-------------------+----------------+-----------------+------------------------------------+
-|``units``          |string          |optional         |The expected units of measure       |
-+-------------------+----------------+-----------------+------------------------------------+
-|``regex``          |regex string    |optional         |Regex to use to parse the value.    |
-+-------------------+----------------+-----------------+------------------------------------+
-|``fields``         |list            | optional        |In the case of a regex field, this  |
-|                   |                |                 |will process the regex values into  |
-|                   |                |                 |the specified model fields. Note    |
-|                   |                |                 |they are not nested within the model|
-+-------------------+----------------+-----------------+------------------------------------+
+|Member            |Type            |Values           |Meaning                             |
++==================+================+=================+====================================+
+|``name``          |string          |required         |The exact name of the Python model  |
+|                  |                |                 |field.                              |
++------------------+----------------+-----------------+------------------------------------+
+|``type``          | string         |string           |The type                            |
+|                  |                |int              |                                    |
+|                  |                |float            |                                    |
+|                  |                |boolean          |                                    |
+|                  |                |DateTime         |                                    |
+|                  |                |regex            |                                    |
++------------------+----------------+-----------------+------------------------------------+
+|``skip``          |boolean         |false            |True if this columnar data does not |
+|                  |                |                 |map to a model field.               |
++------------------+----------------+-----------------+------------------------------------+
+|``default``       |                |optional         |Default value                       |
++------------------+----------------+-----------------+------------------------------------+
+|``min``           |                |optional         |Minimum value, inclusive            |
++------------------+----------------+-----------------+------------------------------------+
+|``max``           |                |optional         |Maximum value, inclusive            |
++------------------+----------------+-----------------+------------------------------------+
+|``units``         |string          |optional         |The expected units of measure       |
++------------------+----------------+-----------------+------------------------------------+
+|``regex``         |regex string    |optional         |Regex to use to parse the value.    |
++------------------+----------------+-----------------+------------------------------------+
+|``fields``        |list            | optional        |In the case of a regex field, this  |
+|                  |                |                 |will process the regex values into  |
+|                  |                |                 |the specified model fields. They    |
+|                  |                |                 |are not nested within the model;    |
+|                  |                |                 |it is a flat model object.          |
++------------------+----------------+-----------------+------------------------------------+
+
+.. _ChildSpecification:
+
+Child Specification
+~~~~~~~~~~~~~~~~~~~
+
+A Child Specification defines metadata and fields that are part of the child model.  This is a one to many relationship; the parent
+class (described in the metadata or container) is one, and can contain many children.
+
++------------------+----------------+-----------------+------------------------------------+
+|Member            |Type            |Values           |Meaning                             |
++==================+================+=================+====================================+
+|``name``          |string          |required         |The readable name of the model      |
++------------------+----------------+-----------------+------------------------------------+
+|``class``         |string          |required         |The fully qualified Python name of  |
+|                  |                |                 |the Django model that will be used  |
+|                  |                |                 |for data import described by this   |
+|                  |                |                 |Data Import YAML file.              |
++------------------+----------------+-----------------+------------------------------------+
+|``defaults``      |list            |optional         |A list of defaults                  |
++------------------+----------------+-----------------+------------------------------------+
+|``fields``        |list            |required         |A list of field specifications.     |
++------------------+----------------+-----------------+------------------------------------+
+|``children``      |list            |optional         |A list of child specifications;     |
+|                  |                |                 |these will be nested models.        |
++------------------+----------------+-----------------+------------------------------------+
+
+Future Work
+===========
+
+* Data Import YAML should be able to specify flat files (csv / tsv) which contain multiple types of data in one file,
+  for example the .NAV file from OET, wherein each row describes navigation information for differing vehicles.
 
 
 .. _ISO 8601: http://www.w3.org/TR/NOTE-datetime
+
+.. _RFC 2119: https://www.ietf.org/rfc/rfc2119.txt
 
 .. _Python String Formatting: http://docs.python.org/3/library/string.html#formatstrings
 

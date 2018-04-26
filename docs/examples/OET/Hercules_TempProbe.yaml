@@ -1,0 +1,28 @@
+# This file describes temperature values as provided by the temperature probe from Hercules
+name: Hercules.TempProbe
+class: xgds_subsea_app.TempProbe
+extension: TEM
+delimiter: \t
+defaults:
+  - name: vehicle__name
+    value: Hercules
+fields:
+  - name: data_type
+    default: TEM
+    type: string
+    skip: true
+  - name: timestamp
+    type: datetime
+  - name: instrument_name
+    type: string
+    default: TEMPPROBE
+  - name: temperature_group
+    # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
+    type: regex
+    regex: (-?\d*[.]*\d*)([KFCkfc])+
+    fields:
+    - name : temperature
+      type : float
+    - name: units
+      type: string
+      default: C
