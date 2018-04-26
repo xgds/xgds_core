@@ -52,6 +52,7 @@ from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
+from xgds_notes2.utils import buildQueryForTags
 
 if settings.XGDS_CORE_REDIS:
     from xgds_core.redisUtil import queueRedisData, publishRedisSSEAtTime
@@ -285,7 +286,8 @@ class OrderListJson(BaseDatatableView):
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
         tags = self.request.POST.get(u'tags', None)
-        qs = self.filter_queryset_simple_search(qs, search, tags)
+        if self.request.POST.get(u'simpleSearch', None):
+            qs = self.filter_queryset_simple_search(qs, search, tags)
 
         last = self.request.POST.get(u'last', -1)
         if last > 0:
@@ -357,23 +359,32 @@ class OrderListJson(BaseDatatableView):
         return qs.distinct()
 
     def filter_tags_search(self, qs, tags):
+        tagArray = []
+        if "," in tags:
+            tagArray = tags.split(",")
+        else:
+            tagArray.append(tags)
+        tagsQuery = buildQueryForTags("tags", "tags", tagArray, False)
+
         # words = []
-        # counter = 0
+        # # counter = 0
         # if " " in tags:
         #     words = tags.split(" ")
         # else:
         #     words.append(tags)
-
         tagPks = []
         Note = LazyGetModelByName(getattr(settings, 'XGDS_NOTES_NOTE_MODEL'))
         for object in qs:
             notes = Note.get().objects.filter(object_id=object.pk)
+            notes = notes.filter(tagsQuery)
             if (len(notes) > 0):
-                # print(notes.tags)
-                for note in notes:
-                    if (tags in note.tag_names):
-                        tagPks.append(object.pk)
-                        continue
+                tagPks.append(object.pk)
+            #     # print(notes.tags)
+            #     for note in notes:
+            #         print(note)
+                    # if (tags in note.tag_names):
+                    #     tagPks.append(object.pk)
+                    #     continue
         if (len(tagPks) > 0):
             qs = qs.filter(pk__in=tagPks)
 
