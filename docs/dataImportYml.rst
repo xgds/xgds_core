@@ -83,25 +83,25 @@ Hercules_TempProbe.yaml::
    defaults:
      vehicle__name: Hercules
    fields:
-    - name: data_type
-      default: TEM
-      type: string
-      skip: true
-    - name: timestamp
-      type: datetime
-    - name: instrument_name
-      type: string
-      default: TEMPPROBE
-    - name: temperature_group
-      # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
-      type: regex
-      regex: (-?\d*[.]*\d*)([KFCkfc])+
-      fields:
-      - name : temperature
-        type : float
-      - name: units
-        type: string
-        default: C
+     data_type:
+       default: TEM
+       type: string
+       skip: true
+     timestamp:
+       type: datetime
+     instrument_name:
+       type: string
+       default: TEMPPROBE
+     temperature_group:
+       # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
+       type: regex
+       regex: (-?\d*[.]*\d*)([KFCkfc])+
+       fields:
+         temperature:
+           type : float
+         units:
+           type: string
+           default: C
 
 Definitions
 ===========
@@ -159,7 +159,9 @@ interpretation of other members.
 +------------------+----------------+-----------------+------------------------------------+
 |``defaults``      |dictionary      |optional         |A dictionary of default values      |
 +------------------+----------------+-----------------+------------------------------------+
-|``fields``        |list            |required         |A list of field specifications.     |
+|``fields``        |dictionary      |required         |A dictionary of field specs.  The   |
+|                  |                |                 |exact name of the Python model field|
+|                  |                |                 |is the key in the dictionary.       |
 +------------------+----------------+-----------------+------------------------------------+
 |``children``      |list            |optional         |A list of child specifications;     |
 |                  |                |                 |these will be nested models.        |
@@ -177,9 +179,6 @@ the Python model fields.
 +------------------+----------------+-----------------+------------------------------------+
 |Member            |Type            |Values           |Meaning                             |
 +==================+================+=================+====================================+
-|``name``          |string          |required         |The exact name of the Python model  |
-|                  |                |                 |field.                              |
-+------------------+----------------+-----------------+------------------------------------+
 |``type``          | string         |string           |The type                            |
 |                  |                |int              |                                    |
 |                  |                |float            |                                    |
