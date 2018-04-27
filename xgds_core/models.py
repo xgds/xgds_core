@@ -44,7 +44,7 @@ if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
     units = models.CharField(max_length=32, blank=False)
-    notes = models.CharField(max_length=256, blank=False)
+    notes = models.CharField(max_length=256, blank=True, null=True)
     dataType = models.CharField(max_length=32, blank=False)
     value = models.CharField(max_length=256, blank=False)
 
@@ -56,7 +56,7 @@ class TimeZoneHistory(models.Model):
     startTime = models.DateTimeField(default=timezone.now)
     endTime = models.DateTimeField(null=True, blank=True, default=get100Years )
     timeZone = models.CharField(max_length=128, blank=False)
-    notes = models.CharField(max_length=512, blank=True)
+    notes = models.CharField(max_length=512, blank=True, null=True)
     
     
 class XgdsUser(User):
@@ -465,7 +465,7 @@ class AbstractVehicle(models.Model):
     objects = NameManager()
 
     name = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=16, db_index=True)
 
     class Meta:
@@ -500,7 +500,7 @@ class AbstractFlight(UuidModel):
     timezone = models.CharField(null=True, blank=False, max_length=128, default=settings.TIME_ZONE)
 
     vehicle = 'set to DEFAULT_VEHICLE_FIELD() or similar in derived classes'
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
     group = 'set to DEFAULT_GROUP_FLIGHT_FIELD() or similar in derived classes'
 
     def natural_key(self):
@@ -645,7 +645,7 @@ class AbstractGroupFlight(models.Model):
 
     name = models.CharField(max_length=128, blank=True, unique=True,
                             help_text='Usually same as episode name. I.e. 201340925A', db_index=True)
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
 
     def thumbnail_url(self):
         return ''

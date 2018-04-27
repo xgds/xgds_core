@@ -15,12 +15,14 @@
 #__END_LICENSE__
 # pylint: disable=W0702
 
-
+from uuid import uuid4
 from django.conf import settings
 from geocamUtil.loader import LazyGetModelByName
 
 ACTIVE_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
+GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
+VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 
 
 def getFlight(event_time, vehicle):
@@ -49,7 +51,18 @@ def getNextAlphabet(character):
     if nextChar > 122:
         nextChar = (nextChar - 97) % 26 + 97
     return chr(nextChar)
-    
+
+
+def get_next_available_group_flight_name(prefix):
+    character = 'A'
+    gModel = GROUP_FLIGHT_MODEL.get()
+    while True:
+        try:
+            gModel.objects.get(name=prefix + character)
+            character = getNextAlphabet(character)
+        except:
+            return prefix + character
+
     
 def getActiveFlight(vehicle):
     if vehicle:
@@ -60,3 +73,35 @@ def getActiveFlight(vehicle):
     if foundFlights:
         return foundFlights.last().flight
     return None
+
+
+def get_default_vehicle():
+    """
+    Gets the default vehicle.
+    :return:
+    """
+    return VEHICLE_MODEL.get().objects.get(pk=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
+
+
+def create_group_flight(group_flight_name, notes=None, vehicles=None):
+    """
+    Create a new group flight
+    :param group_flight_name:
+    :param notes:
+    :param vehicles:
+    :return:
+    """
+    group_flight = GROUP_FLIGHT_MODEL.get()(name=group_flight_name, notes=notes)
+    group_flight.save()
+
+    if not vehicles:
+        vehicles = VEHICLE_MODEL.get().objects.all()
+    for vehicle in vehicles:
+        new_flight = FLIGHT_MODEL.get()()
+        new_flight.group = group_flight
+        new_flight.vehicle = vehicle
+        new_flight.name = group_flight_name + "_" + vehicle.name
+        new_flight.uuid = uuid4()
+        new_flight.save()
+
+    return group_flight

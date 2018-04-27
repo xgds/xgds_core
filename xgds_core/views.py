@@ -22,7 +22,6 @@ import datetime
 import httplib
 import threading
 from dateutil.parser import parse as dateparser
-from uuid import uuid4
 
 from django.utils import timezone
 from django.shortcuts import redirect
@@ -59,6 +58,7 @@ from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile, State
+from xgds_core.flightUtils import create_group_flight
 
 if settings.XGDS_CORE_REDIS:
     from xgds_core.redisUtil import queueRedisData, publishRedisSSEAtTime
@@ -833,9 +833,7 @@ def doStopFlight(request, uuid):
 
 def addGroupFlight(request):
     from xgds_core.forms import GroupFlightForm
-    errorString = None
-    groupFlight = None
-    newFlights = []
+    group_flight = None
 
     if request.method != 'POST':
         groupFlightForm = GroupFlightForm()
@@ -847,42 +845,24 @@ def addGroupFlight(request):
 
     if request.method == 'POST':
         form = GroupFlightForm(request.POST)
+        group_flight = None
         if form.is_valid():
-            groupFlight = GROUP_FLIGHT_MODEL.get()()
-            groupFlight.name = form.cleaned_data['date'].strftime('%Y%m%d') + form.cleaned_data['prefix']
-            groupFlight.notes = form.cleaned_data['notes']
             try:
-                groupFlight.save()
+                group_flight_name = form.cleaned_data['date'].strftime('%Y%m%d') + form.cleaned_data['prefix']
+                vehicles = []
+                vModel = VEHICLE_MODEL.get()
+                for vehicle_name in form.cleaned_data['vehicles']:
+                    vehicles.append(vModel.objects.get(name=vehicle_name))
+
+                group_flight = create_group_flight(group_flight_name, form.cleaned_data['notes'], vehicles)
+
             except IntegrityError, strerror:
-                errorString = "Problem Creating Group Flight: {%s}" % strerror
                 return render(request,
                               "xgds_core/AddGroupFlight.html",
                               {'groupFlightForm': form,
                                'groupFlights': getGroupFlights(),
-                               'errorstring': errorString},
+                               'errorstring': "Problem Creating Group Flight: {%s}" % strerror},
                               )
-
-            for vehicle in form.cleaned_data['vehicles']:
-                newFlight = FLIGHT_MODEL.get()()
-                newFlight.group = groupFlight
-
-                newFlight.vehicle = VEHICLE_MODEL.get().objects.get(name=vehicle)
-                newFlight.name = groupFlight.name + "_" + vehicle
-
-                newFlight.locked = False
-                newFlight.uuid = uuid4()
-
-                try:
-                    newFlight.save(force_insert=True)
-                    newFlights.append(newFlight)
-                except IntegrityError, strerror:
-                    errorString = "Problem Creating Flight: {%s}" % strerror
-                    return render(request,
-                                  "xgds_core/AddGroupFlight.html",
-                                  {'groupFlightForm': form,
-                                   'groupFlights': getGroupFlights(),
-                                   'errorstring': errorString},
-                                  )
         else:
             errorString = form.errors
             return render(request,
@@ -893,13 +873,13 @@ def addGroupFlight(request):
                           )
 
     # add relay ...
-    if groupFlight:
-        addRelay(groupFlight, None,
-                 json.dumps({'name': groupFlight.name, 'id': groupFlight.pk, 'notes': groupFlight.notes}),
+    if group_flight:
+        addRelay(group_flight, None,
+                 json.dumps({'name': group_flight.name, 'id': group_flight.pk, 'notes': group_flight.notes}),
                  reverse('xgds_core_relayAddGroupFlight'))
-        for f in newFlights:
+        for f in group_flight.flights():
             addRelay(f, None, json.dumps(
-                {'group_id': groupFlight.pk, 'vehicle_id': f.vehicle.pk, 'name': f.name, 'uuid': str(f.uuid),
+                {'group_id': group_flight.pk, 'vehicle_id': f.vehicle.pk, 'name': f.name, 'uuid': str(f.uuid),
                  'id': f.id}), reverse('xgds_core_relayAddFlight'))
 
     return HttpResponseRedirect(reverse('xgds_core_manage', args=[]))

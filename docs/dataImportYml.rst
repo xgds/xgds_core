@@ -81,8 +81,7 @@ Hercules_TempProbe.yaml::
    extension: TEM
    delimiter: \t
    defaults:
-    - name: vehicle__name
-      value: Hercules
+     vehicle__name: Hercules
    fields:
     - name: data_type
       default: TEM
@@ -123,8 +122,6 @@ hierarchy as follows:
 
  * MetadataSpecification_
 
- * DefaultSpecification_
-
  * FieldSpecification_
 
  * ChildSpecification_
@@ -158,9 +155,9 @@ interpretation of other members.
 |                  |                |                 |to separate data, , or `\t` usually |
 +------------------+----------------+-----------------+------------------------------------+
 |``quotechar``     |string          |optional         |Whatever character will be used     |
-|                  |                |                 |to quote data, usually  `"`        |
+|                  |                |                 |to quote data, usually  `"`         |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            |optional         |A list of defaults                  |
+|``defaults``      |dictionary      |optional         |A dictionary of default values      |
 +------------------+----------------+-----------------+------------------------------------+
 |``fields``        |list            |required         |A list of field specifications.     |
 +------------------+----------------+-----------------+------------------------------------+
@@ -168,22 +165,6 @@ interpretation of other members.
 |                  |                |                 |these will be nested models.        |
 +------------------+----------------+-----------------+------------------------------------+
 
-.. _DefaultSpecification:
-
-Default Specification
-~~~~~~~~~~~~~~~~~~~~~
-
-A Default Specification defines name value pairs for any fields that should be set but are
-not part of the data imported.
-
-+-------------------+----------------+-----------------+------------------------------------+
-|Member             |Type            |Values           |Meaning                             |
-+===================+================+=================+====================================+
-|``name``           |string          |required         |The exact name of the Python model  |
-|                   |                |                 |field                               |
-+-------------------+----------------+-----------------+------------------------------------+
-|``value``          |                |                 |The value to assign to the field.   |
-+-------------------+----------------+-----------------+------------------------------------+
 
 .. _FieldSpecification:
 
@@ -244,7 +225,7 @@ class (described in the metadata or container) is one, and can contain many chil
 |                  |                |                 |for data import described by this   |
 |                  |                |                 |Data Import YAML file.              |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            |optional         |A list of defaults                  |
+|``defaults``      |dictionary      |optional         |A dictionary of defaults            |
 +------------------+----------------+-----------------+------------------------------------+
 |``fields``        |list            |required         |A list of field specifications.     |
 +------------------+----------------+-----------------+------------------------------------+

@@ -97,3 +97,4 @@ XGDS_CORE_GROUP_FLIGHT_MODEL = "xgds_core.GroupFlight"
 XGDS_CORE_VEHICLE_MODEL = 'xgds_core.Vehicle'
 XGDS_CORE_FLIGHT_MONIKER = "Flight"
 XGDS_CORE_GROUP_FLIGHT_MONIKER = "Group Flight"
+XGDS_CORE_DEFAULT_VEHICLE_PK = 1  # To be used when vehicle is required but not specified.
