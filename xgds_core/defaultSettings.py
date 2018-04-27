@@ -90,3 +90,10 @@ XGDS_CORE_CSV_IMPORTER = {}
 # Override this to provide a function that will return a dictionary of current state information.
 # This will be appended to items as they are imported.
 XGDS_CORE_CURRENT_STATE_FUNCTION = 'xgds_core.util.getCurrentStateDictionary'
+
+XGDS_CORE_FLIGHT_MODEL = "xgds_core.Flight"
+XGDS_CORE_ACTIVE_FLIGHT_MODEL = "xgds_core.ActiveFlight"
+XGDS_CORE_GROUP_FLIGHT_MODEL = "xgds_core.GroupFlight"
+XGDS_CORE_VEHICLE_MODEL = 'xgds_core.Vehicle'
+XGDS_CORE_FLIGHT_MONIKER = "Flight"
+XGDS_CORE_GROUP_FLIGHT_MONIKER = "Group Flight"

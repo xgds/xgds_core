@@ -32,7 +32,7 @@ from django.core.serializers import serialize
 from geocamUtil.models.ExtrasDotField import ExtrasDotField
 from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
-
+from geocamUtil.models.UuidField import UuidModel
 
 from xgds_core.util import get100Years
 from xgds_core.redisUtil import callRemoteRebroadcast
@@ -459,3 +459,226 @@ class State(models.Model):
 
     class Meta:
         ordering = ['start']
+
+
+class AbstractVehicle(models.Model):
+    objects = NameManager()
+
+    name = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
+    notes = models.TextField(blank=True)
+    type = models.CharField(max_length=16, db_index=True)
+
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        return self.name
+
+    def getDict(self):
+        return {"name": self.name, "notes": self.notes, "type": self.type}
+
+    def natural_key(self):
+        return (self.name)
+
+
+class Vehicle(AbstractVehicle):
+    pass
+
+DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', null=True, blank=True)  #, related_name="plans")
+DEFAULT_VEHICLE_FIELD = lambda: models.ForeignKey(Vehicle, null=True, blank=True)
+DEFAULT_GROUP_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.GroupFlight', null=True, blank=True)
+
+
+class AbstractFlight(UuidModel):
+    objects = NameManager()
+
+    name = models.CharField(max_length=128, blank=True, unique=True,
+                            help_text='it is episode name + asset role. i.e. 20130925A_ROV', db_index=True)
+    locked = models.BooleanField(blank=True, default=False)
+    start_time = models.DateTimeField(null=True, blank=True, db_index=True)
+    end_time = models.DateTimeField(null=True, blank=True, db_index=True)
+    timezone = models.CharField(null=True, blank=False, max_length=128, default=settings.TIME_ZONE)
+
+    vehicle = 'set to DEFAULT_VEHICLE_FIELD() or similar in derived classes'
+    notes = models.TextField(blank=True)
+    group = 'set to DEFAULT_GROUP_FLIGHT_FIELD() or similar in derived classes'
+
+    def natural_key(self):
+        return (self.name)
+
+    @classmethod
+    def cls_type(cls):
+        return 'Flight'
+
+    def hasStarted(self):
+        return (self.start_time != None)
+
+    def hasEnded(self):
+        if self.hasStarted():
+            return (self.end_time != None)
+        return False
+
+    def startFlightExtras(self, request):
+        pass
+
+    def stopFlightExtras(self, request):
+        pass
+
+    def thumbnail_time_url(self, event_time):
+        return self.thumbnail_url()
+
+    def thumbnail_url(self):
+        return ''
+
+    def view_time_url(self, event_time):
+        return self.view_url()
+
+    def view_url(self):
+        return ''
+
+    def __unicode__(self):
+        return self.name
+
+    def getTreeJsonChildren(self):
+        children = []
+        if self.track:
+            children.append({"title": settings.GEOCAM_TRACK_TRACK_MONIKIER,
+                             "selected": False,
+                             "tooltip": "Tracks for " + self.name,
+                             "key": self.uuid + "_tracks",
+                             "data": {
+                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(self.track.uuid)}),
+                                 "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
+                                 "sseUrl": "",
+                                 "type": 'MapLink',
+                                 }
+                             })
+        if self.plans:
+            myplan = self.plans[0].plan
+            children.append({"title": settings.XGDS_PLANNER_PLAN_MONIKER,
+                             "selected": False,
+                             "tooltip": "Plan for " + self.name,
+                             "key": self.uuid + "_plan",
+                             "data": {"json": reverse('planner2_mapJsonPlan', kwargs={'uuid': str(myplan.uuid)}),
+                                      "kmlFile": reverse('planner2_planExport', kwargs={'uuid': str(myplan.uuid),
+                                                                                        'name': myplan.name + '.kml'}),
+                                      "sseUrl": "",
+                                      "type": 'MapLink',
+                                      }
+                             })
+        return children
+
+    def getTreeJson(self):
+        result = {"title": self.name,
+                  "lazy": True,
+                  "key": self.uuid,
+                  "tooltip": self.notes,
+                  "folder": True,
+                  "data": {"type": self.__class__.__name__,
+                           "vehicle": self.vehicle.name,
+                           "href": '',  # TODO add url to the flight summary page when it exists
+                           "childNodesUrl": reverse('xgds_core_flightTreeNodes', kwargs={'flight_id': self.id})
+                           }
+                  # "children": self.getTreeJsonChildren()
+                  }
+
+        return result
+
+    @property
+    def plans(self):
+        return LazyGetModelByName(settings.XGDS_PLANNER_PLAN_EXECUTION_MODEL).get().objects.filter(flight=self)
+
+    def stopTracking(self):
+        if settings.PYRAPTORD_SERVICE is True:
+            pyraptord = getPyraptordClient()
+            serviceName = self.vehicle.name + "TrackListener"
+            stopPyraptordServiceIfRunning(pyraptord, serviceName)
+
+        if self.track:
+            if self.track.currentposition_set:
+                try:
+                    position = self.track.currentposition_set.first()
+                    if position:
+                        position.delete()
+                except:
+                    pass
+
+    def startTracking(self):
+        # TODO define
+        pass
+
+    class Meta:
+        abstract = True
+        ordering = ['-name']
+
+
+class Flight(AbstractFlight):
+    vehicle = DEFAULT_VEHICLE_FIELD()
+    group = DEFAULT_GROUP_FLIGHT_FIELD()
+    summary = models.CharField(max_length=1024, blank=True, null=True)
+
+
+DEFAULT_ONE_TO_ONE_FLIGHT_FIELD = lambda: models.OneToOneField(Flight, related_name="active", null=True, blank=True)
+
+
+class AbstractActiveFlight(models.Model):
+    flight = 'set to DEFAULT_ONE_TO_ONE_FLIGHT_FIELD() or similar in derived classes'
+
+    def __unicode__(self):
+        return (u'ActiveFlight(%s, %s)' %
+                (self.pk, repr(self.flight.name)))
+
+    class Meta:
+        abstract = True
+
+
+class ActiveFlight(AbstractActiveFlight):
+    flight = DEFAULT_ONE_TO_ONE_FLIGHT_FIELD()
+
+
+class AbstractGroupFlight(models.Model):
+    """
+    This GroupFlight model represents the overall coordinated
+    operation.
+    """
+    objects = NameManager()
+
+    name = models.CharField(max_length=128, blank=True, unique=True,
+                            help_text='Usually same as episode name. I.e. 201340925A', db_index=True)
+    notes = models.TextField(blank=True)
+
+    def thumbnail_url(self):
+        return ''
+
+    def thumbnail_time_url(self, event_time):
+        return self.thumbnail_url()
+
+    def view_time_url(self, event_time):
+        return ''  # TODO implement
+
+    def view_url(self):
+        return ''  # TODO implement
+
+    def summary_url(self):
+        return self.view_url()
+
+    @property
+    def flights(self):
+        # TODO implement
+        return None
+
+    def natural_key(self):
+        return (self.name)
+
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        return self.name
+
+
+class GroupFlight(AbstractGroupFlight):
+    @property
+    def flights(self):
+        return self.flight_set.all()
+
