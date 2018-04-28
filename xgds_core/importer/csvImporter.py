@@ -13,7 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
-import pydevd
+
 from yaml import load, dump
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -118,7 +118,6 @@ def load_csv(config, csv_file, vehicle, flight, defaults):
             # read the first timestamp and find a flight for it
             flight = get_or_make_flight(vehicle, the_list[0])
         config['defaults']['flight_id'] = flight.id
-        pydevd.settrace('192.168.0.101', port=7777)
         for row in the_list:
             row.update(config['defaults'])
             for fieldname in config['timefields']:
