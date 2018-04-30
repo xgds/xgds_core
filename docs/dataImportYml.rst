@@ -176,35 +176,38 @@ Field Specification
 A Field Specification defines the mapping between the columnar data in the import file and 
 the Python model fields.
 
-+------------------+----------------+-----------------+------------------------------------+
-|Member            |Type            |Values           |Meaning                             |
-+==================+================+=================+====================================+
-|``type``          | string         |string           |The type                            |
-|                  |                |int              |                                    |
-|                  |                |float            |                                    |
-|                  |                |boolean          |                                    |
-|                  |                |DateTime         |                                    |
-|                  |                |regex            |                                    |
-+------------------+----------------+-----------------+------------------------------------+
-|``skip``          |boolean         |false            |True if this columnar data does not |
-|                  |                |                 |map to a model field.               |
-+------------------+----------------+-----------------+------------------------------------+
-|``default``       |                |optional         |Default value                       |
-+------------------+----------------+-----------------+------------------------------------+
-|``min``           |                |optional         |Minimum value, inclusive            |
-+------------------+----------------+-----------------+------------------------------------+
-|``max``           |                |optional         |Maximum value, inclusive            |
-+------------------+----------------+-----------------+------------------------------------+
-|``units``         |string          |optional         |The expected units of measure       |
-+------------------+----------------+-----------------+------------------------------------+
-|``regex``         |regex string    |optional         |Regex to use to parse the value.    |
-+------------------+----------------+-----------------+------------------------------------+
-|``fields``        |list            | optional        |In the case of a regex field, this  |
-|                  |                |                 |will process the regex values into  |
-|                  |                |                 |the specified model fields. They    |
-|                  |                |                 |are not nested within the model;    |
-|                  |                |                 |it is a flat model object.          |
-+------------------+----------------+-----------------+------------------------------------+
++--------------------+----------------+-----------------+------------------------------------+
+|Member              |Type            |Values           |Meaning                             |
++====================+================+=================+====================================+
+|``type``            | string         |string           |The type                            |
+|                    |                |int              |                                    |
+|                    |                |float            |                                    |
+|                    |                |boolean          |                                    |
+|                    |                |DateTime         |                                    |
+|                    |                |regex            |                                    |
++--------------------+----------------+-----------------+------------------------------------+
+|``skip``            |boolean         |false            |True if this columnar data does not |
+|                    |                |                 |map to a model field.               |
++--------------------+----------------+-----------------+------------------------------------+
+|``default``         |                |optional         |Default value                       |
++--------------------+----------------+-----------------+------------------------------------+
+|``flight_required`` |                |false            |True if flight is required; it can  |
+|                    |                |                 |be looked up or created.            |
++--------------------+----------------+-----------------+------------------------------------+
+|``min``             |                |optional         |Minimum value, inclusive            |
++--------------------+----------------+-----------------+------------------------------------+
+|``max``             |                |optional         |Maximum value, inclusive            |
++--------------------+----------------+-----------------+------------------------------------+
+|``units``           |string          |optional         |The expected units of measure       |
++--------------------+----------------+-----------------+------------------------------------+
+|``regex``           |regex string    |optional         |Regex to use to parse the value.    |
++--------------------+----------------+-----------------+------------------------------------+
+|``fields``          |list            | optional        |In the case of a regex field, this  |
+|                    |                |                 |will process the regex values into  |
+|                    |                |                 |the specified model fields. They    |
+|                    |                |                 |are not nested within the model;    |
+|                    |                |                 |it is a flat model object.          |
++--------------------+----------------+-----------------+------------------------------------+
 
 .. _ChildSpecification:
 

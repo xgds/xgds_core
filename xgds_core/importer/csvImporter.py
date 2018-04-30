@@ -14,13 +14,14 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
-from yaml import load, dump
+import yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 
 import csv
+from collections import OrderedDict
 
 from geocamUtil.loader import getModelByName
 from xgds_core.views import getActiveStates, getState
@@ -34,6 +35,22 @@ VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
 
+def ordered_load(stream, Loader=Loader, object_pairs_hook=OrderedDict):
+
+    class OrderedLoader(Loader):
+        pass
+
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping)
+
+    return yaml.load(stream, OrderedLoader)
+
+
 def load_yaml(yaml_file, defaults):
     """
     Load the contents of a Yaml file and return it as a dictionary.
@@ -43,7 +60,7 @@ def load_yaml(yaml_file, defaults):
     """
     the_stream = open(yaml_file, 'r')
     try:
-        data = load(the_stream, Loader=Loader)
+        data = ordered_load(the_stream, Loader=Loader)
         data['fieldnames'] = data['fields'].keys()
 
         if not defaults:
@@ -57,6 +74,9 @@ def load_yaml(yaml_file, defaults):
         for key, value in data['fields'].iteritems():
             if 'time' in value['type']:
                 data['timefields'].append(key)
+
+        if 'flight_required' not in data:
+            data['flight_required'] = False
 
     finally:
         the_stream.close()
@@ -114,10 +134,10 @@ def load_csv(config, csv_file, vehicle, flight, defaults):
         csv_reader = csv.DictReader(csv_file, fieldnames=config['fieldnames'], delimiter=delimiter, quotechar=quotechar)
         the_list = list(csv_reader)
         count = len(the_list)
-        if not flight:
+        if not flight and config['flight_required']:
             # read the first timestamp and find a flight for it
             flight = get_or_make_flight(vehicle, the_list[0])
-        config['defaults']['flight_id'] = flight.id
+            config['defaults']['flight_id'] = flight.id
         for row in the_list:
             row.update(config['defaults'])
             for fieldname in config['timefields']:

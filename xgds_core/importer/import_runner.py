@@ -1,4 +1,5 @@
-# __BEGIN_LICENSE__
+#! /usr/bin/env python
+#  __BEGIN_LICENSE__
 # Copyright (c) 2015, United States Government, as represented by the
 # Administrator of the National Aeronautics and Space Administration.
 # All rights reserved.
@@ -17,6 +18,7 @@
 import django
 django.setup()
 
+import csvImporter
 
 def main():
     import optparse
@@ -24,7 +26,7 @@ def main():
     parser = optparse.OptionParser('usage: -c config -i input')
     parser.add_option('-c', '--config', help='path to config file (yaml)')
     parser.add_option('-i', '--input', help='path to csv file to import')
-    parser.add_option('-h', '--vehicle', help='name of vehicle')
+    parser.add_option('-v', '--vehicle', help='name of vehicle')
     parser.add_option('-f', '--flight', help='name of flight')
 
     opts, args = parser.parse_args()
@@ -34,7 +36,7 @@ def main():
     if not opts.input:
         parser.error('input is required')
 
-    result = csvImporter.do_import(parser.config, parser.input, parser.vehicle, parser.flight)
+    result = csvImporter.do_import(opts.config, opts.input, opts.vehicle, opts.flight)
     print 'loaded %d ' % result
 
 
