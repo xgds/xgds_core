@@ -14,6 +14,10 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+"""
+Utilities for loading a csv file into the database per the yaml specification.
+see ../../docs/dataImportYml.rst
+"""
 import yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -34,7 +38,7 @@ from django.conf import settings
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
-
+# Create an ordered load function for yaml, to keep the dictionary keys in order.
 def ordered_load(stream, Loader=Loader, object_pairs_hook=OrderedDict):
 
     class OrderedLoader(Loader):
