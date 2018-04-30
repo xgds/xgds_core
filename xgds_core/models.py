@@ -56,8 +56,13 @@ class TimeZoneHistory(models.Model):
     endTime = models.DateTimeField(null=True, blank=True, default=get100Years)
     timeZone = models.CharField(max_length=128, blank=False)
     notes = models.CharField(max_length=512, blank=True, null=True)
+<<<<<<< HEAD
 
 
+=======
+    
+    
+>>>>>>> 6890156822718daed57a436ef7c4e2fd0328ef4b
 class XgdsUser(User):
     class Meta:
         proxy = True
@@ -526,7 +531,6 @@ class AbstractFlight(UuidModel, HasVehicle):
     start_time = models.DateTimeField(null=True, blank=True, db_index=True)
     end_time = models.DateTimeField(null=True, blank=True, db_index=True)
     timezone = models.CharField(null=True, blank=False, max_length=128, default=settings.TIME_ZONE)
-
     notes = models.TextField(blank=True, null=True)
     group = 'set to DEFAULT_GROUP_FLIGHT_FIELD() or similar in derived classes'
 
