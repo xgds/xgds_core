@@ -29,11 +29,30 @@ from django.contrib.auth.forms import UserCreationForm
 
 from geocamUtil import TimeUtil
 from geocamUtil.loader import LazyGetModelByName
+from geocamUtil.forms.AbstractImportForm import AbstractImportForm
+
 
 # class NamedURLForm(ModelForm):
 # 
 #     class Meta: 
 #         model = NamedURL
+
+VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
+
+
+class AbstractImportVehicleForm(AbstractImportForm):
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.filter(primary=True),
+                                label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    def getVehicle(self):
+        if self.cleaned_data['vehicle']:
+            return self.cleaned_data['vehicle']
+        else:
+            return None
+
+    class Meta:
+        abstract = True
+
 
 class SearchForm(ModelForm):
     queries = None

@@ -28,7 +28,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.core.serializers import serialize
 
-
 from geocamUtil.models.ExtrasDotField import ExtrasDotField
 from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
@@ -44,21 +43,21 @@ if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
 class Constant(models.Model):
     name = models.CharField(max_length=64, blank=False)
     units = models.CharField(max_length=32, blank=False)
-    notes = models.CharField(max_length=256, blank=False)
+    notes = models.CharField(max_length=256, blank=True, null=True)
     dataType = models.CharField(max_length=32, blank=False)
     value = models.CharField(max_length=256, blank=False)
 
     def __unicode__(self):
         return u'%s: %s' % (self.name, self.value)
-    
-    
+
+
 class TimeZoneHistory(models.Model):
     startTime = models.DateTimeField(default=timezone.now)
-    endTime = models.DateTimeField(null=True, blank=True, default=get100Years )
+    endTime = models.DateTimeField(null=True, blank=True, default=get100Years)
     timeZone = models.CharField(max_length=128, blank=False)
-    notes = models.CharField(max_length=512, blank=True)
-    
-    
+    notes = models.CharField(max_length=512, blank=True, null=True)
+
+
 class XgdsUser(User):
     class Meta:
         proxy = True
@@ -86,11 +85,11 @@ class SearchableModel(object):
     show up in the datatables.
     Override methods where you need to.
     """
-    
+
     @property
     def DT_RowId(self):
         return self.pk
-    
+
     def renderColumn(self, column):
         text = None
         try:
@@ -102,13 +101,13 @@ class SearchableModel(object):
         if text is None:
             text = ''
         return text
-    
+
     def toMapList(self, columns):
         """
         Return a list of the values for rendering in tables or on the map
         """
         return [self.renderColumn(column) for column in columns]
-    
+
     def toMapDict(self):
         """
         Return a reduced dictionary that will be turned to JSON for rendering in a map
@@ -119,30 +118,30 @@ class SearchableModel(object):
         values = self.toMapList(columns)
         result = dict(zip(columns, values))
         return result
-    
+
     @property
     def app_label(self):
         return self._meta.app_label
-    
+
     @classmethod
     def cls_type(cls):
-        #IMPORTANT -- override this if it is not the registered model name in site settings JS_MAP
+        # IMPORTANT -- override this if it is not the registered model name in site settings JS_MAP
         return cls._meta.object_name
-    
+
     @property
     def type(self):
         return self.__class__.cls_type()
-    
+
     @property
     def model_type(self):
         t = type(self)
         if self.get_deferred_fields():
             t = t.__base__
         return t._meta.object_name
-    
+
     @property
     def view_url(self):
-        return reverse('search_map_single_object', kwargs={'modelPK':self.pk,
+        return reverse('search_map_single_object', kwargs={'modelPK': self.pk,
                                                            'modelName': self.type})
 
     @property
@@ -151,7 +150,7 @@ class SearchableModel(object):
         position = self.getPosition()
         if position:
             return position.latitude
-        
+
     @property
     def lon(self):
         ''' longitude '''
@@ -169,7 +168,7 @@ class SearchableModel(object):
         except:
             pass
         return None
-    
+
     @property
     def head(self):
         ''' heading '''
@@ -189,16 +188,16 @@ class SearchableModel(object):
     @classmethod
     def getSearchableFields(self):
         return ['name', 'description']
-    
+
     @classmethod
     def getSearchableNumericFields(self):
         return []
-    
+
     @classmethod
     def timesearchField(self):
         """ Override to return the name of the field that contains the most important searchable time"""
         return 'event_time'
-    
+
     @property
     def tz(self):
         return self.timezone
@@ -227,16 +226,16 @@ class RelayEvent(models.Model):
     url = models.CharField(max_length=128)
     is_update = models.BooleanField(default=False)
     hostname = models.CharField(max_length=32, default=settings.HOSTNAME)
-    
+
     def getSerializedData(self):
-        result = {'object_id':self.object_id,
+        result = {'object_id': self.object_id,
                   'content_type_app_label': self.content_type.app_label,
                   'content_type_model': self.content_type.model,
                   'url': self.url,
                   'serialized_form': self.serialized_form,
                   'is_update': self.is_update}
         return result
-    
+
     def toRelayJson(self):
         result = {'relay_event_pk': self.pk}
         return json.dumps(result)
@@ -250,27 +249,34 @@ class RelayFile(models.Model):
     file_key = models.CharField(max_length=64)
     relay_event = models.ForeignKey(RelayEvent)
 
+
 CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTORY_MODEL)
 
 
 class AbstractCondition(models.Model):
-    source = models.CharField(null=False, blank=False, max_length=64, db_index=True)     # where did this condition originate
-    source_id = models.CharField(null=True, blank=True, max_length=64, db_index=True)    # id from the source side so we can correlate or update conditions
-    xgds_id = models.CharField(null=True, blank=True, max_length=64, db_index=True)      # id on the xGDS side in case we want to map this condition to something
-    timezone = models.CharField(null=True, blank=False, max_length=32, default=settings.TIME_ZONE, db_index=True)    # timezone of the condition (for display)
-    start_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True) # if the condition has a duration, what is its start time
-    end_time = models.DateTimeField(editable=False, null=True, blank=True, db_index=True)   # if the condition has a duration, what is its end time
-    name = models.CharField(null=True, blank=True, max_length=64)      # name which probably came from the source
-    
+    source = models.CharField(null=False, blank=False, max_length=64,
+                              db_index=True)  # where did this condition originate
+    source_id = models.CharField(null=True, blank=True, max_length=64,
+                                 db_index=True)  # id from the source side so we can correlate or update conditions
+    xgds_id = models.CharField(null=True, blank=True, max_length=64,
+                               db_index=True)  # id on the xGDS side in case we want to map this condition to something
+    timezone = models.CharField(null=True, blank=False, max_length=32, default=settings.TIME_ZONE,
+                                db_index=True)  # timezone of the condition (for display)
+    start_time = models.DateTimeField(editable=False, null=True, blank=True,
+                                      db_index=True)  # if the condition has a duration, what is its start time
+    end_time = models.DateTimeField(editable=False, null=True, blank=True,
+                                    db_index=True)  # if the condition has a duration, what is its end time
+    name = models.CharField(null=True, blank=True, max_length=64)  # name which probably came from the source
+
     class Meta:
         abstract = True
 
     # In User class declaration
     @classmethod
     def create(cls, condition_source, condition_source_id):
-        return cls(source=condition_source, 
+        return cls(source=condition_source,
                    source_id=condition_source_id)
-    
+
     def populate(self, source_time, condition_data):
         ''' Fill in condition data and create a new condition history '''
         condition_data_dict = json.loads(condition_data)
@@ -278,7 +284,7 @@ class AbstractCondition(models.Model):
             self.xgds_id = condition_data_dict['xgds_id']
         if 'name' in condition_data_dict:
             self.name = condition_data_dict['name']
-        
+
         if 'timezone' in condition_data_dict:
             self.timezone = condition_data_dict['timezone']
         if 'start_time' in condition_data_dict:
@@ -291,9 +297,9 @@ class AbstractCondition(models.Model):
                 self.end_time = dateparser(condition_data_dict['end_time'])
             except:
                 pass
-    
+
         self.save()
-        
+
         # create relevant condition history
         if 'status' in condition_data_dict:
             status = condition_data_dict['status']
@@ -305,7 +311,7 @@ class AbstractCondition(models.Model):
                                                           jsonData=condition_data)
         condition_history.populate(condition_data_dict)
         return condition_history
-  
+
     def getRedisSSEChannel(self):
         return 'condition'
 
@@ -327,11 +333,11 @@ class AbstractCondition(models.Model):
         if lastCondition:
             return lastCondition.source_time
         return None
-    
+
     def getHistory(self):
-        history_name = settings.XGDS_CORE_CONDITION_HISTORY_MODEL.replace('.','_')
+        history_name = settings.XGDS_CORE_CONDITION_HISTORY_MODEL.replace('.', '_')
         return getattr(self, history_name)
-    
+
 
 class Condition(AbstractCondition):
     pass
@@ -342,14 +348,17 @@ DEFAULT_CONDITION_FIELD = lambda: models.ForeignKey('xgds_core.Condition', null=
 
 class AbstractConditionHistory(models.Model):
     condition = 'set to DEFAULT_CONDITION_FIELD() or similar in derived classes'
-    source_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True, default=timezone.now) # actual source time of the condition
-    creation_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True, default=timezone.now)  # when was this modified in xGDS
-    status = models.CharField(null=True, blank=True, max_length=128)    # id on the xGDS side in case we want to map this condition to something
-    jsonData = ExtrasDotField(null=True, blank=True)                    # dot dictionary to hold the raw data and any extra data
+    source_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True,
+                                       default=timezone.now)  # actual source time of the condition
+    creation_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True,
+                                         default=timezone.now)  # when was this modified in xGDS
+    status = models.CharField(null=True, blank=True,
+                              max_length=128)  # id on the xGDS side in case we want to map this condition to something
+    jsonData = ExtrasDotField(null=True, blank=True)  # dot dictionary to hold the raw data and any extra data
 
     def toJson(self):
         return serialize('json', [self.condition, self], use_natural_foreign_keys=True)
-        
+
     def populate(self, condition_data_dict, save=True):
         if save:
             self.save()
@@ -383,7 +392,7 @@ class NameManager(models.Manager):
         return self.get(name=name)
 
 
-# NOTE! This is a special model that is matched to the schema of MySQL's 
+# NOTE! This is a special model that is matched to the schema of MySQL's
 # information_schema DB global_variables table. That table must be mapped
 # into this application's database using a MySQL view declaration.
 # create view xgds_basalt.global_variables as select * from information_schema.global_variables;
@@ -422,7 +431,7 @@ class BroadcastMixin(object):
 
     def getBroadcastChannel(self):
         return 'sse'
-    
+
     def getSseType(self):
         return self.__class__.cls_type().lower()
 
@@ -452,7 +461,7 @@ class State(models.Model):
     dateModified = models.DateTimeField(db_index=True)
     key = models.CharField(max_length=32, db_index=True, unique=True)
     notes = models.CharField(max_length=256, null=True, blank=True)
-    values = ExtrasDotField(default='') # a dictionary of name/value pairs that get added for import
+    values = ExtrasDotField(default='')  # a dictionary of name/value pairs that get added for import
 
     def __unicode__(self):
         return u'%s' % (self.key)
@@ -465,8 +474,11 @@ class AbstractVehicle(models.Model):
     objects = NameManager()
 
     name = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=16, db_index=True)
+    extras = ExtrasDotField()
+    # to be used for 'primary vehicles' which show up in the import dropdown
+    primary = models.NullBooleanField(null=True, default=False)
 
     class Meta:
         abstract = True
@@ -484,23 +496,38 @@ class AbstractVehicle(models.Model):
 class Vehicle(AbstractVehicle):
     pass
 
-DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', null=True, blank=True)  #, related_name="plans")
+
+# TODO if you are not using the default flights or vehicles or group flights you will have to override these in your classes
+DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', null=True, blank=True)  # , related_name="plans")
 DEFAULT_VEHICLE_FIELD = lambda: models.ForeignKey(Vehicle, null=True, blank=True)
 DEFAULT_GROUP_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.GroupFlight', null=True, blank=True)
 
 
-class AbstractFlight(UuidModel):
+class HasVehicle(models.Model):
+    vehicle = "TODO SET TO DEFAULT_VEHICLE_FIELD or similar"
+
+    @property
+    def vehicle_name(self):
+        if self.vehicle:
+            return self.vehicle.name
+        return ''
+
+    class Meta:
+        abstract = True
+
+
+class AbstractFlight(UuidModel, HasVehicle):
     objects = NameManager()
 
     name = models.CharField(max_length=128, blank=True, unique=True,
                             help_text='it is episode name + asset role. i.e. 20130925A_ROV', db_index=True)
+    vehicle = DEFAULT_VEHICLE_FIELD()
     locked = models.BooleanField(blank=True, default=False)
     start_time = models.DateTimeField(null=True, blank=True, db_index=True)
     end_time = models.DateTimeField(null=True, blank=True, db_index=True)
     timezone = models.CharField(null=True, blank=False, max_length=128, default=settings.TIME_ZONE)
 
-    vehicle = 'set to DEFAULT_VEHICLE_FIELD() or similar in derived classes'
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
     group = 'set to DEFAULT_GROUP_FLIGHT_FIELD() or similar in derived classes'
 
     def natural_key(self):
@@ -551,7 +578,7 @@ class AbstractFlight(UuidModel):
                                  "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
                                  "sseUrl": "",
                                  "type": 'MapLink',
-                                 }
+                             }
                              })
         if self.plans:
             myplan = self.plans[0].plan
@@ -612,9 +639,9 @@ class AbstractFlight(UuidModel):
         ordering = ['-name']
 
 
-class Flight(AbstractFlight):
-    vehicle = DEFAULT_VEHICLE_FIELD()
+class Flight(AbstractFlight, HasVehicle):
     group = DEFAULT_GROUP_FLIGHT_FIELD()
+    vehicle = DEFAULT_VEHICLE_FIELD()
     summary = models.CharField(max_length=1024, blank=True, null=True)
 
 
@@ -645,7 +672,7 @@ class AbstractGroupFlight(models.Model):
 
     name = models.CharField(max_length=128, blank=True, unique=True,
                             help_text='Usually same as episode name. I.e. 201340925A', db_index=True)
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
 
     def thumbnail_url(self):
         return ''
