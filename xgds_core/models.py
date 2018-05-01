@@ -56,13 +56,8 @@ class TimeZoneHistory(models.Model):
     endTime = models.DateTimeField(null=True, blank=True, default=get100Years)
     timeZone = models.CharField(max_length=128, blank=False)
     notes = models.CharField(max_length=512, blank=True, null=True)
-<<<<<<< HEAD
 
-
-=======
     
-    
->>>>>>> 6890156822718daed57a436ef7c4e2fd0328ef4b
 class XgdsUser(User):
     class Meta:
         proxy = True
@@ -508,7 +503,7 @@ DEFAULT_VEHICLE_FIELD = lambda: models.ForeignKey(Vehicle, null=True, blank=True
 DEFAULT_GROUP_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.GroupFlight', null=True, blank=True)
 
 
-class HasVehicle(models.Model):
+class HasVehicle(object):
     vehicle = "TODO SET TO DEFAULT_VEHICLE_FIELD or similar"
 
     @property
@@ -516,9 +511,6 @@ class HasVehicle(models.Model):
         if self.vehicle:
             return self.vehicle.name
         return ''
-
-    class Meta:
-        abstract = True
 
 
 class AbstractFlight(UuidModel, HasVehicle):
@@ -643,16 +635,40 @@ class AbstractFlight(UuidModel, HasVehicle):
         ordering = ['-name']
 
 
-class Flight(AbstractFlight, HasVehicle):
+class Flight(AbstractFlight):
     group = DEFAULT_GROUP_FLIGHT_FIELD()
     vehicle = DEFAULT_VEHICLE_FIELD()
     summary = models.CharField(max_length=1024, blank=True, null=True)
 
 
+class HasFlight(object):
+    """ Mixin to support models that have flights """
+    flight = "TODO SET TO DEFAULT_FLIGHT_FIELD or similar"
+
+    @property
+    def vehicle(self):
+        if self.flight:
+            return self.flight.vehicle
+        return None
+
+    @property
+    def vehicle_name(self):
+        vehicle = self.vehicle
+        if vehicle:
+            return vehicle.name
+        return ''
+
+    @property
+    def flight_name(self):
+        if self.flight:
+            return self.flight.name
+        return ''
+
+
 DEFAULT_ONE_TO_ONE_FLIGHT_FIELD = lambda: models.OneToOneField(Flight, related_name="active", null=True, blank=True)
 
 
-class AbstractActiveFlight(models.Model):
+class AbstractActiveFlight(models.Model, HasFlight):
     flight = 'set to DEFAULT_ONE_TO_ONE_FLIGHT_FIELD() or similar in derived classes'
 
     def __unicode__(self):
