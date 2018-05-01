@@ -664,6 +664,14 @@ class HasFlight(object):
             return self.flight.name
         return ''
 
+    @property
+    def flight_group_name(self):
+        if self.flight:
+            return self.flight.group.name
+        else:
+            return None
+
+
 
 DEFAULT_ONE_TO_ONE_FLIGHT_FIELD = lambda: models.OneToOneField(Flight, related_name="active", null=True, blank=True)
 

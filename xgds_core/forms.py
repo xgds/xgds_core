@@ -40,9 +40,9 @@ from geocamUtil.forms.AbstractImportForm import AbstractImportForm
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 
 
-class AbstractImportVehicleForm(AbstractImportForm):
-    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.filter(primary=True),
-                                label=settings.XGDS_CORE_VEHICLE_MONIKER)
+class AbstractVehicleForm(forms.Form):
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
+                               label=settings.XGDS_CORE_VEHICLE_MONIKER)
 
     def getVehicle(self):
         if self.cleaned_data['vehicle']:
@@ -54,9 +54,37 @@ class AbstractImportVehicleForm(AbstractImportForm):
         abstract = True
 
 
-class SearchForm(ModelForm):
+class AbstractPrimaryVehicleForm(AbstractVehicleForm):
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.filter(primary=True),
+                               label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    class Meta:
+        abstract = True
+
+
+class AbstractImportVehicleForm(AbstractImportForm, AbstractPrimaryVehicleForm):
+
+    class Meta:
+        abstract = True
+
+
+class AbstractFlightVehicleForm(forms.Form):
+    flight__vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
+                                       label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    def getVehicle(self):
+        if self.cleaned_data['flight__vehicle']:
+            return self.cleaned_data['flight__vehicle']
+        else:
+            return None
+
+    class Meta:
+        abstract = True
+
+
+class SearchForm(ModelForm, AbstractFlightVehicleForm):
     queries = None
-    
+
     def addQuery(self, query):
         if query:
             if self.queries:
