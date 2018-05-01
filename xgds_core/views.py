@@ -317,40 +317,8 @@ class OrderListJson(BaseDatatableView):
 
     # Filter a queryset using the simple search box above the datatable
     def filter_queryset_simple_search(self, qs, search, tags):
-        noteQuery = None
         if search:
-            words = []
-            counter = 0
-            if " " in search:
-                words = search.split(" ")
-            else:
-                words.append(search)
-
-            # Adds the individual queries for each word into an array
-            fieldsQuery = None
-            keywordQueriesArray = []
-            while (counter < len(words)):
-                if (counter % 2 == 0):
-                    fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
-                    keywordQueriesArray.append(fieldsQuery)
-                else:
-                    keywordQueriesArray.append(str(words[counter]))
-                # This doesn't do anything right now - we want to do a sphinx search
-                # in the content of the notes that points to the ground model pks
-                noteQuery = self.model.buildNoteQuery(words[counter])
-                counter += 1
-
-            # Combines the queries at each index in the array based on and/or
-            counter = 0
-            while (counter < len(keywordQueriesArray)):
-                if (counter == 0):
-                    self.addKeywordQuery(keywordQueriesArray[counter], "")
-                else:
-                    self.addKeywordQuery(keywordQueriesArray[counter], keywordQueriesArray[counter - 1])
-                counter += 2
-
-            if self.keywordQueries:
-                qs = qs.filter(self.keywordQueries)
+            qs = self.filter_keyword_search(qs, search)
 
         if (tags):
             if (self.request.POST.get(u'modelName', None) != "Note"):
@@ -362,8 +330,6 @@ class OrderListJson(BaseDatatableView):
                     tagsQuery = Q(**tagsQuery)
                     qs = qs.filter(tagsQuery)
 
-        if noteQuery:
-            qs = qs.filter(noteQuery)
 
         return qs.distinct()
 
@@ -378,15 +344,56 @@ class OrderListJson(BaseDatatableView):
 
         return qs.distinct()
 
+    def filter_keyword_search(self, qs, search):
+        noteQuery = None
+        words = []
+        counter = 0
+        if " " in search:
+            words = search.split(" ")
+        else:
+            words.append(search)
+
+        # Adds the individual queries for each word into an array
+        fieldsQuery = None
+        keywordQueriesArray = []
+        while (counter < len(words)):
+            if (counter % 2 == 0):
+                fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
+                keywordQueriesArray.append(fieldsQuery)
+            else:
+                keywordQueriesArray.append(str(words[counter]))
+            # This doesn't do anything right now - we want to do a sphinx search
+            # in the content of the notes that points to the ground model pks
+            noteQuery = self.model.buildNoteQuery(words[counter])
+            counter += 1
+
+        # Combines the queries at each index in the array based on and/or
+        counter = 0
+        while (counter < len(keywordQueriesArray)):
+            if (counter == 0):
+                self.addKeywordQuery(keywordQueriesArray[counter], "")
+            else:
+                self.addKeywordQuery(keywordQueriesArray[counter], keywordQueriesArray[counter - 1])
+            counter += 2
+
+        if self.keywordQueries:
+            qs = qs.filter(self.keywordQueries)
+
+        if noteQuery:
+            qs = qs.filter(noteQuery)
+
+        return qs
+
     def filter_tags_search(self, qs, tags):
+        counter = 0
         tagArray = []
+        tagQueriesArray = []
         if "," in tags:
             tagArray = tags.split(",")
         else:
             tagArray.append(tags)
 
-        counter = 0
-        tagQueriesArray = []
+        # Adds the individual queries for each tag into an array
         while (counter < len(tagArray)):
             if (counter % 2 == 0):
                 tagQuery = self.buildTagQuery(tagArray[counter])
@@ -396,12 +403,13 @@ class OrderListJson(BaseDatatableView):
                 tagQueriesArray.append(connector[0])
             counter += 1
 
+        # Combines the queries at each index in the array based on and/or
         counter = 0
         while (counter < len(tagQueriesArray)):
             if (counter == 0):
                 self.addTagQuery(tagQueriesArray[counter], "")
             else:
-                self.addTagQuery(tagQueriesArray[counter], "and")
+                self.addTagQuery(tagQueriesArray[counter], tagQueriesArray[counter - 1])
             counter += 2
 
         if self.tagQueries:
