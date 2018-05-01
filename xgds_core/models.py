@@ -564,14 +564,15 @@ class AbstractFlight(UuidModel, HasVehicle):
 
     def getTreeJsonChildren(self):
         children = []
-        if self.track:
+        if self.track.exists():
+            track = self.track.last()
             children.append({"title": settings.GEOCAM_TRACK_TRACK_MONIKIER,
                              "selected": False,
                              "tooltip": "Tracks for " + self.name,
                              "key": self.uuid + "_tracks",
                              "data": {
-                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(self.track.uuid)}),
-                                 "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
+                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(track.uuid)}),
+                                 "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': track.name}),
                                  "sseUrl": "",
                                  "type": 'MapLink',
                              }

@@ -37,7 +37,7 @@ def main():
         parser.error('input is required')
 
     result = csvImporter.do_import(opts.config, opts.input, opts.vehicle, opts.flight)
-    print 'loaded %d ' % result
+    print 'loaded %d ' % len(result)
 
 
 if __name__ == '__main__':

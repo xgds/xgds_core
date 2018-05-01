@@ -38,6 +38,7 @@ from django.conf import settings
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
+
 # Create an ordered load function for yaml, to keep the dictionary keys in order.
 def ordered_load(stream, Loader=Loader, object_pairs_hook=OrderedDict):
 
@@ -120,7 +121,7 @@ def load_csv(config, csv_file, vehicle, flight, defaults):
     :param vehicle: vehicle if any
     :param flight: flight if any
     :param defaults: the dictionary of defaults
-    :return: the number of rows loaded
+    :return: the newly created models, which may be an empty list
     """
     delimiter = ','
     if 'delimiter' in config:
@@ -133,11 +134,9 @@ def load_csv(config, csv_file, vehicle, flight, defaults):
     the_model = getModelByName(config['class'])
     new_models = []
     csv_file = open(csv_file, 'rb')
-    count = 0
     try:
         csv_reader = csv.DictReader(csv_file, fieldnames=config['fieldnames'], delimiter=delimiter, quotechar=quotechar)
         the_list = list(csv_reader)
-        count = len(the_list)
         if not flight and config['flight_required']:
             # read the first timestamp and find a flight for it
             flight = get_or_make_flight(vehicle, the_list[0])
@@ -146,13 +145,12 @@ def load_csv(config, csv_file, vehicle, flight, defaults):
             row.update(config['defaults'])
             for fieldname in config['timefields']:
                 row[fieldname] = dateparser(row[fieldname])
-            print row
 
             new_models.append(the_model(**row))
         the_model.objects.bulk_create(new_models)
     finally:
         csv_file.close()
-    return count
+    return new_models
 
 
 def get_state_dict(stateKey):
@@ -169,6 +167,36 @@ def get_state_dict(stateKey):
     return result
 
 
+def lookup_vehicle(vehicle_name):
+    """ Look up the vehicle by name or get the default
+    :param vehicle_name: The name of the vehicle
+    :return: the found vehicle, or None
+    """
+    vehicle = None
+    try:
+        if vehicle_name:
+            vehicle = VEHICLE_MODEL.get().objects.get(name=vehicle_name)
+    except:
+        pass
+    if not vehicle:
+        vehicle = get_default_vehicle()
+    return vehicle
+
+
+def lookup_flight(flight_name):
+    """ Look up the flight by name
+    :param flight_name: The name of the flight
+    :return: the found flight, or None
+    """
+    flight = None
+    if flight_name:
+        try:
+            flight = FLIGHT_MODEL.get().objects.get(name=flight_name)
+        except:
+            pass
+    return flight
+
+
 def do_import(yaml_file, csv_file, vehicle_name=None, flight_name=None, defaults=None, stateKey=None):
     """
     Do an import with a path to a configuration yaml file and a path to a csv file
@@ -181,22 +209,8 @@ def do_import(yaml_file, csv_file, vehicle_name=None, flight_name=None, defaults
     :return: the number of items imported
     """
     config = load_yaml(yaml_file, defaults)
-
-    vehicle = None
-    try:
-        if vehicle_name:
-            vehicle = VEHICLE_MODEL.get().objects.get(name=vehicle_name)
-    except:
-        pass
-    if not vehicle:
-        vehicle = get_default_vehicle()
-
-    flight = None
-    if flight_name:
-        try:
-            flight = FLIGHT_MODEL.get().objects.get(name=flight_name)
-        except:
-            pass
+    vehicle = lookup_vehicle(vehicle_name)
+    flight = lookup_flight(flight_name)
 
     # state = getStateDict(stateKey)
     # state.update(defaults)
