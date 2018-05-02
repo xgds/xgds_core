@@ -104,25 +104,13 @@ def get_or_make_flight(vehicle, row):
             # There was not a valid flight, so let's make a new one.  We will make a new group flight.
             group_flight = create_group_flight(get_next_available_group_flight_name(the_time.strftime('%Y%m%d')))
             if group_flight:
-                for f in group_flight.flights:
-                    if f.vehicle == vehicle:
-                        flight = f
-                        break
+                flights = group_flight.flights.filter(vehicle=vehicle)
+                flight = flights[0] # there should only be one
     return flight
 
 
-def load_csv(config, csv_file, vehicle, flight, defaults):
-    """
-    Load the CSV file according to the configuration, and store the values in the database using the
-    Django ORM and including any data from the current state.
-    Warning: the model's save method will not be called as we are using bulk_create.
-    :param config: the configuration dictionary
-    :param csv_file: the path to the csv file
-    :param vehicle: vehicle if any
-    :param flight: flight if any
-    :param defaults: the dictionary of defaults
-    :return: the newly created models, which may be an empty list
-    """
+def open_csv(config, csv_file):
+    """ Open the CSV file and return a tuple of the file, dictreader"""
     delimiter = ','
     if 'delimiter' in config:
         delimiter = config['delimiter']
@@ -131,21 +119,37 @@ def load_csv(config, csv_file, vehicle, flight, defaults):
     if 'quotechar' in config:
         quotechar = config['quotechar']
 
-    the_model = getModelByName(config['class'])
-    new_models = []
     csv_file = open(csv_file, 'rb')
     try:
         csv_reader = csv.DictReader(csv_file, fieldnames=config['fieldnames'], delimiter=delimiter, quotechar=quotechar)
-        the_list = list(csv_reader)
-        if not flight and config['flight_required']:
-            # read the first timestamp and find a flight for it
-            flight = get_or_make_flight(vehicle, the_list[0])
-            config['defaults']['flight_id'] = flight.id
-        for row in the_list:
-            row.update(config['defaults'])
-            for fieldname in config['timefields']:
-                row[fieldname] = dateparser(row[fieldname])
+    except Exception as e:
+        csv_file.close()
+        raise e
+    return csv_file, csv_reader
 
+
+def load_csv(config, vehicle, flight, csv_file, csv_reader):
+    """
+    Load the CSV file according to the configuration, and store the values in the database using the
+    Django ORM and including any data from the current state.
+    Warning: the model's save method will not be called as we are using bulk_create.
+    :param config: the configuration dictionary
+    :param vehicle: vehicle if any
+    :param flight: flight if any
+    :param csv_file: the opened csv file
+    :param csv_reader: the dict reader
+    :return: the newly created models, which may be an empty list
+    """
+
+    the_model = getModelByName(config['class'])
+    new_models = []
+
+    try:
+        csv_file.seek(0)
+        for row in csv_reader:
+            row.update(config['defaults'])
+            for field_name in config['timefields']:
+                row[field_name] = dateparser(row[field_name])
             new_models.append(the_model(**row))
         the_model.objects.bulk_create(new_models)
     finally:
@@ -197,23 +201,47 @@ def lookup_flight(flight_name):
     return flight
 
 
-def do_import(yaml_file, csv_file, vehicle_name=None, flight_name=None, defaults=None, stateKey=None):
+def configure(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None):
+    """
+    Configure flight, vehicle, the yanl configuration file.  Create a flight if necessary based on the first time.
+    :param yaml_file_path: The path to the yaml configuration file for import
+    :param csv_file_path: The path to the csv file to import
+    :param vehicle_name: The name of the vehicle
+    :param flight_name: The name of the flight
+    :param defaults: Optional additional defaults to add to objects
+    :return: the config, which will contain the vehicle, flight, csv_file and csv_reader
+    """
+    vehicle = lookup_vehicle(vehicle_name)
+    flight = lookup_flight(flight_name)
+    config = load_yaml(yaml_file_path, defaults)
+    config['vehicle'] = vehicle
+    config['flight'] = flight
+    csv_file, csv_reader = open_csv(config, csv_file_path)
+    if not flight and config['flight_required']:
+        # read the first timestamp and find a flight for it
+        config['flight'] = get_or_make_flight(vehicle, list(csv_reader)[0])
+        config['defaults']['flight_id'] = config['flight'].id
+    config['csv_file'] = csv_file
+    config['csv_reader'] = csv_reader
+    return config
+
+
+def do_import(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, stateKey=None):
     """
     Do an import with a path to a configuration yaml file and a path to a csv file
-    :param yaml_file: The path to the yaml configuration file for import
-    :param csv_file: The path to the csv file to import
+    :param yaml_file_path: The path to the yaml configuration file for import
+    :param csv_file_path: The path to the csv file to import
     :param vehicle_name: The name of the vehicle
     :param flight_name: The name of the flight
     :param stateKey: The state key to look up the active state.  None will use the last active state.
     :param defaults: Optional additional defaults to add to objects
-    :return: the number of items imported
+    :return: the imported items
     """
-    config = load_yaml(yaml_file, defaults)
-    vehicle = lookup_vehicle(vehicle_name)
-    flight = lookup_flight(flight_name)
+
+    config = configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults)
 
     # state = getStateDict(stateKey)
     # state.update(defaults)
-    return load_csv(config, csv_file, vehicle, flight, defaults)
+    return load_csv(config, config['vehicle'], config['flight'], config['csv_file'], config['csv_reader'])
 
 

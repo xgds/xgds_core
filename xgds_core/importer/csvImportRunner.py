@@ -20,6 +20,7 @@ django.setup()
 
 import csvImporter
 
+
 def main():
     import optparse
 

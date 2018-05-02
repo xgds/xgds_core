@@ -15,7 +15,6 @@
 # __END_LICENSE__
 import traceback
 import json
-import datetime
 from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
@@ -57,7 +56,7 @@ class TimeZoneHistory(models.Model):
     timeZone = models.CharField(max_length=128, blank=False)
     notes = models.CharField(max_length=512, blank=True, null=True)
 
-    
+
 class XgdsUser(User):
     class Meta:
         proxy = True
@@ -476,7 +475,7 @@ class AbstractVehicle(models.Model):
     name = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
     notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=16, db_index=True)
-    extras = ExtrasDotField()
+    extras = ExtrasDotField(default='')
     # to be used for 'primary vehicles' which show up in the import dropdown
     primary = models.NullBooleanField(null=True, default=False)
 
@@ -498,7 +497,7 @@ class Vehicle(AbstractVehicle):
 
 
 # TODO if you are not using the default flights or vehicles or group flights you will have to override these in your classes
-DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', null=True, blank=True)  # , related_name="plans")
+DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', null=True, blank=True)
 DEFAULT_VEHICLE_FIELD = lambda: models.ForeignKey(Vehicle, null=True, blank=True)
 DEFAULT_GROUP_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.GroupFlight', null=True, blank=True)
 
@@ -564,15 +563,14 @@ class AbstractFlight(UuidModel, HasVehicle):
 
     def getTreeJsonChildren(self):
         children = []
-        if self.track.exists():
-            track = self.track.last()
+        if hasattr(self, 'track'):
             children.append({"title": settings.GEOCAM_TRACK_TRACK_MONIKIER,
                              "selected": False,
                              "tooltip": "Tracks for " + self.name,
                              "key": self.uuid + "_tracks",
                              "data": {
-                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(track.uuid)}),
-                                 "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': track.name}),
+                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(self.track.uuid)}),
+                                 "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
                                  "sseUrl": "",
                                  "type": 'MapLink',
                              }
@@ -618,7 +616,7 @@ class AbstractFlight(UuidModel, HasVehicle):
             serviceName = self.vehicle.name + "TrackListener"
             stopPyraptordServiceIfRunning(pyraptord, serviceName)
 
-        if self.track:
+        if hasattr(self, 'track'):
             if self.track.currentposition_set:
                 try:
                     position = self.track.currentposition_set.first()
@@ -671,7 +669,6 @@ class HasFlight(object):
             return self.flight.group.name
         else:
             return None
-
 
 
 DEFAULT_ONE_TO_ONE_FLIGHT_FIELD = lambda: models.OneToOneField(Flight, related_name="active", null=True, blank=True)
