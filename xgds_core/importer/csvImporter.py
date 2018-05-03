@@ -105,7 +105,7 @@ def get_or_make_flight(vehicle, row):
             group_flight = create_group_flight(get_next_available_group_flight_name(the_time.strftime('%Y%m%d')))
             if group_flight:
                 flights = group_flight.flights.filter(vehicle=vehicle)
-                flight = flights[0] # there should only be one
+                flight = flights[0]  # there should only be one
 
                 # set its start time
                 flight.start_time = the_time
