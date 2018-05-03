@@ -98,7 +98,7 @@ def get_or_make_flight(vehicle, row):
     flight = None
 
     if 'timestamp' in row:
-        the_time = dateparser(row['timestamp'])
+        the_time = dateparser(row['timestamp'])  #TODO timezone
         flight = getFlight(the_time, vehicle)
         if not flight:
             # There was not a valid flight, so let's make a new one.  We will make a new group flight.
@@ -106,6 +106,13 @@ def get_or_make_flight(vehicle, row):
             if group_flight:
                 flights = group_flight.flights.filter(vehicle=vehicle)
                 flight = flights[0] # there should only be one
+
+                # set its start time
+                flight.start_time = the_time
+                flight.save()
+        else:
+            update_flight_start(flight, the_time)
+
     return flight
 
 
@@ -141,6 +148,32 @@ def update_row(config, row):
     return row
 
 
+def update_flight_end(flight, end):
+    """
+    Update the flight end time AND SAVE THE FLIGHT if it is not set or if this row is after its end time
+    :param flight: the flight
+    :param end: the end time
+    :return:
+    """
+    if flight:
+        if not flight.end_time or end > flight.end_time:
+            flight.end_time = end
+            flight.save()
+
+
+def update_flight_start(flight, start):
+    """
+    Update the flight start time AND SAVE THE FLIGHT if it is not set or if this row is before its start time
+    :param flight: the flight
+    :param start: the start time
+    :return:
+    """
+    if flight:
+        if not flight.start_time or start < flight.start_time:
+            flight.start_time = start
+            flight.save()
+
+
 def load_csv(config, vehicle, flight, csv_file, csv_reader):
     """
     Load the CSV file according to the configuration, and store the values in the database using the
@@ -162,6 +195,7 @@ def load_csv(config, vehicle, flight, csv_file, csv_reader):
         for row in csv_reader:
             row = update_row(config, row)
             new_models.append(the_model(**row))
+        update_flight_end(config['flight'], row['timestamp'])
         the_model.objects.bulk_create(new_models)
     finally:
         csv_file.close()
