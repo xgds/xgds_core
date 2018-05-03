@@ -128,6 +128,19 @@ def open_csv(config, csv_file):
     return csv_file, csv_reader
 
 
+def update_row(config, row):
+    """
+    Update the row from the config
+    :param config: the config file to use to update the row
+    :param row: the loaded row
+    :return: the updated row, with timestamps and defaults
+    """
+    row.update(config['defaults'])
+    for field_name in config['timefields']:
+        row[field_name] = dateparser(row[field_name])
+    return row
+
+
 def load_csv(config, vehicle, flight, csv_file, csv_reader):
     """
     Load the CSV file according to the configuration, and store the values in the database using the
@@ -147,9 +160,7 @@ def load_csv(config, vehicle, flight, csv_file, csv_reader):
     try:
         csv_file.seek(0)
         for row in csv_reader:
-            row.update(config['defaults'])
-            for field_name in config['timefields']:
-                row[field_name] = dateparser(row[field_name])
+            row = update_row(config, row)
             new_models.append(the_model(**row))
         the_model.objects.bulk_create(new_models)
     finally:
@@ -201,7 +212,20 @@ def lookup_flight(flight_name):
     return flight
 
 
-def configure(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None):
+def check_data_exists(config, row):
+    """
+    See if there is already identical data
+    :param config: the config
+    :param row: typically the first row
+    :return: True if it already exists, false otherwise
+    """
+    row = update_row(config, row)
+    the_model = getModelByName(config['class'])
+    result = the_model.objects.filter(**row)
+    return result.exists()
+
+
+def configure(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False):
     """
     Configure flight, vehicle, the yanl configuration file.  Create a flight if necessary based on the first time.
     :param yaml_file_path: The path to the yaml configuration file for import
@@ -217,16 +241,24 @@ def configure(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None
     config['vehicle'] = vehicle
     config['flight'] = flight
     csv_file, csv_reader = open_csv(config, csv_file_path)
+    first_row = list(csv_reader)[0]
+    if not force:
+        exists = check_data_exists(config, first_row)
+        if exists:
+            print " ABORTING: MATCHING DATA FOUND"
+            print first_row
+            raise Exception('Matching data found, data already imported', first_row)
+    csv_file.seek(0)
     if not flight and config['flight_required']:
         # read the first timestamp and find a flight for it
-        config['flight'] = get_or_make_flight(vehicle, list(csv_reader)[0])
+        config['flight'] = get_or_make_flight(vehicle, first_row)
         config['defaults']['flight_id'] = config['flight'].id
     config['csv_file'] = csv_file
     config['csv_reader'] = csv_reader
     return config
 
 
-def do_import(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, stateKey=None):
+def do_import(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False, stateKey=None):
     """
     Do an import with a path to a configuration yaml file and a path to a csv file
     :param yaml_file_path: The path to the yaml configuration file for import
@@ -238,7 +270,7 @@ def do_import(yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None
     :return: the imported items
     """
 
-    config = configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults)
+    config = configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults, force)
 
     # state = getStateDict(stateKey)
     # state.update(defaults)

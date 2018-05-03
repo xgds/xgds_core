@@ -29,6 +29,7 @@ def main():
     parser.add_option('-i', '--input', help='path to csv file to import')
     parser.add_option('-v', '--vehicle', help='name of vehicle')
     parser.add_option('-f', '--flight', help='name of flight')
+    parser.add_option("-r", '--reload', action="store_true", dest="reload", default=False)
 
     opts, args = parser.parse_args()
 
@@ -37,7 +38,7 @@ def main():
     if not opts.input:
         parser.error('input is required')
 
-    result = csvImporter.do_import(opts.config, opts.input, opts.vehicle, opts.flight)
+    result = csvImporter.do_import(opts.config, opts.input, opts.vehicle, opts.flight, opts.reload)
     print 'loaded %d ' % len(result)
 
 
