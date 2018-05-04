@@ -38,7 +38,8 @@ def main():
     if not opts.input:
         parser.error('input is required')
 
-    result = csvImporter.do_import(opts.config, opts.input, opts.vehicle, opts.flight, opts.reload)
+    importer = csvImporter.CsvImporter(opts.config, opts.input, opts.vehicle, opts.flight, opts.reload)
+    result = importer.load_csv()
     print 'loaded %d ' % len(result)
 
 

@@ -105,3 +105,33 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None):
         new_flight.save()
 
     return group_flight
+
+
+def lookup_vehicle(vehicle_name):
+    """ Look up the vehicle by name or get the default
+    :param vehicle_name: The name of the vehicle
+    :return: the found vehicle, or None
+    """
+    vehicle = None
+    try:
+        if vehicle_name:
+            vehicle = VEHICLE_MODEL.get().objects.get(name=vehicle_name)
+    except:
+        pass
+    if not vehicle:
+        vehicle = get_default_vehicle()
+    return vehicle
+
+
+def lookup_flight(flight_name):
+    """ Look up the flight by name
+    :param flight_name: The name of the flight
+    :return: the found flight, or None
+    """
+    flight = None
+    if flight_name:
+        try:
+            flight = FLIGHT_MODEL.get().objects.get(name=flight_name)
+        except:
+            pass
+    return flight
