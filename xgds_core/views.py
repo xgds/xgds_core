@@ -21,6 +21,7 @@ import json
 import datetime
 import httplib
 import threading
+import shlex
 from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
@@ -57,9 +58,10 @@ from django.http import (HttpResponse,
 from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
+from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
+from xgds_notes2.utils import buildQueryForTags
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile, State
 from xgds_core.flightUtils import create_group_flight
-
 if settings.XGDS_CORE_REDIS:
     from xgds_core.redisUtil import queueRedisData, publishRedisSSEAtTime
 
@@ -185,9 +187,15 @@ class OrderListJson(BaseDatatableView):
     
     # dictionary that is for our filter
     filterDict = {}
-    
-    # to hold the Q queries for or-ing a search
-    queries = None
+
+    # Array to hold the query for each individual word
+    queriesArray = []
+
+    # to hold the Q queries for and-ing/or-ing a keyword search
+    keywordQueries = None
+
+    # to hold the Q queries for and-ing/or-ing a tag search
+    tagQueries = None
     
     # to hold the anded Q queries from the form
     formQueries = None
@@ -220,48 +228,74 @@ class OrderListJson(BaseDatatableView):
 
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
-
-    def addQuery(self, query):
-        if self.queries:
-            self.queries |= query
+    def addOrQuery(self, queries, query):
+        if queries:
+            queries |= query
         else:
-            self.queries = query
+            queries = query
+        return queries
 
     def addAndQuery(self, query):
         if self.formQueries:
             self.formQueries &= query
         else:
             self.formQueries = query
-        
-    def buildQuery(self, search):
-        self.queries = None
+
+    def addKeywordQuery(self, query, type):
+        if (self.keywordQueries and query and type == "and"):
+            self.keywordQueries &= query
+        elif (self.keywordQueries and query and type == "or"):
+            self.keywordQueries |= query
+        else:
+            self.keywordQueries = query
+
+    def addTagQuery(self, query, type):
+        if (self.tagQueries and query and type == "and"):
+            self.tagQueries &= query
+        elif (self.tagQueries and query and type == "or"):
+            self.tagQueries |= query
+        else:
+            self.tagQueries = query
+
+    def buildSearchableFieldsQuery(self, search):
         if search:
+            queries = None
             try:
                 for key in self.model.getSearchableFields():
-                    self.addQuery(Q(**{key+'__icontains':search}))
-                
+                    queries = self.addOrQuery(queries, Q(**{key + '__icontains': search}))
+
                 if unicode(search).isnumeric():
                     for key in self.model.getSearchableNumericFields():
-                        self.addQuery(Q(**{key:search}))
+                        queries = self.addOrQuery(queries, Q(**{key: search}))
             except:
                 try:
                     self.model._meta.get_field('name')
-                    self.addQuery(Q(**{'name__icontains':search}))
+                    queries = self.addOrQuery(queries, Q(**{'name__icontains': search}))
                 except:
                     pass
-                
+
                 try:
                     self.model._meta.get_field('description')
-                    self.addQuery(Q(**{'description__icontains':search}))
+                    queries = self.addOrQuery(queries, Q(**{'description__icontains': search}))
                 except:
                     pass
-        
+
+            return queries
+
+    def buildTagQuery(self, tagId):
+        query = None
+        if tagId:
+            taggedNote = LazyGetModelByName(settings.XGDS_NOTES_TAGGED_NOTE_MODEL)
+            query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
+
+        return query
+
     def buildFilterDict(self, theFilter):
         dictEntries = str(theFilter).split(",")
         for entry in dictEntries:
             splits = str(entry).split("|")
             try:
-                value = int(splits[1]);
+                value = int(splits[1])
                 self.filterDict[splits[0]] = value
             except:
                 self.filterDict[splits[0]] = splits[1]
@@ -280,22 +314,13 @@ class OrderListJson(BaseDatatableView):
                 today = timezone.localtime(timezone.now()).date()
                 filterDict = { timesearchField + '__gt': today}
                 qs = qs.filter(**filterDict)
-        
-        
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        if search:
-            self.buildQuery(str(search))
-            tagsQuery = self.model.buildTagsQuery(search)
-            if tagsQuery:
-                self.addQuery(Q(**tagsQuery))
-            if self.queries:
-                qs = qs.filter(self.queries)
-            noteQuery = self.model.buildNoteQuery(search)
-            if noteQuery:
-                qs = qs.filter(noteQuery)
-        
+        tags = self.request.POST.get(u'tags', None)
+        if self.request.POST.get(u'simpleSearch', None):
+            qs = self.filter_queryset_simple_search(qs, search, tags)
+
         last = self.request.POST.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
@@ -303,17 +328,20 @@ class OrderListJson(BaseDatatableView):
         return qs.distinct()
 
     # Filter a queryset using the simple search box above the datatable
-    def filter_queryset_simple_search(self, qs, search):
+    def filter_queryset_simple_search(self, qs, search, tags):
         if search:
-            self.buildQuery(str(search))
-            tagsQuery = self.model.buildTagsQuery(search)
-            if tagsQuery:
-                self.addQuery(Q(**tagsQuery))
-            if self.queries:
-                qs = qs.filter(self.queries)
-            noteQuery = self.model.buildNoteQuery(search)
-            if noteQuery:
-                qs = qs.filter(noteQuery)
+            qs = self.filter_keyword_search(qs, search)
+
+        if (tags):
+            if (self.request.POST.get(u'modelName', None) != "Note"):
+                qs = self.filter_tags_search(qs, tags)
+
+            else:
+                tagsQuery = self.model.buildTagsQuery(tags)
+                if tagsQuery:
+                    tagsQuery = Q(**tagsQuery)
+                    qs = qs.filter(tagsQuery)
+
 
         return qs.distinct()
 
@@ -327,7 +355,83 @@ class OrderListJson(BaseDatatableView):
             qs = qs.filter(self.formQueries)
 
         return qs.distinct()
-    
+
+    def filter_keyword_search(self, qs, search):
+        noteQuery = None
+        words = []
+        counter = 0
+        if " " in search:
+            words = shlex.split(search)
+        else:
+            words.append(search)
+
+        # Adds the individual queries for each word into an array
+        fieldsQuery = None
+        keywordQueriesArray = []
+        while (counter < len(words)):
+            if (counter % 2 == 0):
+                fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
+                keywordQueriesArray.append(fieldsQuery)
+            else:
+                keywordQueriesArray.append(str(words[counter]))
+            # This doesn't do anything right now - we want to do a sphinx search
+            # in the content of the notes that points to the ground model pks
+            noteQuery = self.model.buildNoteQuery(words[counter])
+            counter += 1
+
+        # Combines the queries at each index in the array based on and/or
+        counter = 0
+        while (counter < len(keywordQueriesArray)):
+            if (counter == 0):
+                self.addKeywordQuery(keywordQueriesArray[counter], "")
+            else:
+                self.addKeywordQuery(keywordQueriesArray[counter], keywordQueriesArray[counter - 1])
+            counter += 2
+
+        if self.keywordQueries:
+            qs = qs.filter(self.keywordQueries)
+
+        if noteQuery:
+            qs = qs.filter(noteQuery)
+
+        return qs
+
+    def filter_tags_search(self, qs, tags):
+        counter = 0
+        tagArray = []
+        tagQueriesArray = []
+        if "," in tags:
+            tagArray = tags.split(",")
+        else:
+            tagArray.append(tags)
+
+        # Adds the individual queries for each tag into an array
+        while (counter < len(tagArray)):
+            if (counter % 2 == 0):
+                tagQuery = self.buildTagQuery(tagArray[counter])
+                tagQueriesArray.append(tagQuery)
+            else:
+                connector = str(tagArray[counter]).split("-")
+                # print(connector)
+                tagQueriesArray.append(connector[0])
+            counter += 1
+
+        # Combines the queries at each index in the array based on and/or
+        counter = 0
+        while (counter < len(tagQueriesArray)):
+            if (counter == 0):
+                self.addTagQuery(tagQueriesArray[counter], "")
+            else:
+                self.addTagQuery(tagQueriesArray[counter], tagQueriesArray[counter - 1])
+            counter += 2
+
+        if self.tagQueries:
+            qs = qs.filter(self.tagQueries)
+
+        return qs
+
+
+
 def helpPopup(request, help_content_path, help_title):
     return render(request,
                   'help_popup.html',
