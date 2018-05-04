@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block sitemenu-content-secondary %}
+{% include "xgds_planner2/planner2_subnav.html" %}
+{% endblock %}
+
+{% load tz %}
+
+{% block siteSection %}{{groupFlight.name}} Summary {% endblock siteSection %}
+{% block content %}
+
+{% if groupFlight %}
+{% with groupFlight.pk|stringformat:"s" as group_pk %}
+<h5>{{ settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}: {{ groupFlight.name }}</h5>
+{% block groupFlightContents %}
+{% if groupFlight.view_url %}
+<a href="{{ groupFlight.view_url }}" target="" class="font-weight-bold">View</a>
+{% endif %}
+{% with 'flight__group:'|add:group_pk as groupFlightFilter %}
+<a href="{% url 'search_xgds_notes_map_filter' groupFlightFilter %}" target="_blank" class="font-weight-bold">All Notes</a>
+{% endwith %}
+{% endblock groupFlightContents %}
+
+{% for flight in groupFlight.flights %}
+{% with flight.vehicle.pk|stringformat:"s" as vehicle_pk %}
+{% with 'flight__group:'|add:group_pk|add:',flight__vehicle:'|add:vehicle_pk as theFilter %}
+<div class="">
+
+<table class="table-striped table-bordered rounded mt-2">
+<thead>
+<tr>
+<th>{{ settings.XGDS_CORE_VEHICLE_MONIKER }}
+</th>
+<th><strong>{{flight.vehicle}}</strong>
+</th>
+</tr>
+</thead>
+{% for pe in flight.plans %}
+{% with pe.plan as plan %}
+{% block planExporters %}
+<tr>
+<td>{{settings.XGDS_PLANNER_PLAN_MONIKER}}</td>
+<td>
+{% for exporter in plan.getExporters %}
+      {% if exporter.label == 'kml' %}
+        <a href="{{ exporter.url }}" style="text-decoration:none">
+          {{plan.name}}.{{ exporter.label }} 
+        </a>
+      {% endif %}
+      {% endfor %}
+</td>
+</tr>
+<tr>
+<td>{{settings.XGDS_PLANNER_PLAN_MONIKER}}</td>
+<td><a href="{% url 'plan_bearing_distance' plan.id %}" style="text-decoration:none" target="_blank">
+      	Summary
+      </a>
+</td>
+</tr>
+{% endblock planExporters %}
+
+{% endwith %}
+{% endfor %}
+{% if flight.track %}
+<tr>
+<td>{{settings.GEOCAM_TRACK_TRACK_MONIKIER}}</td>
+<td><a href="{% url 'geocamTrack_trackKml' flight.track.name %}">{{flight.name}}.kml</a></td>
+</tr>
+<tr>
+<td>{{settings.GEOCAM_TRACK_TRACK_MONIKIER}}</td>
+<td><a href="{% url 'geocamTrack_trackCsv_byname' flight.track.name %}">{{flight.name}}.csv</a></td>
+</tr>
+{% endif %}
+{% if flight.start_time %}
+{% timezone flight.timezone %}
+<tr>
+<td>Start</td>
+<td>{{flight.start_time}}</td>
+</tr>
+<tr>
+<td>End</td>
+<td>{{flight.end_time}}</td>
+</tr>
+<tr>
+<td>Timezone</td>
+<td>{{flight.timezone}}</td>
+</tr>
+{% endtimezone %}
+{% endif %}
+{% block flightContents %}
+{% if flight.basaltnote_set.exists %}
+<tr>
+<td>Notes</td>
+<td><a href="{% url 'search_xgds_notes_map_filter' theFilter %}" target="_blank">{{flight.basaltnote_set.count}}</a></td>
+</tr>
+{% endif %}
+{% endblock flightContents %}
+</table>
+</div>
+{% endwith %}
+{% endwith %}
+{% endfor %}
+
+{% endwith %}
+{% endif %}
+
+{% endblock content %}
+

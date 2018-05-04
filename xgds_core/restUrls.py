@@ -38,7 +38,15 @@ urlpatterns = [url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(),
                url(r'^rebroadcast/sse/$', views.rebroadcastSse, {}, 'xgds_core_rebroadcast_sse'),
                url(r'^db_attachment/(?P<docDir>[\w./-]+)/(?P<docName>[\w.-]+)$', views.get_db_attachment, {}, 'get_db_attachment'),
 
-#                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
+               # flight support
+               url(r'^relayAddFlight/$', views.relayAddFlight, {}, "xgds_core_relayAddFlight"),
+               url(r'^relayAddGroupFlight/$', views.relayAddGroupFlight, {}, "xgds_core_relayAddGroupFlight"),
+               url(r'activeFlightsTreeNodes$', views.activeFlightsTreeNodes, {}, 'xgds_core_activeFlightsTreeNodes'),
+               url(r'completedFlightsTreeNodes$', views.completedFlightsTreeNodes, {},
+                   'xgds_core_completedFlightsTreeNodes'),
+               url(r'flightTreeNodes/(?P<flight_id>\d+)$', views.flightTreeNodes, {}, 'xgds_core_flightTreeNodes'),
+
+               #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
 #                url(r'^condition/range/(?P<range>[\d]+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_range'),
                
                ]

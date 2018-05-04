@@ -81,28 +81,27 @@ Hercules_TempProbe.yaml::
    extension: TEM
    delimiter: \t
    defaults:
-    - name: vehicle__name
-      value: Hercules
+     vehicle__name: Hercules
    fields:
-    - name: data_type
-      default: TEM
-      type: string
-      skip: true
-    - name: timestamp
-      type: datetime
-    - name: instrument_name
-      type: string
-      default: TEMPPROBE
-    - name: temperature_group
-      # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
-      type: regex
-      regex: (-?\d*[.]*\d*)([KFCkfc])+
-      fields:
-      - name : temperature
-        type : float
-      - name: units
-        type: string
-        default: C
+     data_type:
+       default: TEM
+       type: string
+       skip: true
+     timestamp:
+       type: datetime
+     instrument_name:
+       type: string
+       default: TEMPPROBE
+     temperature_group:
+       # This does not map to a field, instead the regex causes child fields to be used based on the content of the row, eg 81.3C becomes 81.3 temperature and C units
+       type: regex
+       regex: (-?\d*[.]*\d*)([KFCkfc])+
+       fields:
+         temperature:
+           type : float
+         units:
+           type: string
+           default: C
 
 Definitions
 ===========
@@ -122,8 +121,6 @@ The  objects that make up Data Import YAML documents fit into a class
 hierarchy as follows:
 
  * MetadataSpecification_
-
- * DefaultSpecification_
 
  * FieldSpecification_
 
@@ -158,32 +155,18 @@ interpretation of other members.
 |                  |                |                 |to separate data, , or `\t` usually |
 +------------------+----------------+-----------------+------------------------------------+
 |``quotechar``     |string          |optional         |Whatever character will be used     |
-|                  |                |                 |to quote data, usually  `"`        |
+|                  |                |                 |to quote data, usually  `"`         |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            |optional         |A list of defaults                  |
+|``defaults``      |dictionary      |optional         |A dictionary of default values      |
 +------------------+----------------+-----------------+------------------------------------+
-|``fields``        |list            |required         |A list of field specifications.     |
+|``fields``        |dictionary      |required         |A dictionary of field specs.  The   |
+|                  |                |                 |exact name of the Python model field|
+|                  |                |                 |is the key in the dictionary.       |
 +------------------+----------------+-----------------+------------------------------------+
 |``children``      |list            |optional         |A list of child specifications;     |
 |                  |                |                 |these will be nested models.        |
 +------------------+----------------+-----------------+------------------------------------+
 
-.. _DefaultSpecification:
-
-Default Specification
-~~~~~~~~~~~~~~~~~~~~~
-
-A Default Specification defines name value pairs for any fields that should be set but are
-not part of the data imported.
-
-+-------------------+----------------+-----------------+------------------------------------+
-|Member             |Type            |Values           |Meaning                             |
-+===================+================+=================+====================================+
-|``name``           |string          |required         |The exact name of the Python model  |
-|                   |                |                 |field                               |
-+-------------------+----------------+-----------------+------------------------------------+
-|``value``          |                |                 |The value to assign to the field.   |
-+-------------------+----------------+-----------------+------------------------------------+
 
 .. _FieldSpecification:
 
@@ -193,38 +176,38 @@ Field Specification
 A Field Specification defines the mapping between the columnar data in the import file and 
 the Python model fields.
 
-+------------------+----------------+-----------------+------------------------------------+
-|Member            |Type            |Values           |Meaning                             |
-+==================+================+=================+====================================+
-|``name``          |string          |required         |The exact name of the Python model  |
-|                  |                |                 |field.                              |
-+------------------+----------------+-----------------+------------------------------------+
-|``type``          | string         |string           |The type                            |
-|                  |                |int              |                                    |
-|                  |                |float            |                                    |
-|                  |                |boolean          |                                    |
-|                  |                |DateTime         |                                    |
-|                  |                |regex            |                                    |
-+------------------+----------------+-----------------+------------------------------------+
-|``skip``          |boolean         |false            |True if this columnar data does not |
-|                  |                |                 |map to a model field.               |
-+------------------+----------------+-----------------+------------------------------------+
-|``default``       |                |optional         |Default value                       |
-+------------------+----------------+-----------------+------------------------------------+
-|``min``           |                |optional         |Minimum value, inclusive            |
-+------------------+----------------+-----------------+------------------------------------+
-|``max``           |                |optional         |Maximum value, inclusive            |
-+------------------+----------------+-----------------+------------------------------------+
-|``units``         |string          |optional         |The expected units of measure       |
-+------------------+----------------+-----------------+------------------------------------+
-|``regex``         |regex string    |optional         |Regex to use to parse the value.    |
-+------------------+----------------+-----------------+------------------------------------+
-|``fields``        |list            | optional        |In the case of a regex field, this  |
-|                  |                |                 |will process the regex values into  |
-|                  |                |                 |the specified model fields. They    |
-|                  |                |                 |are not nested within the model;    |
-|                  |                |                 |it is a flat model object.          |
-+------------------+----------------+-----------------+------------------------------------+
++--------------------+----------------+-----------------+------------------------------------+
+|Member              |Type            |Values           |Meaning                             |
++====================+================+=================+====================================+
+|``type``            | string         |string           |The type                            |
+|                    |                |int              |                                    |
+|                    |                |float            |                                    |
+|                    |                |boolean          |                                    |
+|                    |                |DateTime         |                                    |
+|                    |                |regex            |                                    |
++--------------------+----------------+-----------------+------------------------------------+
+|``skip``            |boolean         |false            |True if this columnar data does not |
+|                    |                |                 |map to a model field.               |
++--------------------+----------------+-----------------+------------------------------------+
+|``default``         |                |optional         |Default value                       |
++--------------------+----------------+-----------------+------------------------------------+
+|``flight_required`` |                |false            |True if flight is required; it can  |
+|                    |                |                 |be looked up or created.            |
++--------------------+----------------+-----------------+------------------------------------+
+|``min``             |                |optional         |Minimum value, inclusive            |
++--------------------+----------------+-----------------+------------------------------------+
+|``max``             |                |optional         |Maximum value, inclusive            |
++--------------------+----------------+-----------------+------------------------------------+
+|``units``           |string          |optional         |The expected units of measure       |
++--------------------+----------------+-----------------+------------------------------------+
+|``regex``           |regex string    |optional         |Regex to use to parse the value.    |
++--------------------+----------------+-----------------+------------------------------------+
+|``fields``          |list            | optional        |In the case of a regex field, this  |
+|                    |                |                 |will process the regex values into  |
+|                    |                |                 |the specified model fields. They    |
+|                    |                |                 |are not nested within the model;    |
+|                    |                |                 |it is a flat model object.          |
++--------------------+----------------+-----------------+------------------------------------+
 
 .. _ChildSpecification:
 
@@ -244,7 +227,7 @@ class (described in the metadata or container) is one, and can contain many chil
 |                  |                |                 |for data import described by this   |
 |                  |                |                 |Data Import YAML file.              |
 +------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |list            |optional         |A list of defaults                  |
+|``defaults``      |dictionary      |optional         |A dictionary of defaults            |
 +------------------+----------------+-----------------+------------------------------------+
 |``fields``        |list            |required         |A list of field specifications.     |
 +------------------+----------------+-----------------+------------------------------------+

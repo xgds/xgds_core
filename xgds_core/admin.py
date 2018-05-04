@@ -24,3 +24,7 @@ admin.site.register(RelayEvent)
 admin.site.register(RelayFile)
 admin.site.register(ConditionHistory)
 admin.site.register(State)
+admin.site.register(ActiveFlight)
+admin.site.register(Flight)
+admin.site.register(Vehicle)
+
