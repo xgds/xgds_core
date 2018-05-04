@@ -21,6 +21,7 @@ import json
 import datetime
 import httplib
 import threading
+import shlex
 from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
@@ -349,7 +350,7 @@ class OrderListJson(BaseDatatableView):
         words = []
         counter = 0
         if " " in search:
-            words = search.split(" ")
+            words = shlex.split(search)
         else:
             words.append(search)
 
@@ -400,6 +401,7 @@ class OrderListJson(BaseDatatableView):
                 tagQueriesArray.append(tagQuery)
             else:
                 connector = str(tagArray[counter]).split("-")
+                # print(connector)
                 tagQueriesArray.append(connector[0])
             counter += 1
 
