@@ -28,7 +28,6 @@ import csv
 from collections import OrderedDict
 
 from geocamUtil.loader import getModelByName
-from xgds_core.views import getActiveStates, getState
 from xgds_core.flightUtils import get_default_vehicle, getFlight, create_group_flight, \
     get_next_available_group_flight_name, lookup_vehicle, lookup_flight
 from geocamUtil.loader import LazyGetModelByName
@@ -101,14 +100,13 @@ class CsvImporter(object):
     The class to manage specific methods and self.configurations for loading csv files.
     """
 
-    def __init__(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False, stateKey=None):
+    def __init__(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False):
         """
         Initialize with a path to a configuration yaml file and a path to a csv file
         :param yaml_file_path: The path to the yaml self.configuration file for import
         :param csv_file_path: The path to the csv file to import
         :param vehicle_name: The name of the vehicle
         :param flight_name: The name of the flight
-        :param stateKey: The state key to look up the active state.  None will use the last active state.
         :param defaults: Optional additional defaults to add to objects
         :return: the imported items
         """
@@ -138,20 +136,20 @@ class CsvImporter(object):
         Use the timestamp in the row to look up or create a flight, which is stored in self.flight.
         :param row: the first row of the csv
         """
-        self.start_time = self.get_time(row)
-        self.flight = getFlight(self.start_time, self.vehicle)
+        start_time = self.get_start_time()
+        self.flight = getFlight(self.get_start_time(), self.vehicle)
         if not self.flight:
             # There was not a valid flight, so let's make a new one.  We will make a new group flight.
-            group_flight = create_group_flight(get_next_available_group_flight_name(the_time.strftime('%Y%m%d')))
+            group_flight = create_group_flight(get_next_available_group_flight_name(start_time.strftime('%Y%m%d')))
             if group_flight:
                 flights = group_flight.flights.filter(vehicle=self.vehicle)
                 self.flight = flights[0]  # there should only be one
 
                 # set its start time
-                self.flight.start_time = self.start_time
+                self.flight.start_time = start_time
                 self.flight.save()
         else:
-            self.update_flight_start(self.start_time)
+            self.update_flight_start(start_time)
 
     def open_csv(self, csv_file_path):
         """ Open the CSV file and return a tuple of the file, dictreader"""
@@ -208,7 +206,7 @@ class CsvImporter(object):
     def load_csv(self):
         """
         Load the CSV file according to the self.configuration, and store the values in the database using the
-        Django ORM and including any data from the current state.
+        Django ORM.
         Warning: the model's save method will not be called as we are using bulk_create.
         :return: the newly created models, which may be an empty list
         """
@@ -227,18 +225,6 @@ class CsvImporter(object):
             self.csv_file.close()
         return new_models
 
-    # def get_state_dict(self, stateKey):
-    #     result = {}
-    #     state = None
-    #     if stateKey:
-    #         state = getState(stateKey)
-    #     else:
-    #         states = getActiveStates()
-    #         if states:
-    #             state = states.last()
-    #     if state:
-    #         result = state.values.to_dict()
-    #     return result
 
     def check_data_exists(self, row):
         """
@@ -269,6 +255,17 @@ class CsvImporter(object):
             self.reset_csv()
         return self.first_row
 
+    def get_start_time(self):
+        """
+        Get the start time of this data, as a datetime
+        :return: the start time
+        """
+        if not self.start_time:
+            row = self.get_first_row()
+            if row and 'timestamp' in row:
+                self.start_time = self.get_time(row)
+        return self.start_time
+
     def configure(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False):
         """
         self.configure flight, vehicle, the yanl self.configuration file.  Create a flight if necessary based on the first time.
@@ -296,14 +293,5 @@ class CsvImporter(object):
             if self.flight:
                 self.config['defaults']['flight_id'] = self.flight.id
         return self.config
-
-    # def do_import(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False, stateKey=None):
-    #
-    #
-    #     self.config = self.configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults, force)
-    #
-    #     # state = getStateDict(stateKey)
-    #     # state.update(defaults)
-    #     return self.load_csv()
 
 
