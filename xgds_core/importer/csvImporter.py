@@ -24,7 +24,9 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+import pytz
 import csv
+import datetime
 from collections import OrderedDict
 
 from geocamUtil.loader import getModelByName
@@ -100,13 +102,15 @@ class CsvImporter(object):
     The class to manage specific methods and self.configurations for loading csv files.
     """
 
-    def __init__(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False):
+    def __init__(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, timezone_name='UTC',
+                 defaults=None, force=False):
         """
         Initialize with a path to a configuration yaml file and a path to a csv file
         :param yaml_file_path: The path to the yaml self.configuration file for import
         :param csv_file_path: The path to the csv file to import
         :param vehicle_name: The name of the vehicle
         :param flight_name: The name of the flight
+        :param timezone_name: The name of the time zone, defaults to UTC
         :param defaults: Optional additional defaults to add to objects
         :return: the imported items
         """
@@ -117,18 +121,37 @@ class CsvImporter(object):
         self.flight = None
         self.start_time = None
         self.first_row = None
+        self.timezone = self.get_timezone(timezone_name)
         self.configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults, force)
 
-    def get_time(self, row):
+    def get_timezone(self, timezone_name=None):
         """
-        Read the timestamp from a row, or use the current time
+        Builds a pytz timezone to use with times; we store times in utc
+        :param timezone_name: the name, defaults to UTC
+        :return: the pytz timezone
+        """
+        if not timezone_name:
+            return pytz.utc
+        return pytz.timezone(timezone_name)
+
+    def get_time(self, row, field_name='timestamp'):
+        """
+        Read the timestamp from a row, or use the current time.
+        The timezone must be configured first.
         :param row:
-        :return: the time
+        :return: the timezone aware time in utc
         """
-        if 'timestamp' in row:  #TODO timezone
-            the_time = dateparser(row['timestamp'])
+        if field_name in row:
+            value = row[field_name]
+            if not isinstance(value, datetime.datetime):
+                the_time = dateparser(row[field_name])
+            else:
+                the_time = value
+            if not the_time.tzinfo or the_time.tzinfo.utcoffset(the_time) is None:
+                the_time = self.timezone.localize(the_time)
+            the_time = the_time.astimezone(pytz.utc)
         else:
-            the_time = timezone.now()
+            the_time = timezone.now().astimezone(pytz.utc)
         return the_time
 
     def get_or_create_flight(self, row):
@@ -178,7 +201,7 @@ class CsvImporter(object):
         if self.config:
             row.update(self.config['defaults'])
             for field_name in self.config['timefields']:
-                row[field_name] = dateparser(row[field_name])
+                row[field_name] = self.get_time(row, field_name)
         return row
 
     def update_flight_end(self, end):
@@ -224,7 +247,6 @@ class CsvImporter(object):
         finally:
             self.csv_file.close()
         return new_models
-
 
     def check_data_exists(self, row):
         """
@@ -273,6 +295,7 @@ class CsvImporter(object):
         :param csv_file_path: The path to the csv file to import
         :param vehicle_name: The name of the vehicle
         :param flight_name: The name of the flight
+        :param timezone_name: The name of the timezone, ie America/Los_Angeles
         :param defaults: Optional additional defaults to add to objects
         :return: the self.config, which will contain the vehicle, flight, csv_file and csv_reader
         """
@@ -282,7 +305,7 @@ class CsvImporter(object):
         self.open_csv(csv_file_path)
         first_row = self.get_first_row()
         if not force:
-            exists = self.check_data_exists(self.config, first_row)
+            exists = self.check_data_exists(first_row)
             if exists:
                 print " ABORTING: MATCHING DATA FOUND"
                 print first_row
