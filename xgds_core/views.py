@@ -188,9 +188,6 @@ class OrderListJson(BaseDatatableView):
     # dictionary that is for our filter
     filterDict = {}
 
-    # Array to hold the query for each individual word
-    queriesArray = []
-
     # to hold the Q queries for and-ing/or-ing a keyword search
     keywordQueries = None
 
@@ -241,6 +238,7 @@ class OrderListJson(BaseDatatableView):
         else:
             self.formQueries = query
 
+    # Adds keyword queries together based on the connecting words between them (and/or)
     def addKeywordQuery(self, query, type):
         if (self.keywordQueries and query and type == "and"):
             self.keywordQueries &= query
@@ -249,6 +247,7 @@ class OrderListJson(BaseDatatableView):
         else:
             self.keywordQueries = query
 
+    # Adds tag queries together based on the connecting words between them (and/or)
     def addTagQuery(self, query, type):
         if (self.tagQueries and query and type == "and"):
             self.tagQueries &= query
@@ -257,6 +256,7 @@ class OrderListJson(BaseDatatableView):
         else:
             self.tagQueries = query
 
+    # Builds the queries for each searchable field for that model (all or-ed together)
     def buildSearchableFieldsQuery(self, search):
         if search:
             queries = None
@@ -282,11 +282,17 @@ class OrderListJson(BaseDatatableView):
 
             return queries
 
+    # Builds the query for checking if a note contains a certain tag pk
     def buildTagQuery(self, tagId):
         query = None
         if tagId:
             taggedNote = LazyGetModelByName(settings.XGDS_NOTES_TAGGED_NOTE_MODEL)
-            query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
+            model = self.request.POST.get(u'modelName', None)
+
+            if (model == "Note"):
+                query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId])})
+            else:
+                query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
 
         return query
 
@@ -300,7 +306,10 @@ class OrderListJson(BaseDatatableView):
             except:
                 self.filterDict[splits[0]] = splits[1]
 
+    # Overrides the django_datatables filter_queryset function.
+    # Does either advanced search or simple search depending on values passed
     def filter_queryset(self, qs):
+        model = self.request.POST.get(u'modelName', None)
         if self.formQueries:
             qs = qs.filter(self.formQueries)
         elif self.filterDict:
@@ -317,7 +326,12 @@ class OrderListJson(BaseDatatableView):
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        tags = self.request.POST.get(u'tags', None)
+        if (model == "Note"):
+            tags = self.request.POST.getlist('noteTags[]')
+        else:
+            tags = self.request.POST.get(u'tags', None)
+
+        # This part handles the search with the input boxes above the datatable
         if self.request.POST.get(u'simpleSearch', None):
             qs = self.filter_queryset_simple_search(qs, search, tags)
 
@@ -327,24 +341,23 @@ class OrderListJson(BaseDatatableView):
         
         return qs.distinct()
 
-    # Filter a queryset using the simple search box above the datatable
+    # Filter a queryset using the keyword and tag search inputs above the datatable
     def filter_queryset_simple_search(self, qs, search, tags):
-        if search:
-            qs = self.filter_keyword_search(qs, search)
+        self.keywordQueries = None
+        self.tagQueries = None
+        if (search):
+            self.filter_keyword_search(qs, search)
 
         if (tags):
-            if (self.request.POST.get(u'modelName', None) != "Note"):
-                qs = self.filter_tags_search(qs, tags)
+            self.filter_tags_search(qs, tags)
 
-            else:
-                tagsQuery = self.model.buildTagsQuery(tags)
-                if tagsQuery:
-                    tagsQuery = Q(**tagsQuery)
-                    qs = qs.filter(tagsQuery)
-
+        queries = self.combine_simple_search()
+        if (queries):
+            qs = qs.filter(queries)
 
         return qs.distinct()
 
+    # Filters the queryset with the advanced search (everything is anded)
     def filter_queryset_advanced_search(self, qs, searchDict):
         if searchDict:
             for key in searchDict:
@@ -356,6 +369,25 @@ class OrderListJson(BaseDatatableView):
 
         return qs.distinct()
 
+    # Combines keyword with tag search via the and/or between the two inputs
+    def combine_simple_search(self):
+        queries = None
+        connector = self.request.POST.get(u'connector', None)
+        if (not self.keywordQueries and not self.tagQueries):
+            return None
+        elif (not self.tagQueries):
+            return self.keywordQueries
+        elif (not self.keywordQueries):
+            return self.tagQueries
+        else:
+            if (connector == "or"):
+                queries = self.keywordQueries | self.tagQueries
+            else:
+                queries = self.keywordQueries & self.tagQueries
+
+        return queries
+
+    # Creates the keyword queries to be used on the queryset
     def filter_keyword_search(self, qs, search):
         noteQuery = None
         words = []
@@ -388,33 +420,43 @@ class OrderListJson(BaseDatatableView):
                 self.addKeywordQuery(keywordQueriesArray[counter], keywordQueriesArray[counter - 1])
             counter += 2
 
-        if self.keywordQueries:
-            qs = qs.filter(self.keywordQueries)
-
+        # Unused at this time -> should be for text search in notes
         if noteQuery:
             qs = qs.filter(noteQuery)
 
-        return qs
+        return self.keywordQueries
 
+    # Creates the tag queries to be used on the queryset
     def filter_tags_search(self, qs, tags):
+        model = self.request.POST.get(u'modelName', None)
         counter = 0
-        tagArray = []
         tagQueriesArray = []
-        if "," in tags:
-            tagArray = tags.split(",")
-        else:
-            tagArray.append(tags)
 
         # Adds the individual queries for each tag into an array
-        while (counter < len(tagArray)):
-            if (counter % 2 == 0):
-                tagQuery = self.buildTagQuery(tagArray[counter])
-                tagQueriesArray.append(tagQuery)
+        if (model == "Note"):
+            while (counter < len(tags)):
+                if (counter % 2 == 0):
+                    tagQuery = self.model.buildTagsQuery(tags[counter])
+                    tagQuery = Q(**tagQuery)
+                    tagQueriesArray.append(tagQuery)
+                else:
+                    tagQueriesArray.append(tags[counter])
+                counter += 1
+        else:
+            tagArray = []
+            if "," in tags:
+                tagArray = tags.split(",")
             else:
-                connector = str(tagArray[counter]).split("-")
-                # print(connector)
-                tagQueriesArray.append(connector[0])
-            counter += 1
+                tagArray.append(tags)
+
+            while (counter < len(tagArray)):
+                if (counter % 2 == 0):
+                    tagQuery = self.buildTagQuery(tagArray[counter])
+                    tagQueriesArray.append(tagQuery)
+                else:
+                    connector = str(tagArray[counter]).split("-")
+                    tagQueriesArray.append(connector[0])
+                counter += 1
 
         # Combines the queries at each index in the array based on and/or
         counter = 0
@@ -425,10 +467,7 @@ class OrderListJson(BaseDatatableView):
                 self.addTagQuery(tagQueriesArray[counter], tagQueriesArray[counter - 1])
             counter += 2
 
-        if self.tagQueries:
-            qs = qs.filter(self.tagQueries)
-
-        return qs
+        return self.tagQueries
 
 
 
