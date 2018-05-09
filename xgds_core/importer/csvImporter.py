@@ -151,7 +151,7 @@ class CsvImporter(object):
                 the_time = self.timezone.localize(the_time)
             the_time = the_time.astimezone(pytz.utc)
         else:
-            the_time = timezone.now().astimezone(pytz.utc)
+            raise Exception('Row is missing a time' + str(row))
         return the_time
 
     def get_or_create_flight(self, row):
