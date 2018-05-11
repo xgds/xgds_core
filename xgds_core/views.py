@@ -60,6 +60,7 @@ from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
 from xgds_notes2.utils import buildQueryForTags
+from xgds_notes2.models import HierarchichalTag
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile, State
 from xgds_core.flightUtils import create_group_flight
 if settings.XGDS_CORE_REDIS:
@@ -283,7 +284,7 @@ class OrderListJson(BaseDatatableView):
             return queries
 
     # Builds the query for checking if a note contains a certain tag pk
-    def buildTagQuery(self, tagId):
+    def buildTagQuery(self, tagId, nestTags):
         query = None
         if tagId:
             taggedNote = LazyGetModelByName(settings.XGDS_NOTES_TAGGED_NOTE_MODEL)
@@ -292,7 +293,14 @@ class OrderListJson(BaseDatatableView):
             if (model == "Note"):
                 query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId])})
             else:
-                query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
+                # Nest tags is not checked
+                if (nestTags == "false"):
+                    query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
+                # Nest tags so search by HierarchichalTags
+                else:
+                    tag = HierarchichalTag.objects.get(pk=tagId)
+                    tagqs = tag.get_tree(tag)
+                    query = Q(**{'notes__in': taggedNote.get().objects.filter(tag__in=tagqs).values('content_object')})
 
         return query
 
@@ -429,6 +437,7 @@ class OrderListJson(BaseDatatableView):
     # Creates the tag queries to be used on the queryset
     def filter_tags_search(self, qs, tags):
         model = self.request.POST.get(u'modelName', None)
+        nestTags = self.request.POST.get(u'nestTags', None)
         counter = 0
         tagQueriesArray = []
 
@@ -451,7 +460,7 @@ class OrderListJson(BaseDatatableView):
 
             while (counter < len(tagArray)):
                 if (counter % 2 == 0):
-                    tagQuery = self.buildTagQuery(tagArray[counter])
+                    tagQuery = self.buildTagQuery(tagArray[counter], nestTags)
                     tagQueriesArray.append(tagQuery)
                 else:
                     connector = str(tagArray[counter]).split("-")
