@@ -180,10 +180,14 @@ the Python model fields.
 |Member              |Type            |Values           |Meaning                             |
 +====================+================+=================+====================================+
 |``type``            | string         |string           |The type                            |
-|                    |                |int              |                                    |
+|                    |                |text             |                                    |
+|                    |                |integer          |                                    |
 |                    |                |float            |                                    |
+|                    |                |nullboolean      |                                    |
 |                    |                |boolean          |                                    |
-|                    |                |DateTime         |                                    |
+|                    |                |date             |                                    |
+|                    |                |time             |                                    |
+|                    |                |datetime         |                                    |
 |                    |                |regex            |                                    |
 +--------------------+----------------+-----------------+------------------------------------+
 |``skip``            |boolean         |false            |True if this columnar data does not |
@@ -197,6 +201,9 @@ the Python model fields.
 |``min``             |                |optional         |Minimum value, inclusive            |
 +--------------------+----------------+-----------------+------------------------------------+
 |``max``             |                |optional         |Maximum value, inclusive            |
++--------------------+----------------+-----------------+------------------------------------+
+|``max_length``      |integer         |optional         |For fields of type string, the max  |
+|                    |                |                 |length (for model creation).        |
 +--------------------+----------------+-----------------+------------------------------------+
 |``units``           |string          |optional         |The expected units of measure       |
 +--------------------+----------------+-----------------+------------------------------------+

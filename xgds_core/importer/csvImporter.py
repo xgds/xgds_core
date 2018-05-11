@@ -36,7 +36,6 @@ from geocamUtil.loader import LazyGetModelByName
 from dateutil.parser import parse as dateparser
 
 from django.conf import settings
-from django.utils import timezone
 
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
@@ -65,33 +64,23 @@ def ordered_load(stream, Loader=Loader, object_pairs_hook=OrderedDict):
     return yaml.load(stream, OrderedLoader)
 
 
-def load_yaml(yaml_file, defaults):
+def load_yaml(yaml_file_path, defaults={}):
     """
     Load the contents of a Yaml file and return it as a dictionary.
-    :param yaml_file: the path to the file to load.  If running within django, the path can be /apps/myapp/path/to/yaml
+    :param yaml_file_path: the path to the file to load.
+    If running within django, the path can be /apps/myapp/path/to/yaml
     :param defaults: default dictionary to append to self.config defaults
     :return: the dictionary of data
     """
-    the_stream = open(yaml_file, 'r')
+    the_stream = open(yaml_file_path, 'r')
     try:
         data = ordered_load(the_stream, Loader=Loader)
-        data['fieldnames'] = data['fields'].keys()
-
         if not defaults:
             defaults = {}
         if 'defaults' not in data:
             data['defaults'] = defaults
         else:
             data['defaults'].update(defaults)
-
-        data['timefields'] = []
-        for key, value in data['fields'].iteritems():
-            if 'time' in value['type']:
-                data['timefields'].append(key)
-
-        if 'flight_required' not in data:
-            data['flight_required'] = False
-
     finally:
         the_stream.close()
     return data
@@ -123,6 +112,23 @@ class CsvImporter(object):
         self.first_row = None
         self.timezone = self.get_timezone(timezone_name)
         self.configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults, force)
+
+    def load_config(self, yaml_file_path, defaults={}):
+        """
+        Loads the config file from the yaml path and stores it in self.config
+        :param yaml_file_path: the path to the file to load.  If running within django, the path can be /apps/myapp/path/to/yaml
+        :param defaults: default dictionary to append to self.config defaults
+        """
+        self.config = load_yaml(yaml_file_path, defaults)
+        self.config['fieldnames'] = self.config['fields'].keys()
+
+        self.config['timefields'] = []
+        for key, value in self.config['fields'].iteritems():
+            if 'time' in value['type']:
+                self.config['timefields'].append(key)
+
+        if 'flight_required' not in self.config:
+            self.config['flight_required'] = False
 
     def get_timezone(self, timezone_name=None):
         """
@@ -301,7 +307,7 @@ class CsvImporter(object):
         """
         self.vehicle = lookup_vehicle(vehicle_name)
         self.flight = lookup_flight(flight_name)
-        self.config = load_yaml(yaml_file_path, defaults)
+        self.load_config(yaml_file_path, defaults)
         self.open_csv(csv_file_path)
         first_row = self.get_first_row()
         if not force:
