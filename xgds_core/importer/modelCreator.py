@@ -25,6 +25,12 @@ django.setup()
 
 from dbTableBuilder import build_table
 
+from django.core import management
+
+table_names = []
+
+def check_table_name(name):
+    return name in table_names
 
 def main():
     import optparse
@@ -37,7 +43,10 @@ def main():
     if not opts.config:
         parser.error('config is required')
 
-    build_table(opts.config)
+    table_name = build_table(opts.config)
+    if table_name:
+        table_names.append(table_name)
+        print management.call_command('inspectdb', table_name_filter=check_table_name)
 
 
 if __name__ == '__main__':

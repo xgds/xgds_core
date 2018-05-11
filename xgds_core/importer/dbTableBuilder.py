@@ -158,7 +158,7 @@ def build_table(yaml_file_path):
     """
     Build the database table based on the classname
     :param yaml_file_path: the path to the yaml file
-    :return: True if it worked
+    :return: the table name if it worked, None otherwise
     """
     config = load_yaml(yaml_file_path)
     table_name = create_table_name(config['class'])
@@ -167,13 +167,13 @@ def build_table(yaml_file_path):
     if check_table_exists(table_name, cursor):
         print 'Table %s already exists' % table_name
         # TODO do we have to close the connection?
-        return False
+        return None
 
     do_build_table(config, table_name, cursor)
 
     if check_table_exists(table_name, cursor):
         print 'Created %s' % table_name
-        return True
+        return table_name
 
 
 
