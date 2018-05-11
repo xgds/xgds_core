@@ -33,7 +33,21 @@ def create_table_name(name):
     :param name: input class name
     :return: table name
     """
-    return name.replace('.', '_').lower()
+    chunks = []
+    splits = name.split('.')
+    if len(splits) > 1:
+        chunks.append(splits[0].lower())
+        for split in splits[1:]:
+            chunk = split[0]
+            for l in split[1:]:
+                if l.isupper():
+                    chunks.append(chunk.lower())
+                    chunk = l
+                else:
+                    chunk = chunk + l
+            chunks.append(chunk.lower())
+
+    return "_".join(chunks)
 
 
 def check_table_exists(tablename, cursor):
