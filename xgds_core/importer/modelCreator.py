@@ -32,6 +32,18 @@ table_names = []
 def check_table_name(name):
     return name in table_names
 
+
+def to_camel(input):
+    """
+    Take an underscore-separated input string and camelcase it, ie:
+    xgds_braille_app -> XgdsBrailleApp
+    :param input: input string
+    :return: camelcase output string
+    """
+    splits = input.split('_')
+    return "".join(split.capitalize() for split in splits)
+
+
 def main():
     import optparse
 
@@ -46,7 +58,7 @@ def main():
     table_name = build_table(opts.config)
     if table_name:
         table_names.append(table_name)
-        print management.call_command('inspectdb', table_name_filter=check_table_name)
+        new_source = management.call_command('inspectdb', table_name_filter=check_table_name)
 
 
 if __name__ == '__main__':
