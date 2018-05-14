@@ -168,13 +168,13 @@ def do_build_table(config, table_name, cursor):
     cursor.execute(full_sql)
 
 
-def build_table(yaml_file_path):
+def build_table(config):
     """
     Build the database table based on the classname
-    :param yaml_file_path: the path to the yaml file
+    :param config: the loaded yaml file
     :return: the table name if it worked, None otherwise
     """
-    config = load_yaml(yaml_file_path)
+
     table_name = create_table_name(config['class'])
     cursor = connection.cursor()
 

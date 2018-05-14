@@ -23,9 +23,11 @@ This is a **starting point**
 import django
 django.setup()
 
+from csvImporter import load_yaml
 from dbTableBuilder import build_table
 
 from django.core import management
+from django.conf import settings
 
 table_names = []
 
@@ -44,6 +46,56 @@ def to_camel(input):
     return "".join(split.capitalize() for split in splits)
 
 
+def replace(variable, old_phrase, new_phrase=''):
+    """
+    Replace a phrase in a string
+    :param variable: the string
+    :param old_phrase: the phrase to replace, defaults to ''
+    :param new_phrase: the phrase to replace it with
+    :return: the updated string
+    """
+    variable = variable.replace(old_phrase, new_phrase)
+    return variable
+
+
+def generate_code(table_name, config):
+    """
+    Generate the model code to go along with the new table.
+    :param table_name: the name of the table in the database to use to create the model
+    :param config: the config loaded from the yaml file
+    :return: the cleaned up block of code to insert into the correct models.py file
+    """
+    table_names.append(table_name)
+
+    tmp_model_file = open('/tmp/%s.py' % table_name, 'w')
+    management.call_command('inspectdb', table_name_filter=check_table_name, stdout=tmp_model_file)
+    tmp_model_file.close()
+    tmp_model_file = open('/tmp/%s.py' % table_name, 'r') # todo figure out how to do this in one go
+
+    new_source = tmp_model_file.read()
+    tmp_model_file.close()
+
+    # replace the jammed together camelcase flight name
+    flight_class_name = settings.XGDS_CORE_FLIGHT_MODEL
+    split_flight_class_name = flight_class_name.split('.')
+    replace_flight_class_name = to_camel(split_flight_class_name[0]) + split_flight_class_name[1]
+    new_source = replace(new_source, replace_flight_class_name, flight_class_name)
+
+    # replace the jammed together camelcase class name
+    full_class_name = config['class']
+    split_full_class_name = full_class_name.split('.')
+    replace_full_class_name = to_camel(split_full_class_name[0]) + split_full_class_name[1]
+    new_source = replace(new_source, replace_full_class_name, split_full_class_name[1])
+
+    # replace the managed = false
+    new_source = replace(new_source, 'managed = False\n')
+    new_source = replace(new_source, '#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table\n')
+
+    # replace the class it inherits from
+    # new_source = replace(new_source, '(models.Model)','(xgds_plot.TimeSeries)')
+    return new_source
+
+
 def main():
     import optparse
 
@@ -55,10 +107,20 @@ def main():
     if not opts.config:
         parser.error('config is required')
 
-    table_name = build_table(opts.config)
+    config = load_yaml(opts.config)
+    table_name = build_table(config)
     if table_name:
-        table_names.append(table_name)
-        new_source = management.call_command('inspectdb', table_name_filter=check_table_name)
+        new_source = generate_code(table_name, config)
+        print 'GENERATED SOURCE CODE:'
+        print new_source
+
+        if new_source:
+            app_name = config['class'].split('.')[0]
+            model_file_name = './apps/%s/models.py' % app_name
+            model_file = open(model_file_name, 'a')
+            model_file.write(new_source)
+            model_file.close()
+
 
 
 if __name__ == '__main__':
