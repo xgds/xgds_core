@@ -95,7 +95,7 @@ def generate_code(table_name, config):
 
     # replace the class it inherits from
     # new_source = replace(new_source, '(models.Model)','(xgds_plot.TimeSeries)')
-    return new_source
+    return '\n' + new_source
 
 
 def main():
@@ -110,18 +110,25 @@ def main():
         parser.error('config is required')
 
     config = load_yaml(opts.config)
-    table_name = build_table(config)
+    #table_name = build_table(config)
+    table_name = 'xgds_braille_app_environmental'
     if table_name:
         new_source = generate_code(table_name, config)
         print 'GENERATED SOURCE CODE:'
         print new_source
 
-        if new_source:
-            app_name = config['class'].split('.')[0]
+        if True: # new_source:
+            split_name = config['class'].split('.')
+            app_name = split_name[0]
             model_file_name = './apps/%s/models.py' % app_name
             model_file = open(model_file_name, 'a')
             model_file.write(new_source)
             model_file.close()
+
+            admin_file_name = './apps/%s/admin.py' % app_name
+            admin_file = open(admin_file_name, 'a')
+            admin_file.write('admin.site.register(%s)' % split_name[1])
+            admin_file.close()
 
 
 
