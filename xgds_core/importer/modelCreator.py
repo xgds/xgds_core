@@ -67,11 +67,9 @@ def generate_code(table_name, config):
     """
     table_names.append(table_name)
 
-    tmp_model_file = open('/tmp/%s.py' % table_name, 'w')
+    tmp_model_file = open('/tmp/%s.py' % table_name, 'w+')
     management.call_command('inspectdb', table_name_filter=check_table_name, stdout=tmp_model_file)
-    tmp_model_file.close()
-    tmp_model_file = open('/tmp/%s.py' % table_name, 'r') # todo figure out how to do this in one go
-
+    tmp_model_file.seek(0)
     new_source = tmp_model_file.read()
     tmp_model_file.close()
 
