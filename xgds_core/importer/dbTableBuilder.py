@@ -161,8 +161,8 @@ def do_build_table(config, table_name, cursor):
     column_sqls.append("PRIMARY KEY (`id`)")
 
     # Make the table
-    full_sql = connection.schema_editor().sql_create_table % { "table": quote_name(table_name),
-                                                               "definition": ", ".join(column_sqls)}
+    full_sql = connection.schema_editor().sql_create_table % {"table": quote_name(table_name),
+                                                              "definition": ", ".join(column_sqls)}
 
     print full_sql
     cursor.execute(full_sql)

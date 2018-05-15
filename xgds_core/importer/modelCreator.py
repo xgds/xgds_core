@@ -110,8 +110,7 @@ def main():
         parser.error('config is required')
 
     config = load_yaml(opts.config)
-    #table_name = build_table(config)
-    table_name = 'xgds_braille_app_environmental'
+    table_name = build_table(config)
     if table_name:
         new_source = generate_code(table_name, config)
         print 'GENERATED SOURCE CODE:'
