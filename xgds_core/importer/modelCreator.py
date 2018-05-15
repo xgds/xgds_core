@@ -89,6 +89,10 @@ def generate_code(table_name, config):
     new_source = replace(new_source, 'managed = False\n')
     new_source = replace(new_source, '#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table\n')
 
+    # replace the imports
+    new_source = replace(new_source, 'from __future__ import unicode_literals\n')
+    new_source = replace(new_source, 'from django.db import models\n')
+
     # replace the class it inherits from
     # new_source = replace(new_source, '(models.Model)','(xgds_plot.TimeSeries)')
     return new_source
