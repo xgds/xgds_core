@@ -23,7 +23,6 @@ import subprocess
 import django
 django.setup()
 
-from django.core import management
 from django.conf import settings
 from csvImporter import load_yaml
 
