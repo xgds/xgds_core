@@ -14,16 +14,15 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
-import codecs
 from django import template
-from django.contrib.staticfiles import finders
 from django.utils.html import escape
+from django.template import loader
+from django.conf import settings
 
 register = template.Library()
 
-@register.simple_tag
+@register.simple_tag()
 def includestatic(path, encoding='utf8'):
-    file_path = finders.find(path)
-    with codecs.open(file_path,'r',encoding=encoding) as f:
-        string = f.read()
-        return escape(string)
+    t = loader.get_template(path)
+    rendered = t.render({'settings': settings})
+    return escape(rendered)

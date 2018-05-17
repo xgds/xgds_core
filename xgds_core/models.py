@@ -147,21 +147,21 @@ class SearchableModel(object):
 
     @property
     def lat(self):
-        ''' latitude '''
+        """ latitude """
         position = self.getPosition()
         if position:
             return position.latitude
 
     @property
     def lon(self):
-        ''' longitude '''
+        """ longitude """
         position = self.getPosition()
         if position:
             return position.longitude
 
     @property
     def alt(self):
-        ''' altitude '''
+        """ altitude """
         try:
             position = self.getPosition()
             if position:
@@ -172,7 +172,7 @@ class SearchableModel(object):
 
     @property
     def head(self):
-        ''' heading '''
+        """ heading """
         try:
             position = self.getPosition()
             if position:
@@ -291,7 +291,7 @@ class AbstractCondition(models.Model):
                    source_id=condition_source_id)
 
     def populate(self, source_time, condition_data):
-        ''' Fill in condition data and create a new condition history '''
+        """ Fill in condition data and create a new condition history """
         condition_data_dict = json.loads(condition_data)
         if 'xgds_id' in condition_data_dict:
             self.xgds_id = condition_data_dict['xgds_id']

@@ -39,7 +39,6 @@ urlpatterns = [url(r'^update_session', views.update_session, {}, 'update_session
                url(r'stopTracking/(?P<flightName>\w+)$', views.stopFlightTracking, {}, 'xgds_core_stopFlightTracking'),
                url(r'^addGroupFlight/$', views.addGroupFlight, {}, "xgds_core_addGroupFlight"),
                url(r'^manageFlights/$', views.manageFlights, {}, "xgds_core_manage"),
-               url(r'manageFlights/help$', views.manageHelp, {}, 'xgds_core_manageFlightHelp'),
                url(r'^summary/(?P<groupFlightName>\w+)$', views.getGroupFlightSummary,
                    name="xgds_core_group_flight_summary"),
 

@@ -479,13 +479,13 @@ class OrderListJson(BaseDatatableView):
         return self.tagQueries
 
 
-
 def helpPopup(request, help_content_path, help_title):
     return render(request,
                   'help_popup.html',
                   {'help_title': help_title,
                    'help_content_path': help_content_path},
                   )
+
 
 def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, update=False):
     # first see if there is an existing relayEvent
@@ -870,6 +870,8 @@ def manageFlights(request, errorString=""):
     return render(request,
                   "xgds_core/ManageFlights.html",
                   {'groups': getAllGroupFlights(today=today),
+                   'title': settings.XGDS_CORE_FLIGHT_MONIKER,
+                   'help_content_path': 'xgds_core/help/manageFlights.rst',
                    "errorstring": errorString},
                   )
 
@@ -879,6 +881,8 @@ def listFlownFlights(request, errorString=""):
     return render(request,
                   "xgds_core/ListFlownFlights.html",
                   {'groups': getAllGroupFlights(today=today),
+                   'title': settings.XGDS_CORE_FLIGHT_MONIKER,
+                   'help_content_path': 'xgds_core/help/manageFlights.rst',
                    "errorstring": errorString},
                   )
 
@@ -1144,11 +1148,6 @@ def getGroupFlightSummary(request, groupFlightName):
                       )
     except:
         raise Http404("%s %s does not exist" % (settings.XGDS_CORE_GROUP_FLIGHT_MONIKER, groupFlightName))
-
-
-def manageHelp(request):
-    return render(request,
-                  "xgds_core/ManageFlightHelp.html")
 
 
 def updateTodaySession(request):
