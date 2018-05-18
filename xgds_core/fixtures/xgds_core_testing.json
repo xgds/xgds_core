@@ -1,0 +1,46 @@
+[
+	{
+        "pk": 1,
+        "model": "xgds_core.vehicle",
+        "fields": {
+            "name": "Generic Vehicle",
+            "type": "GenericVehicle",
+            "primary": true
+        }
+    },
+    {
+    	"pk": 43,
+    	"model": "xgds_core.Constant",
+    	"fields": {
+    		"name":"delay",
+    		"units":"seconds",
+    		"notes":"Local to remote delay time",
+    		"dataType":"integer",
+    		"value":"0"
+    	}
+    },
+    {
+    	"pk": 44,
+    	"model": "xgds_core.Constant",
+    	"fields": {
+    		"name":"remoteDelay",
+    		"units":"seconds",
+    		"notes":"Delay settings on remote server",
+    		"dataType":"integer",
+    		"value":"0"
+    	}
+    },
+    {
+    	"pk": 1,
+    	"model": "xgds_core.Condition",
+    	"fields": {
+	    "source":"xgds_test",
+	    "source_id":"test_one",
+	    "xgds_id":"my xgds id",
+	    "timezone":"UTC",
+	    "start_time":"2015-12-25 01:23:45.6Z",
+	    "end_time":"2015-12-26 12:34:56.7Z",
+	    "name":"test condition"
+    	}
+    }
+]
