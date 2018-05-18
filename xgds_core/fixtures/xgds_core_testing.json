@@ -42,5 +42,30 @@
 	    "end_time":"2015-12-26 12:34:56.7Z",
 	    "name":"test condition"
     	}
+    },
+    {
+    	"pk": 1,
+    	"model": "xgds_core.Flight",
+    	"fields": {
+	    "id":1,
+	    "uuid":"abc123",
+	    "name":"Christmas in a Generic Vehicle",
+	    "locked":true,
+	    "start_time":"2015-12-25 00:00:00.0Z",
+	    "end_time":"2015-12-25 23:59:59.9Z",
+	    "timezone":"UTC",
+	    "notes":"ho ho ho",
+	    "summary":"no summary",
+	    "group_id":null,
+	    "vehicle_id":1
+    	}
+    },
+    {
+    	"pk": 1,
+    	"model": "xgds_core.ActiveFlight",
+    	"fields": {
+	    "id":1,
+	    "flight_id":1
+    	}
     }
 ]

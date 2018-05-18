@@ -57,7 +57,7 @@ class xgds_coreConditionSetTest(TestCase):
         result_list = json.loads(condition_history_json)
         condition_dict = result_list[0]['fields']
         condition_history_dict = result_list[1]['fields']
-        timestring = '%s.%3dZ' % (nowtime.strftime('%Y-%m-%dT%H:%M:%S'), nowtime.microsecond/1000)
+        timestring = '%s.%03dZ' % (nowtime.strftime('%Y-%m-%dT%H:%M:%S'), nowtime.microsecond/1000)
         condition_history_jsonData = json.loads(condition_history_dict['jsonData'])
         self.assertEqual(condition_history_dict['status'], 'Started')
         self.assertEqual(condition_dict['name'], 'test_set_condition')
@@ -92,7 +92,7 @@ class xgds_coreConditionUpdateTest(TestCase):
         result_list = json.loads(condition_history_json)
         condition_dict = result_list[0]['fields']
         condition_history_dict = result_list[1]['fields']
-        timestring = '%s.%3dZ' % (nowtime.strftime('%Y-%m-%dT%H:%M:%S'), nowtime.microsecond/1000)
+        timestring = '%s.%03dZ' % (nowtime.strftime('%Y-%m-%dT%H:%M:%S'), nowtime.microsecond/1000)
         
         condition_history_jsonData = json.loads(condition_history_dict['jsonData'])
         self.assertEqual(condition_history_dict['status'], 'Completed')
