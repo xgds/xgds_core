@@ -380,15 +380,22 @@ class AbstractConditionHistory(models.Model):
         # By the time you call this you know that this instance has been newly inserted into the database and needs to broadcast itself
         try:
             json_condition_history = self.toJson()
+            result = {'status': 'success',
+                      'data': json_condition_history}
+            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
             if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
-                result = {'status': 'success',
-                          'data': json_condition_history}
-                json_string = json.dumps(result, cls=DatetimeJsonEncoder)
                 publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
                 callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
                 return json_string
+            else:
+                return json_string
+
         except:
             traceback.print_exc()
+            # TODO: discuss what to do with failures here
+            result = {'status': 'failure'}
+            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
+            return json_string
 
     class Meta:
         abstract = True

@@ -19,7 +19,7 @@ import datetime
 import json
 import pytz
 from django.conf import settings
-
+from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 
@@ -32,9 +32,11 @@ class xgds_coreTest(TestCase):
 
 
 class xgds_coreConditionSetTest(TestCase):
+    fixtures = ['xgds_core_testing.json']
+    urls = "xgds_core.testing_urls"
     
     def test_set_condition(self):
-        url = "http://%s%s" % ('localhost', '/xgds_core/condition/set/')
+        url = reverse('xgds_core_set_condition')
         nowtime = datetime.datetime.now(pytz.utc)
         isonow = nowtime.isoformat()
         nested_data_dict = {'start_time': isonow,
@@ -48,8 +50,8 @@ class xgds_coreConditionSetTest(TestCase):
                 'id': 'test_one',
                 'data': json.dumps(nested_data_dict)
                 }
-        response = requests.post(url, data=data)
-        json_response = response.json()
+        response = self.client.post(url, data=data)
+        json_response = json.loads(response.json())
         self.assertEqual(json_response['status'], 'success')
         condition_history_json = json_response['data']
         result_list = json.loads(condition_history_json)
@@ -70,10 +72,11 @@ class xgds_coreConditionSetTest(TestCase):
 class xgds_coreConditionUpdateTest(TestCase):
 
     def test_update_condition(self):
-        url = "http://%s%s" % ('localhost', '/xgds_core/condition/set/')
+        url = reverse('xgds_core_set_condition')
         nowtime = datetime.datetime.now(pytz.utc)
         isonow = nowtime.isoformat()
         nested_data_dict = {'end_time': isonow,
+                            'name': 'test_update_condition',
                             'status': 'Completed',
                             'extra': 'End time should be set',
                             }
@@ -82,8 +85,8 @@ class xgds_coreConditionUpdateTest(TestCase):
                 'id': 'test_one',
                 'data': json.dumps(nested_data_dict)
                 }
-        response = requests.post(url, data=data)
-        json_response = response.json()
+        response = self.client.post(url, data=data)
+        json_response = json.loads(response.json())
         self.assertEqual(json_response['status'], 'success')
         condition_history_json = json_response['data']
         result_list = json.loads(condition_history_json)
@@ -93,15 +96,10 @@ class xgds_coreConditionUpdateTest(TestCase):
         
         condition_history_jsonData = json.loads(condition_history_dict['jsonData'])
         self.assertEqual(condition_history_dict['status'], 'Completed')
-        self.assertEqual(condition_dict['name'], 'test_set_condition')
+        self.assertEqual(condition_dict['name'], 'test_update_condition')
         self.assertEqual(condition_history_dict['source_time'], timestring)
 #         self.assertEqual(condition_history_dict['jsonData'], json.dumps(data['data']))
         self.assertEqual(condition_history_jsonData['extra'], 'End time should be set')
         self.assertEqual(condition_dict['end_time'], timestring)
         self.assertEqual(condition_dict['source_id'], 'test_one')
         self.assertEqual(condition_dict['source'], 'xgds_test')
-
-
-
-        
-        
