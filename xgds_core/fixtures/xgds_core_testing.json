@@ -67,5 +67,14 @@
 	    "id":1,
 	    "flight_id":1
     	}
+    },
+    {
+	"pk": 1,
+	"model": "xgds_core.GroupFlight",
+	"fields": {
+	    "id":1,
+	    "name":"test-A",
+	    "notes":"the interesting thing about a group flight is..."
+	}
     }
 ]
