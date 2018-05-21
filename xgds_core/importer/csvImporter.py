@@ -190,7 +190,7 @@ class CsvImporter(object):
         if 'quotechar' in self.config:
             quotechar = self.config['quotechar']
 
-        self.csv_file = open(csv_file_path, 'rb')
+        self.csv_file = open(csv_file_path, 'rbU')
         try:
             self.csv_reader = csv.DictReader(self.csv_file, fieldnames=self.config['fieldnames'], delimiter=delimiter,
                                              quotechar=quotechar)
