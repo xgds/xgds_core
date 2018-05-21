@@ -20,6 +20,8 @@ Script to read yaml file, create django models and use migration to create datab
 """
 import sys
 import subprocess
+from collections import OrderedDict
+
 import django
 django.setup()
 
@@ -79,6 +81,32 @@ def create_field_code(field_name, field):
     return result
 
 
+def create_channel_description(field_name, field):
+    """
+    Create the channel description dictionary
+    :param field: the dictionary defining the field
+    :return: the string for construction of the channel description
+    """
+    result = "xgds_timeseries.ChannelDescription("
+    if 'label' in field:
+        result += "'%s'" % field['label']
+    else:
+        result += "'%s'" % field_name.capitalize()
+
+    if 'units' in field:
+        result += ", units='%s'" % field['units']
+
+    if 'min' in field:
+        result += ", global_min=%f" % field['min']
+    if 'max' in field:
+        result += ", global_max=%f" % field['max']
+    if 'interval' in field:
+        result += ", interval=%f" % field['interval']
+
+    result += ")"
+    return result
+
+
 def create_model_code(config, yaml_file, model_name):
     """
     Create the model code based on the config
@@ -90,19 +118,51 @@ def create_model_code(config, yaml_file, model_name):
     result = '\n'
 
     # the class itself
-    result += 'class %s(models.Model):\n' % model_name
+    superclass = 'models.Model'
+    if 'superclass' in config:
+        superclass = config['superclass']
+    result += 'class %s(%s):\n' % (model_name, superclass)
 
     # add comment
     result += '%s"""\n%sThis is an auto-generated Django model created from a\n' % (INDENT, INDENT)
     result += '%sYAML specifications using %s\n' % (INDENT, sys.argv[0])
     result += '%sand YAML file %s\n%s"""\n\n' % (INDENT, yaml_file, INDENT)
 
+    time_field = 'timestamp'
+    if 'time_field' in config:
+        time_field = config['time_field']
+
+    channel_descriptions = OrderedDict()
     for field_name, field_info in config['fields'].iteritems():
         result += create_field_code(field_name, field_info)
+        if field_name != time_field:
+            channel_descriptions[field_name] = create_channel_description(field_name, field_info)
 
     # special case the foreign key to a flight, if required
     if 'flight_required' in config and config['flight_required']:
-        result += "%sflight = models.ForeignKey('%s', on_delete=models.SET_NULL, blank=True, null=True)" % (INDENT, settings.XGDS_CORE_FLIGHT_MODEL)
+        result += "%sflight = models.ForeignKey('%s', on_delete=models.SET_NULL, blank=True, null=True)\n" % (INDENT, settings.XGDS_CORE_FLIGHT_MODEL)
+
+    # add the channel descriptions
+    result += '\n'
+    result += "%schannel_descriptions = {\n" % INDENT
+    for key, value in channel_descriptions.iteritems():
+        result += "%s%s%s%s%s%s%s'%s': %s,\n" % (INDENT, INDENT, INDENT, INDENT, INDENT, INDENT, INDENT, key, value)
+    result += "%s%s%s%s%s%s%s}\n" % (INDENT, INDENT, INDENT, INDENT, INDENT, INDENT, INDENT)
+
+    # add the channel classmethod
+    result += '\n'
+    result += '%s@classmethod\n' % INDENT
+    result += '%sdef get_channel_names(cls):\n' % INDENT
+    result += '%s%sreturn [' % (INDENT, INDENT)
+    for key, value in channel_descriptions.iteritems():
+        result += "'%s', " % key
+    result +=']\n'
+
+    # add the custom time field name if need be
+    if time_field != 'timestamp':
+        result += '%s@classmethod\n' % INDENT
+        result += '%sdef get_time_field_name(cls):\n' % INDENT
+        result += "%s%sreturn '%s'\n" % (INDENT, INDENT, time_field)
 
     # add another space
     result += '\n'

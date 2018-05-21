@@ -38,6 +38,7 @@ KRex2_PastPosition.yaml::
    # This file describes poses provided by KRex2 as part of the BRAILLE project
    name: KRex2.PastPosition
    class: xgds_braille_app.PastPosition
+   superclass: xgds_timeseries.TimeSeriesModel
    extension: tsv
    delimiter: \t
    fields:
@@ -78,6 +79,7 @@ Hercules_TempProbe.yaml::
 
    name:Hercules.TempProbe
    class: xgds_subsea_app.TempProbe
+   superclass: xgds_timeseries.TimeSeriesModel
    extension: TEM
    delimiter: \t
    defaults:
@@ -149,6 +151,13 @@ interpretation of other members.
 |                  |                |                 |for data import described by this   |
 |                  |                |                 |Data Import YAML file.              |
 +------------------+----------------+-----------------+------------------------------------+
+|``superclass``    |string          |optional         |The superclass that generated code  |
+|                  |                |                 |will extend.                        |
+|                  |                |                 |xgds_timeseries.TimeSeriesModel     |
+|                  |                |                 |will let it behave as a timeseries. |
+|                  |                |                 |Nothing will default to             |
+|                  |                |                 |models.Model                        |
++------------------+----------------+-----------------+------------------------------------+
 |``extension``     |string          |                 |File extension for import files.    |
 +------------------+----------------+-----------------+------------------------------------+
 |``delimiter``     |string          |optional         |Whatever character will be used     |
@@ -158,6 +167,9 @@ interpretation of other members.
 |                  |                |                 |to quote data, usually  `"`         |
 +------------------+----------------+-----------------+------------------------------------+
 |``defaults``      |dictionary      |optional         |A dictionary of default values      |
++------------------+----------------+-----------------+------------------------------------+
+|``time_field``    |string          |optional         |The name of the time field if it is |
+|                  |                |                 |not timestamp.                      |
 +------------------+----------------+-----------------+------------------------------------+
 |``fields``        |dictionary      |required         |A dictionary of field specs.  The   |
 |                  |                |                 |exact name of the Python model field|
@@ -198,6 +210,8 @@ the Python model fields.
 |``flight_required`` |                |false            |True if flight is required; it can  |
 |                    |                |                 |be looked up or created.            |
 +--------------------+----------------+-----------------+------------------------------------+
+|``label``           |                |optional         |The label for plots etc             |
++--------------------+----------------+-----------------+------------------------------------+
 |``min``             |                |optional         |Minimum value, inclusive            |
 +--------------------+----------------+-----------------+------------------------------------+
 |``max``             |                |optional         |Maximum value, inclusive            |
@@ -206,6 +220,9 @@ the Python model fields.
 |                    |                |                 |length (for model creation).        |
 +--------------------+----------------+-----------------+------------------------------------+
 |``units``           |string          |optional         |The expected units of measure       |
++--------------------+----------------+-----------------+------------------------------------+
+|``interval``        |float           |optional         |The interval of received data in    |
+|                    |                |                 |the model.  No value = unknown      |
 +--------------------+----------------+-----------------+------------------------------------+
 |``regex``           |regex string    |optional         |Regex to use to parse the value.    |
 +--------------------+----------------+-----------------+------------------------------------+
