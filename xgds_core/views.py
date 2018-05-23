@@ -353,14 +353,14 @@ class OrderListJson(BaseDatatableView):
     def filter_queryset_simple_search(self, qs, search, tags):
         self.keywordQueries = None
         self.tagQueries = None
-        if (search):
+        if search and len(search) > 0:
             self.filter_keyword_search(qs, search)
 
-        if (tags):
+        if tags and len(tags) > 0:
             self.filter_tags_search(qs, tags)
 
         queries = self.combine_simple_search()
-        if (queries):
+        if queries:
             qs = qs.filter(queries)
 
         return qs.distinct()
@@ -442,12 +442,13 @@ class OrderListJson(BaseDatatableView):
         tagQueriesArray = []
 
         # Adds the individual queries for each tag into an array
-        if (model == "Note"):
+        if model == "Note":
             while (counter < len(tags)):
                 if (counter % 2 == 0):
                     tagQuery = self.model.buildTagsQuery(tags[counter])
-                    tagQuery = Q(**tagQuery)
-                    tagQueriesArray.append(tagQuery)
+                    if tagQuery:
+                        tagQuery = Q(**tagQuery)
+                        tagQueriesArray.append(tagQuery)
                 else:
                     tagQueriesArray.append(tags[counter])
                 counter += 1
@@ -458,8 +459,8 @@ class OrderListJson(BaseDatatableView):
             else:
                 tagArray.append(tags)
 
-            while (counter < len(tagArray)):
-                if (counter % 2 == 0):
+            while counter < len(tagArray):
+                if counter % 2 == 0:
                     tagQuery = self.buildTagQuery(tagArray[counter], nestTags)
                     tagQueriesArray.append(tagQuery)
                 else:
@@ -469,8 +470,8 @@ class OrderListJson(BaseDatatableView):
 
         # Combines the queries at each index in the array based on and/or
         counter = 0
-        while (counter < len(tagQueriesArray)):
-            if (counter == 0):
+        while counter < len(tagQueriesArray):
+            if counter == 0:
                 self.addTagQuery(tagQueriesArray[counter], "")
             else:
                 self.addTagQuery(tagQueriesArray[counter], tagQueriesArray[counter - 1])
