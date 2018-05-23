@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+
 import traceback
 import os
 import pytz
@@ -85,6 +86,7 @@ def buildFilterDict(theFilter):
         except:
             filterDict[splits[0]] = splits[1]
     return filterDict
+
 
 def getTimeZone(inputTime):
     ''' For a given time, look in the TimeZoneHistory to see what the time zone was set to at that time.
@@ -241,18 +243,18 @@ class OrderListJson(BaseDatatableView):
 
     # Adds keyword queries together based on the connecting words between them (and/or)
     def addKeywordQuery(self, query, type):
-        if (self.keywordQueries and query and type == "and"):
+        if self.keywordQueries and query and type == "and":
             self.keywordQueries &= query
-        elif (self.keywordQueries and query and type == "or"):
+        elif self.keywordQueries and query and type == "or":
             self.keywordQueries |= query
         else:
             self.keywordQueries = query
 
     # Adds tag queries together based on the connecting words between them (and/or)
     def addTagQuery(self, query, type):
-        if (self.tagQueries and query and type == "and"):
+        if self.tagQueries and query and type == "and":
             self.tagQueries &= query
-        elif (self.tagQueries and query and type == "or"):
+        elif self.tagQueries and query and type == "or":
             self.tagQueries |= query
         else:
             self.tagQueries = query
@@ -334,7 +336,7 @@ class OrderListJson(BaseDatatableView):
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        if (model == "Note"):
+        if model == "Note":
             tags = self.request.POST.getlist('noteTags[]')
         else:
             tags = self.request.POST.get(u'tags', None)
@@ -346,7 +348,7 @@ class OrderListJson(BaseDatatableView):
         last = self.request.POST.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
-        
+
         return qs.distinct()
 
     # Filter a queryset using the keyword and tag search inputs above the datatable
@@ -363,13 +365,13 @@ class OrderListJson(BaseDatatableView):
         if queries:
             qs = qs.filter(queries)
 
-        return qs.distinct()
+        return qs
 
     # Filters the queryset with the advanced search (everything is anded)
     def filter_queryset_advanced_search(self, qs, searchDict):
         if searchDict:
             for key in searchDict:
-                if (unicode(searchDict[key]).isnumeric()):
+                if unicode(searchDict[key]).isnumeric():
                     self.addAndQuery(Q(**{key: searchDict[key]}))
                 else:
                     self.addAndQuery(Q(**{key + '__icontains': searchDict[key]}))
@@ -379,21 +381,19 @@ class OrderListJson(BaseDatatableView):
 
     # Combines keyword with tag search via the and/or between the two inputs
     def combine_simple_search(self):
-        queries = None
         connector = self.request.POST.get(u'connector', None)
-        if (not self.keywordQueries and not self.tagQueries):
+        if not self.keywordQueries and not self.tagQueries:
             return None
-        elif (not self.tagQueries):
+        elif not self.tagQueries:
             return self.keywordQueries
-        elif (not self.keywordQueries):
+        elif not self.keywordQueries:
             return self.tagQueries
         else:
-            if (connector == "or"):
-                queries = self.keywordQueries | self.tagQueries
+            if connector == "or":
+                # TODO this is slow; we tried various things but don't know why
+                return self.tagQueries | self.keywordQueries
             else:
-                queries = self.keywordQueries & self.tagQueries
-
-        return queries
+                return self.tagQueries & self.keywordQueries
 
     # Creates the keyword queries to be used on the queryset
     def filter_keyword_search(self, qs, search):
