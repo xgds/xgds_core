@@ -87,10 +87,8 @@ class xgds_AllTheUtils(TestCase):
 
     def test_getNextAvailableGroupFlightName(self):
         name = get_next_available_group_flight_name('Pre-')
-        print 'next available name is "%s"' % name
         assert(name=='Pre-A')
         name = get_next_available_group_flight_name('test-')
-        print 'next available name is "%s"' % name
         assert(name=='test-B')
 
     def test_get_default_vehicle(self):
@@ -107,9 +105,9 @@ class xgds_AllTheUtils(TestCase):
     def test_lookup_vehicle(self):
         v1 = lookup_vehicle('Generic Vehicle')
         v2 = lookup_vehicle('Batmobile')
-        print 'vehicle 1 = %s' % v1
-        #print 'vehicle 2 = %s' % v2
         assert(v1 is not None)
+        # current behavior is looking up "Batmobile" results in
+        # finding "Generic Vehicle", we should talk about that
         #assert(v2 is None)
 
     def test_lookup_flight(self):

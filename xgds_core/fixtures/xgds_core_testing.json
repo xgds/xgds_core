@@ -56,7 +56,7 @@
 	    "timezone":"UTC",
 	    "notes":"ho ho ho",
 	    "summary":"no summary",
-	    "group_id":null,
+	    "group_id":1,
 	    "vehicle_id":1
     	}
     },
