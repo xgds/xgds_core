@@ -61,9 +61,13 @@ $.extend(playback, {
 		playback.setTimeLabel(playback.currentTime);
 		playback.setupSpeedInput();
 		playback.setupSeekButton();
-        app.listenTo(app.vent, 'playback:setCurrentTime', function(currentTime) {
-        	playback.setCurrentTime(currentTime);
-        });
+		try {
+            app.listenTo(app.vent, 'playback:setCurrentTime', function (currentTime) {
+                playback.setCurrentTime(currentTime);
+            });
+        } catch (error) {
+			// ulp.  There may not be an app on this page.
+		}
 
 	},
 	
