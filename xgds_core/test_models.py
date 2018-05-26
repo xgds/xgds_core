@@ -61,13 +61,14 @@ class xgds_testAllTheModels(TestCase):
         event.save()
 
         esd = event.getSerializedData()
-        assert(esd['object_id']==esd.object_id)
-        assert(esd['content_type_app_label']==esd.content_type_app_label)
-        assert(esd['content_type_label']==esd.content_type_label)
-        assert(esd['content_type_id']==1)
-        assert(esd['url']==esd.url)
-        assert(esd['serialized_form']==esd.serialized_form)
-        assert(esd['is_update']==esd.is_update)
+        assert(esd['object_id']==event.object_id)
+        assert(esd['content_type_app_label']==event.content_type.app_label)
+        assert(esd['content_type_model']==event.content_type.model)
+        # was that key there before? this assert fails and looks like it should fail per models.py
+        # assert(esd['content_type_id']==1) 
+        assert(esd['url']==event.url)
+        assert(esd['serialized_form']==event.serialized_form)
+        assert(esd['is_update']==event.is_update)
 
         erj_str = event.toRelayJson()
         erj = json.loads(erj_str)
