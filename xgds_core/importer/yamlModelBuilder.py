@@ -18,6 +18,7 @@
 """
 Script to read yaml file, create django models and use migration to create database tables.
 """
+import re
 import sys
 import subprocess
 from collections import OrderedDict
@@ -141,6 +142,14 @@ def create_model_code(config, yaml_file, model_name):
     # special case the foreign key to a flight, if required
     if 'flight_required' in config and config['flight_required']:
         result += "%sflight = models.ForeignKey('%s', on_delete=models.SET_NULL, blank=True, null=True)\n" % (INDENT, settings.XGDS_CORE_FLIGHT_MODEL)
+
+    # add the title, splitting out camelcase
+    result += '\n'
+    splits = re.sub('([a-z])([A-Z])', r'\1 \2', model_name).split()
+    title = ''
+    for s in splits:
+        title = title + ' ' + s
+    result += "%stitle = '%s'" % (INDENT, title[1:])
 
     # add the channel descriptions
     result += '\n'
