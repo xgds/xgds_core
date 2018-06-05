@@ -314,6 +314,7 @@ class CsvImporter(object):
             exists = self.check_data_exists(first_row)
             if exists:
                 print " ABORTING: MATCHING DATA FOUND"
+                # TODO for subsea we will have new rows in existing files so we have to check each row
                 print first_row
                 raise Exception('Matching data found, data already imported', first_row)
         if not self.flight and self.config['flight_required']:

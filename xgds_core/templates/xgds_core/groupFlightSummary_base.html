@@ -62,11 +62,11 @@
 {% endfor %}
 {% if flight.track %}
 <tr>
-<td>{{settings.GEOCAM_TRACK_TRACK_MONIKIER}}</td>
+<td>{{settings.GEOCAM_TRACK_TRACK_MONIKER}}</td>
 <td><a href="{% url 'geocamTrack_trackKml' flight.track.name %}">{{flight.name}}.kml</a></td>
 </tr>
 <tr>
-<td>{{settings.GEOCAM_TRACK_TRACK_MONIKIER}}</td>
+<td>{{settings.GEOCAM_TRACK_TRACK_MONIKER}}</td>
 <td><a href="{% url 'geocamTrack_trackCsv_byname' flight.track.name %}">{{flight.name}}.csv</a></td>
 </tr>
 {% endif %}

@@ -585,7 +585,7 @@ class AbstractFlight(UuidModel, HasVehicle):
     def getTreeJsonChildren(self):
         children = []
         if hasattr(self, 'track'):
-            children.append({"title": settings.GEOCAM_TRACK_TRACK_MONIKIER,
+            children.append({"title": settings.GEOCAM_TRACK_TRACK_MONIKER,
                              "selected": False,
                              "tooltip": "Tracks for " + self.name,
                              "key": self.uuid + "_tracks",
