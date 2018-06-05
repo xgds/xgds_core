@@ -14,17 +14,9 @@
 # specific language governing permissions and limitations under the License.
 #__END_LICENSE__
 
-from django.contrib import admin
+from django.conf.urls import include, url
 
-from xgds_core.models import *
-
-admin.site.register(Constant)
-admin.site.register(TimeZoneHistory)
-admin.site.register(RelayEvent)
-admin.site.register(RelayFile)
-admin.site.register(ConditionHistory)
-admin.site.register(State)
-admin.site.register(ActiveFlight)
-admin.site.register(Flight)
-admin.site.register(Vehicle)
-
+urlpatterns = [
+    url(r'^xgds_core/', include('xgds_core.urls')),
+    url(r'^xgds_core/', include('xgds_core.restUrls')),
+]

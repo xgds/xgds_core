@@ -1,0 +1,33 @@
+# This file describes CTD values as provided by the CTD from Hercules
+name: Hercules.CTD
+class: xgds_subsea_app.CTD
+extension: CTD
+delimiter: \t
+defaults:
+  - name: vehicle__name
+    value: Hercules
+fields:
+  - name: data_type
+    default: CTD
+    type: string
+    skip: true
+  - name: timestamp
+    type: datetime
+  - name: vehicle__nickname
+    type: string
+    default: HERC
+  - name : temperature
+    type : float
+    units : celsius
+  - name : conductivity
+    type : float
+    units : S/m
+  - name : pressure
+    type : float
+    units : meters
+  - name : salinity
+    type : float
+    units : psu
+  - name : sound_velocity
+    type : float
+    units : m/s

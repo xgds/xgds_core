@@ -17,21 +17,74 @@ import pytz
 import traceback
 
 from django.forms.models import ModelChoiceField, ModelForm
-from django.forms import BooleanField, CharField, IntegerField, FloatField, DecimalField, ChoiceField, DateTimeField
+from django.conf import settings
+from django.utils import timezone
+
+from django import forms
 from xgds_core.models import NamedURL
 from django.db.models.fields import *
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 from geocamUtil import TimeUtil
+from geocamUtil.loader import LazyGetModelByName
+from geocamUtil.forms.AbstractImportForm import AbstractImportForm
+
 
 # class NamedURLForm(ModelForm):
 # 
 #     class Meta: 
 #         model = NamedURL
 
-class SearchForm(ModelForm):
+VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
+
+
+class AbstractVehicleForm(forms.Form):
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
+                               label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    def getVehicle(self):
+        if self.cleaned_data['vehicle']:
+            return self.cleaned_data['vehicle']
+        else:
+            return None
+
+    class Meta:
+        abstract = True
+
+
+class AbstractPrimaryVehicleForm(AbstractVehicleForm):
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.filter(primary=True),
+                               label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    class Meta:
+        abstract = True
+
+
+class AbstractImportVehicleForm(AbstractImportForm, AbstractPrimaryVehicleForm):
+
+    class Meta:
+        abstract = True
+
+
+class AbstractFlightVehicleForm(forms.Form):
+    flight__vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
+                                       label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    def getVehicle(self):
+        if self.cleaned_data['flight__vehicle']:
+            return self.cleaned_data['flight__vehicle']
+        else:
+            return None
+
+    class Meta:
+        abstract = True
+
+
+class SearchForm(ModelForm, AbstractFlightVehicleForm):
     queries = None
-    
+
     def addQuery(self, query):
         if query:
             if self.queries:
@@ -124,3 +177,59 @@ class SearchForm(ModelForm):
 
     class Meta: 
         abstract = True
+
+
+# form for creating a flight group, flights, and all sorts of other stuff needed for our overly complex system.
+class GroupFlightForm(forms.Form):
+    year = None
+    month = None
+    day = None
+    date = forms.DateField(required=True)
+    prefix = forms.CharField(widget=forms.TextInput(attrs={'size': 4}),
+                             label="Prefix",
+                             required=True)
+
+    notes = forms.CharField(widget=forms.TextInput(attrs={'size': 128}), label="Notes", required=False,
+                            help_text='Optional')
+
+    def __init__(self, *args, **kwargs):
+        super(GroupFlightForm, self).__init__(*args, **kwargs)
+        self.fields['vehicles'] = self.initializeVehicleChoices()
+        today = timezone.localtime(timezone.now()).date()
+
+        self.year = today.year
+        self.month = today.month - 1
+        self.day = today.day
+        self.initializeLetter(today.strftime('%Y%m%d'))
+
+    # get the latest GroupFlight, and increment the prefix
+    def initializeLetter(self, dateprefix):
+        GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
+        try:
+            last = GROUP_FLIGHT_MODEL.get().objects.filter(name__startswith=dateprefix).order_by('name').last()
+            self.fields['prefix'].initial = chr(ord(last.name[-1]) + 1)
+        except:
+            self.fields['prefix'].initial = 'A'
+
+    def initialize(self, timeinfo):
+        self.year = timeinfo['year']
+        self.month = timeinfo['month']
+        self.day = timeinfo['day']
+        self.date = datetime.date(int(self.year), int(self.month), int(self.day))
+        self.month = int(timeinfo['month']) - 1  # apparently 0 is january
+
+    def initializeVehicleChoices(self):
+        CHOICES = []
+        VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
+        if (VEHICLE_MODEL.get().objects.count() > 0):
+            for vehicle in VEHICLE_MODEL.get().objects.all().order_by('name'):
+                CHOICES.append((vehicle.name, vehicle.name))
+
+        if len(CHOICES) == 1:
+            initial = [c[0] for c in CHOICES]
+        else:
+            initial = None
+        result = forms.MultipleChoiceField(choices=CHOICES, widget=forms.CheckboxSelectMultiple(attrs={"checked": ""}),
+                                           required=False, initial=initial)
+        return result
+

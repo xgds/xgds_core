@@ -26,7 +26,22 @@ urlpatterns = [url(r'^update_session', views.update_session, {}, 'update_session
                url(r'^live/$', RedirectView.as_view(url=settings.XGDS_CORE_LIVE_INDEX_URL, permanent=False), name='live_index'),
                url(r'^error', TemplateView.as_view(template_name='xgds_core/error.html'), {}, 'error'),
                url(r'^help/(?P<help_content_path>[\s\S]+)/(?P<help_title>[\s\S]+)$', views.helpPopup, {}, 'help_popup'),
-               
+               ## uploading data
+               url(r'^import/$', TemplateView.as_view(template_name='xgds_core/importData.html'), name='xgds_core_import'),
+
+               # flight management
+               url(r'^updateToday/$', views.updateTodaySession, {}, "xgds_core_updateToday"),
+               url(r'^listFlights/$', views.listFlownFlights, {}, "xgds_core_flownFlights"),
+               url(r'startFlight/(?P<uuid>[\w-]+)$', views.startFlight, {}, 'xgds_core_startFlight'),
+               url(r'stopFlight/(?P<uuid>[\w-]+)$', views.stopFlight, {}, 'xgds_core_stopFlight'),
+               url(r'startTracking/(?P<flightName>\w+)$', views.startFlightTracking, {},
+                   'xgds_core_startFlightTracking'),
+               url(r'stopTracking/(?P<flightName>\w+)$', views.stopFlightTracking, {}, 'xgds_core_stopFlightTracking'),
+               url(r'^addGroupFlight/$', views.addGroupFlight, {}, "xgds_core_addGroupFlight"),
+               url(r'^manageFlights/$', views.manageFlights, {}, "xgds_core_manage"),
+               url(r'^summary/(?P<groupFlightName>\w+)$', views.getGroupFlightSummary,
+                   name="xgds_core_group_flight_summary"),
+
                # Including these in this order ensures that reverse will return the non-rest urls for use in our server
                url(r'^rest/', include('xgds_core.restUrls')),
                url('', include('xgds_core.restUrls')),

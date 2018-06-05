@@ -79,3 +79,25 @@ XGDS_SSE_CONDITION_CHANNELS = ['sse']
 INCLUDE_OWA_TRACKING = False
 OWA_SITE_URL = ""
 OWA_SITE_ID = ""
+
+# Add mappings from a dropdown to an import page from the import landing page.
+XGDS_DATA_IMPORTS = {}
+
+
+# Add mappings to the importer for csv importers defined by yaml files
+XGDS_CORE_CSV_IMPORTER = {}
+
+# Override this to provide a function that will return a dictionary of current state information.
+# This will be appended to items as they are imported.
+XGDS_CORE_CURRENT_STATE_FUNCTION = 'xgds_core.util.getCurrentStateDictionary'
+
+XGDS_CORE_FLIGHT_MODEL = "xgds_core.Flight"
+XGDS_CORE_ACTIVE_FLIGHT_MODEL = "xgds_core.ActiveFlight"
+XGDS_CORE_GROUP_FLIGHT_MODEL = "xgds_core.GroupFlight"
+XGDS_CORE_VEHICLE_MODEL = 'xgds_core.Vehicle'
+XGDS_CORE_VEHICLE_MONIKER = 'Vehicle'
+XGDS_CORE_FLIGHT_MONIKER = "Flight"
+XGDS_CORE_GROUP_FLIGHT_MONIKER = "Group Flight"
+XGDS_CORE_DEFAULT_VEHICLE_PK = 1  # To be used when vehicle is required but not specified.
+
+XGDS_CORE_SHOW_FLIGHT_MANAGEMENT = True

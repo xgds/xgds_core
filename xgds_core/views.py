@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+
 import traceback
 import os
 import pytz
@@ -21,9 +22,16 @@ import json
 import datetime
 import httplib
 import threading
+import shlex
 from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
+from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
+from django.contrib import messages
+from django.db.utils import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
+
 from django.http import Http404
 
 import couchdb
@@ -52,9 +60,18 @@ from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
-
+from xgds_notes2.utils import buildQueryForTags
+from xgds_notes2.models import HierarchichalTag
+from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile, State
+from xgds_core.flightUtils import create_group_flight
 if settings.XGDS_CORE_REDIS:
     from xgds_core.redisUtil import queueRedisData, publishRedisSSEAtTime
+
+ACTIVE_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
+FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
+GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
+VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
+
 
 def buildFilterDict(theFilter):
     if isinstance(theFilter, dict):
@@ -69,6 +86,7 @@ def buildFilterDict(theFilter):
         except:
             filterDict[splits[0]] = splits[1]
     return filterDict
+
 
 def getTimeZone(inputTime):
     ''' For a given time, look in the TimeZoneHistory to see what the time zone was set to at that time.
@@ -172,9 +190,12 @@ class OrderListJson(BaseDatatableView):
     
     # dictionary that is for our filter
     filterDict = {}
-    
-    # to hold the Q queries for or-ing a search
-    queries = None
+
+    # to hold the Q queries for and-ing/or-ing a keyword search
+    keywordQueries = None
+
+    # to hold the Q queries for and-ing/or-ing a tag search
+    tagQueries = None
     
     # to hold the anded Q queries from the form
     formQueries = None
@@ -207,53 +228,98 @@ class OrderListJson(BaseDatatableView):
 
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
-
-    def addQuery(self, query):
-        if self.queries:
-            self.queries |= query
+    def addOrQuery(self, queries, query):
+        if queries:
+            queries |= query
         else:
-            self.queries = query
+            queries = query
+        return queries
 
     def addAndQuery(self, query):
         if self.formQueries:
             self.formQueries &= query
         else:
             self.formQueries = query
-        
-    def buildQuery(self, search):
-        self.queries = None
+
+    # Adds keyword queries together based on the connecting words between them (and/or)
+    def addKeywordQuery(self, query, type):
+        if self.keywordQueries and query and type == "and":
+            self.keywordQueries &= query
+        elif self.keywordQueries and query and type == "or":
+            self.keywordQueries |= query
+        else:
+            self.keywordQueries = query
+
+    # Adds tag queries together based on the connecting words between them (and/or)
+    def addTagQuery(self, query, type):
+        if self.tagQueries and query and type == "and":
+            self.tagQueries &= query
+        elif self.tagQueries and query and type == "or":
+            self.tagQueries |= query
+        else:
+            self.tagQueries = query
+
+    # Builds the queries for each searchable field for that model (all or-ed together)
+    def buildSearchableFieldsQuery(self, search):
         if search:
+            queries = None
             try:
                 for key in self.model.getSearchableFields():
-                    self.addQuery(Q(**{key+'__icontains':search}))
-                
+                    queries = self.addOrQuery(queries, Q(**{key + '__icontains': search}))
+
                 if unicode(search).isnumeric():
                     for key in self.model.getSearchableNumericFields():
-                        self.addQuery(Q(**{key:search}))
+                        queries = self.addOrQuery(queries, Q(**{key: search}))
             except:
                 try:
                     self.model._meta.get_field('name')
-                    self.addQuery(Q(**{'name__icontains':search}))
+                    queries = self.addOrQuery(queries, Q(**{'name__icontains': search}))
                 except:
                     pass
-                
+
                 try:
                     self.model._meta.get_field('description')
-                    self.addQuery(Q(**{'description__icontains':search}))
+                    queries = self.addOrQuery(queries, Q(**{'description__icontains': search}))
                 except:
                     pass
-        
+
+            return queries
+
+    # Builds the query for checking if a note contains a certain tag pk
+    def buildTagQuery(self, tagId, nestTags):
+        query = None
+        if tagId:
+            taggedNote = LazyGetModelByName(settings.XGDS_NOTES_TAGGED_NOTE_MODEL)
+            model = self.request.POST.get(u'modelName', None)
+
+            if (model == "Note"):
+                query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId])})
+            else:
+                # Nest tags is not checked
+                if (nestTags == "false"):
+                    query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
+                # Nest tags so search by HierarchichalTags
+                else:
+                    tag = HierarchichalTag.objects.get(pk=tagId)
+                    tagqs = tag.get_tree(tag)
+                    query = Q(**{'notes__in': taggedNote.get().objects.filter(tag__in=tagqs).values('content_object')})
+
+        return query
+
     def buildFilterDict(self, theFilter):
         dictEntries = str(theFilter).split(",")
         for entry in dictEntries:
             splits = str(entry).split("|")
             try:
-                value = int(splits[1]);
+                value = int(splits[1])
                 self.filterDict[splits[0]] = value
             except:
                 self.filterDict[splits[0]] = splits[1]
 
+    # Overrides the django_datatables filter_queryset function.
+    # Does either advanced search or simple search depending on values passed
     def filter_queryset(self, qs):
+        model = self.request.POST.get(u'modelName', None)
         if self.formQueries:
             qs = qs.filter(self.formQueries)
         elif self.filterDict:
@@ -267,60 +333,160 @@ class OrderListJson(BaseDatatableView):
                 today = timezone.localtime(timezone.now()).date()
                 filterDict = { timesearchField + '__gt': today}
                 qs = qs.filter(**filterDict)
-        
-        
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        if search:
-            self.buildQuery(str(search))
-            tagsQuery = self.model.buildTagsQuery(search)
-            if tagsQuery:
-                self.addQuery(Q(**tagsQuery))
-            if self.queries:
-                qs = qs.filter(self.queries)
-            noteQuery = self.model.buildNoteQuery(search)
-            if noteQuery:
-                qs = qs.filter(noteQuery)
-        
+        if model == "Note":
+            tags = self.request.POST.getlist('noteTags[]')
+        else:
+            tags = self.request.POST.get(u'tags', None)
+
+        # This part handles the search with the input boxes above the datatable
+        if self.request.POST.get(u'simpleSearch', None):
+            qs = self.filter_queryset_simple_search(qs, search, tags)
+
         last = self.request.POST.get(u'last', -1)
         if last > 0:
             qs = qs[-last:]
-        
-        return qs.distinct()
-
-    # Filter a queryset using the simple search box above the datatable
-    def filter_queryset_simple_search(self, qs, search):
-        if search:
-            self.buildQuery(str(search))
-            tagsQuery = self.model.buildTagsQuery(search)
-            if tagsQuery:
-                self.addQuery(Q(**tagsQuery))
-            if self.queries:
-                qs = qs.filter(self.queries)
-            noteQuery = self.model.buildNoteQuery(search)
-            if noteQuery:
-                qs = qs.filter(noteQuery)
 
         return qs.distinct()
 
+    # Filter a queryset using the keyword and tag search inputs above the datatable
+    def filter_queryset_simple_search(self, qs, search, tags):
+        self.keywordQueries = None
+        self.tagQueries = None
+        if search and len(search) > 0:
+            self.filter_keyword_search(qs, search)
+
+        if tags and len(tags) > 0:
+            self.filter_tags_search(qs, tags)
+
+        queries = self.combine_simple_search()
+        if queries:
+            qs = qs.filter(queries)
+
+        return qs
+
+    # Filters the queryset with the advanced search (everything is anded)
     def filter_queryset_advanced_search(self, qs, searchDict):
         if searchDict:
             for key in searchDict:
-                if (unicode(searchDict[key]).isnumeric()):
+                if unicode(searchDict[key]).isnumeric():
                     self.addAndQuery(Q(**{key: searchDict[key]}))
                 else:
                     self.addAndQuery(Q(**{key + '__icontains': searchDict[key]}))
             qs = qs.filter(self.formQueries)
 
         return qs.distinct()
-    
+
+    # Combines keyword with tag search via the and/or between the two inputs
+    def combine_simple_search(self):
+        connector = self.request.POST.get(u'connector', None)
+        if not self.keywordQueries and not self.tagQueries:
+            return None
+        elif not self.tagQueries:
+            return self.keywordQueries
+        elif not self.keywordQueries:
+            return self.tagQueries
+        else:
+            if connector == "or":
+                # TODO this is slow; we tried various things but don't know why
+                return self.tagQueries | self.keywordQueries
+            else:
+                return self.tagQueries & self.keywordQueries
+
+    # Creates the keyword queries to be used on the queryset
+    def filter_keyword_search(self, qs, search):
+        noteQuery = None
+        words = []
+        counter = 0
+        if " " in search:
+            words = shlex.split(search)
+        else:
+            words.append(search)
+
+        # Adds the individual queries for each word into an array
+        fieldsQuery = None
+        keywordQueriesArray = []
+        while (counter < len(words)):
+            if (counter % 2 == 0):
+                fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
+                keywordQueriesArray.append(fieldsQuery)
+            else:
+                keywordQueriesArray.append(str(words[counter]))
+            # This doesn't do anything right now - we want to do a sphinx search
+            # in the content of the notes that points to the ground model pks
+            noteQuery = self.model.buildNoteQuery(words[counter])
+            counter += 1
+
+        # Combines the queries at each index in the array based on and/or
+        counter = 0
+        while (counter < len(keywordQueriesArray)):
+            if (counter == 0):
+                self.addKeywordQuery(keywordQueriesArray[counter], "")
+            else:
+                self.addKeywordQuery(keywordQueriesArray[counter], keywordQueriesArray[counter - 1])
+            counter += 2
+
+        # Unused at this time -> should be for text search in notes
+        if noteQuery:
+            qs = qs.filter(noteQuery)
+
+        return self.keywordQueries
+
+    # Creates the tag queries to be used on the queryset
+    def filter_tags_search(self, qs, tags):
+        model = self.request.POST.get(u'modelName', None)
+        nestTags = self.request.POST.get(u'nestTags', None)
+        counter = 0
+        tagQueriesArray = []
+
+        # Adds the individual queries for each tag into an array
+        if model == "Note":
+            while (counter < len(tags)):
+                if (counter % 2 == 0):
+                    tagQuery = self.model.buildTagsQuery(tags[counter])
+                    if tagQuery:
+                        tagQuery = Q(**tagQuery)
+                        tagQueriesArray.append(tagQuery)
+                else:
+                    tagQueriesArray.append(tags[counter])
+                counter += 1
+        else:
+            tagArray = []
+            if "," in tags:
+                tagArray = tags.split(",")
+            else:
+                tagArray.append(tags)
+
+            while counter < len(tagArray):
+                if counter % 2 == 0:
+                    tagQuery = self.buildTagQuery(tagArray[counter], nestTags)
+                    tagQueriesArray.append(tagQuery)
+                else:
+                    connector = str(tagArray[counter]).split("-")
+                    tagQueriesArray.append(connector[0])
+                counter += 1
+
+        # Combines the queries at each index in the array based on and/or
+        counter = 0
+        while counter < len(tagQueriesArray):
+            if counter == 0:
+                self.addTagQuery(tagQueriesArray[counter], "")
+            else:
+                self.addTagQuery(tagQueriesArray[counter], tagQueriesArray[counter - 1])
+            counter += 2
+
+        return self.tagQueries
+
+
 def helpPopup(request, help_content_path, help_title):
     return render(request,
                   'help_popup.html',
                   {'help_title': help_title,
                    'help_content_path': help_content_path},
                   )
+
 
 def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, update=False):
     # first see if there is an existing relayEvent
@@ -569,3 +735,426 @@ def rebroadcastSse(request):
 def getSseActiveConditions(request):
     # Look up the active conditions we are using for SSE
     return JsonResponse(settings.XGDS_SSE_CONDITION_CHANNELS, safe=False)
+
+
+def setState(key, start=None, end=None, values=None, active=True, notes=None):
+    """
+    Store or modify a state in the database.  If you are modifying, it will only pass changes in if they are not none
+    in parameters.
+    :param key: A unique key representing this state, for example flight name.  Defaults to isotime
+    :param start: start time of this state
+    :param end: end time of this state
+    :param values: a dictionary of values to store as JSON.  Must be serializable
+    :param active: boolean for if this is currently active
+    :param notes: optional descriptive notes
+    :return: the state.
+    """
+
+    rightnow = timezone.now()
+    if not key:
+        key = rightnow.isoformat()
+    created = False
+    try:
+        state = State.objects.get(key=key)
+    except:
+        created = True
+        if not start:
+            start = rightnow
+        state = State(key=key, start=start, end=end, notes=notes, active=active)
+
+    if not created:
+        if start:
+            state.start = start
+        if end:
+            state.end = end
+        if notes:
+            state.notes = notes
+        state.active = active
+
+    if values:
+        state.values = json.dumps(values, cls=DatetimeJsonEncoder, separators=(',',':'), indent=0)
+    state.dateModified = rightnow
+    state.save()
+
+    return state
+
+
+def getState(key):
+    """
+    Get the state given the key
+    :param key:
+    :return: the state, or None
+    """
+    try:
+        return State.objects.get(key=key)
+    except:
+        pass
+    return None
+
+
+def getActiveStates():
+    """
+    Get the active states
+    :return: the active states, or None
+    """
+    return State.objects.filter(active=True).all()
+
+
+def endActiveStates():
+    """
+    End all the active states, setting end time to now and active to false
+    :return: the number of states ended.
+    """
+    rightnow = timezone.now()
+    active_states = getActiveStates()
+    count = len(active_states)
+    for state in active_states:
+        setState(state.key, start=None, end=rightnow, active=False)
+    return count
+
+
+# Flight support, ported over from planner
+
+def processNameToDate(flight):
+    result = {}
+    if (len(flight.name) >= 8):
+        year = flight.name[0:4].encode()
+        month = flight.name[4:6].encode()
+        day = flight.name[6:8].encode()
+        result = {"year": year, "month": month, "day": day}
+    return result
+
+
+def getGroupFlights():
+    return GROUP_FLIGHT_MODEL.get().objects.exclude(name="").order_by('name')
+
+
+def getAllFlights(today=False, reverseOrder=False):
+    orderby = 'name'
+    if reverseOrder:
+        orderby = '-name'
+    if not today:
+        return FLIGHT_MODEL.get().objects.all().order_by(orderby)
+    else:
+        now = timezone.localtime(datetime.datetime.now(pytz.utc))
+        todayname = "%04d%02d%02d" % (now.year, now.month, now.day)
+        return FLIGHT_MODEL.get().objects.filter(name__startswith=(todayname)).order_by(orderby)
+
+
+def getAllGroupFlights(today=False, reverseOrder=False):
+    orderby = 'name'
+    if reverseOrder:
+        orderby = '-name'
+    if not today:
+        return GROUP_FLIGHT_MODEL.get().objects.all().order_by(orderby)
+    else:
+        now = timezone.localtime(datetime.datetime.now(pytz.utc))
+        todayname = "%04d%02d%02d" % (now.year, now.month, now.day)
+        return GROUP_FLIGHT_MODEL.get().objects.filter(name__startswith=(todayname)).order_by(orderby)
+
+
+def getAllFlightNames(year="ALL", onlyWithPlan=False, reverseOrder=True):
+    orderby = 'name'
+    if reverseOrder:
+        orderby = '-name'
+    flightList = FLIGHT_MODEL.get().objects.exclude(name="").order_by(orderby)
+    flightNames = ["-----"]
+    if flightList:
+        for flight in flightList:
+            if (flight.name):
+                flightNames.append(flight.name)
+    return flightNames
+
+
+def manageFlights(request, errorString=""):
+    today = request.session.get('today', False)
+    return render(request,
+                  "xgds_core/ManageFlights.html",
+                  {'groups': getAllGroupFlights(today=today),
+                   'title': settings.XGDS_CORE_FLIGHT_MONIKER,
+                   'help_content_path': 'xgds_core/help/manageFlights.rst',
+                   "errorstring": errorString},
+                  )
+
+
+def listFlownFlights(request, errorString=""):
+    today = request.session.get('today', False)
+    return render(request,
+                  "xgds_core/ListFlownFlights.html",
+                  {'groups': getAllGroupFlights(today=today),
+                   'title': settings.XGDS_CORE_FLIGHT_MONIKER,
+                   'help_content_path': 'xgds_core/help/manageFlights.rst',
+                   "errorstring": errorString},
+                  )
+
+
+def startFlightTracking(request, flightName):
+    try:
+        flight = FLIGHT_MODEL.get().objects.get(name=flightName)
+        if settings.GEOCAM_TRACK_SERVER_TRACK_PROVIDER:
+            flight.startTracking()
+            messages.info(request, "Tracking started: " + flightName)
+        else:
+            messages.error(request, "This server is not a tracking provider")
+    except FLIGHT_MODEL.get().DoesNotExist:
+        messages.error(request, 'Flight not found: ' + flightName)
+    return redirect(reverse('error'))
+
+
+def stopFlightTracking(request, flightName):
+    try:
+        flight = FLIGHT_MODEL.get().objects.get(name=flightName)
+        if settings.GEOCAM_TRACK_SERVER_TRACK_PROVIDER:
+            flight.stopTracking()
+            messages.info(request, "Tracking stopped: " + flightName)
+        else:
+            messages.error(request, "This server is not a tracking provider")
+    except FLIGHT_MODEL.get().DoesNotExist:
+        messages.error(request, 'Flight not found: ' + flightName)
+    return redirect(reverse('error'))
+
+
+def startFlight(request, uuid):
+    errorString = ""
+    try:
+        flight = FLIGHT_MODEL.get().objects.get(uuid=uuid)
+        # This next line is to avoid replication problems. If we are not the track provider (e.g. ground server) we wait for times to replicate.
+        if settings.GEOCAM_TRACK_SERVER_TRACK_PROVIDER:
+            if not flight.start_time:
+                flight.start_time = datetime.datetime.now(pytz.utc)
+            flight.end_time = None
+            flight.save()
+    except FLIGHT_MODEL.get().DoesNotExist:
+        errorString = "Flight not found"
+
+    if flight:
+        # end any other active flight that is with the same vehicle
+        try:
+            conflictingFlights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle__pk=flight.vehicle.pk)
+            for cf in conflictingFlights:
+                doStopFlight(request, cf.flight.uuid)
+        except:
+            pass
+
+        # make this flight active
+        foundFlight = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__pk=flight.pk)
+        if not foundFlight:
+            newlyActive = ACTIVE_FLIGHT_MODEL.get()(flight=flight)
+            newlyActive.save()
+
+        flight.startFlightExtras(request)
+
+        setState(flight.name, flight.start_time, values=model_to_dict(flight), notes='Flight Started')
+
+    return manageFlights(request, errorString)
+
+
+def stopFlight(request, uuid):
+    errorString = doStopFlight(request, uuid)
+    return manageFlights(request, errorString)
+
+
+def doStopFlight(request, uuid):
+    errorString = ""
+    try:
+        flight = FLIGHT_MODEL.get().objects.get(uuid=uuid)
+        if not flight.start_time:
+            errorString = "Flight has not been started"
+        else:
+            flight.end_time = datetime.datetime.now(pytz.utc)
+            flight.save()
+            try:
+                flight.stopFlightExtras(request, flight)
+            except:
+                print 'error in stop flight extras for %s' % flight.name
+                traceback.print_exc()
+
+            # kill the plans
+            for pe in flight.plans.all():
+                if pe.start_time:
+                    pe.end_time = flight.end_time
+                    pe.save()
+            try:
+                active = ACTIVE_FLIGHT_MODEL.get().objects.get(flight__pk=flight.pk)
+                active.delete()
+            except ObjectDoesNotExist:
+                errorString = 'Flight IS NOT ACTIVE'
+
+            setState(flight.name, end=flight.end_time, active=False, notes='Flight Ended')
+
+    except:
+        traceback.print_exc()
+        errorString = "Flight not found"
+    return errorString
+
+
+def addGroupFlight(request):
+    from xgds_core.forms import GroupFlightForm
+    group_flight = None
+
+    if request.method != 'POST':
+        groupFlightForm = GroupFlightForm()
+        return render(request,
+                      "xgds_core/AddGroupFlight.html",
+                      {'groupFlightForm': groupFlightForm,
+                       'groupFlights': getGroupFlights(),
+                       'errorstring': errorString})
+
+    if request.method == 'POST':
+        form = GroupFlightForm(request.POST)
+        group_flight = None
+        if form.is_valid():
+            try:
+                group_flight_name = form.cleaned_data['date'].strftime('%Y%m%d') + form.cleaned_data['prefix']
+                vehicles = []
+                vModel = VEHICLE_MODEL.get()
+                for vehicle_name in form.cleaned_data['vehicles']:
+                    vehicles.append(vModel.objects.get(name=vehicle_name))
+
+                group_flight = create_group_flight(group_flight_name, form.cleaned_data['notes'], vehicles)
+
+            except IntegrityError, strerror:
+                return render(request,
+                              "xgds_core/AddGroupFlight.html",
+                              {'groupFlightForm': form,
+                               'groupFlights': getGroupFlights(),
+                               'errorstring': "Problem Creating Group Flight: {%s}" % strerror},
+                              )
+        else:
+            errorString = form.errors
+            return render(request,
+                          "xgds_core/AddGroupFlight.html",
+                          {'groupFlightForm': form,
+                           'groupFlights': getGroupFlights(),
+                           'errorstring': errorString},
+                          )
+
+    # add relay ...
+    if group_flight:
+        addRelay(group_flight, None,
+                 json.dumps({'name': group_flight.name, 'id': group_flight.pk, 'notes': group_flight.notes}),
+                 reverse('xgds_core_relayAddGroupFlight'))
+        for f in group_flight.flights():
+            addRelay(f, None, json.dumps(
+                {'group_id': group_flight.pk, 'vehicle_id': f.vehicle.pk, 'name': f.name, 'uuid': str(f.uuid),
+                 'id': f.id}), reverse('xgds_core_relayAddFlight'))
+
+    return HttpResponseRedirect(reverse('xgds_core_manage', args=[]))
+
+
+def relayAddFlight(request):
+    """ Add a flight with same pk and uuid from the post dictionary
+    """
+    try:
+        try:
+            flightName = request.POST.get('name')
+            preexisting = FLIGHT_MODEL.get().get(name=flightName)
+            preexisting.name = 'BAD' + preexisting.name
+            preexisting.save()
+
+            # TODO this should never happen, we should not have flights on multiple servers with the same name
+            print '********DUPLICATE FLIGHT***** %s WAS ATTEMPTED TO RELAY WITH PK %d' % (
+            flightName, request.POST.get('id'))
+        except:
+            pass
+
+        # we are good it does not exist
+        form_dict = json.loads(request.POST.get('serialized_form'))
+        newFlight = FLIGHT_MODEL.get()(**form_dict)
+        newFlight.save()
+        return JsonResponse(model_to_dict(newFlight))
+    except Exception, e:
+        traceback.print_exc()
+        return JsonResponse({'status': 'fail', 'exception': str(e)}, status=406)
+
+
+def relayAddGroupFlight(request):
+    """ Add a group flight with same pk and uuid from the post dictionary
+    """
+    try:
+        try:
+            gfName = request.POST.get('name')
+            preexisting = GROUP_FLIGHT_MODEL.get().get(name=gfName)
+            preexisting.name = 'BAD' + preexisting.name
+            preexisting.save()
+            # TODO this should never happen, we should not have flights on multiple servers with the same name
+            print '********DUPLICATE GROUP FLIGHT***** %s WAS ATTEMPTED TO RELAY WITH PK %d' % (
+            gfName, request.POST.get('id'))
+        except:
+            pass
+
+        form_dict = json.loads(request.POST.get('serialized_form'))
+        newGroupFlight = GROUP_FLIGHT_MODEL.get()(**form_dict)
+        newGroupFlight.save()
+        return JsonResponse(model_to_dict(newGroupFlight))
+    except Exception, e:
+        traceback.print_exc()
+        return JsonResponse({'status': 'fail', 'exception': str(e)}, status=406)
+
+
+def getActiveFlights(vehicle=None):
+    ACTIVE_FLIGHTS_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
+
+    if not vehicle:
+        return ACTIVE_FLIGHTS_MODEL.get().objects.all()
+    else:
+        # filter by vehicle
+        return ACTIVE_FLIGHTS_MODEL.get().objects.filter(flight__vehicle=vehicle)
+
+
+def getActiveFlightFlights(vehicle=None):
+    activeFlights = getActiveFlights(vehicle)
+    flights = FLIGHT_MODEL.get().objects.filter(active__in=activeFlights)
+    return flights
+
+
+def activeFlightsTreeNodes(request):
+    activeFlights = getActiveFlights()
+    result = []
+    for aFlight in activeFlights:
+        result.append(aFlight.flight.getTreeJson())
+    json_data = json.dumps(result, indent=4)
+    return HttpResponse(content=json_data,
+                        content_type="application/json")
+
+
+def completedFlightsTreeNodes(request):
+    flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True)
+    result = []
+    for f in flights:
+        result.append(f.getTreeJson())
+    json_data = json.dumps(result, indent=4)
+    return HttpResponse(content=json_data,
+                        content_type="application/json")
+
+
+def flightTreeNodes(request, flight_id):
+    flight = FLIGHT_MODEL.get().objects.get(id=flight_id)
+    json_data = json.dumps(flight.getTreeJsonChildren(), indent=4)
+    return HttpResponse(content=json_data,
+                        content_type="application/json")
+
+
+def getTodaysGroupFlights():
+    today = timezone.localtime(timezone.now()).date()
+    return GROUP_FLIGHT_MODEL.get().objects.filter(name__startswith=today.strftime('%Y%m%d'))
+
+
+def getGroupFlightSummary(request, groupFlightName):
+    try:
+        group = GROUP_FLIGHT_MODEL.get().objects.get(name=groupFlightName)
+        return render(request,
+                      "xgds_core/groupFlightSummary.html",
+                      {'groupFlight': group},
+                      )
+    except:
+        raise Http404("%s %s does not exist" % (settings.XGDS_CORE_GROUP_FLIGHT_MONIKER, groupFlightName))
+
+
+def updateTodaySession(request):
+    if not request.is_ajax() or not request.method == 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    todayChecked = request.POST.get('today')
+    todayValue = todayChecked == unicode('true')
+    request.session['today'] = todayValue
+    return HttpResponse('ok')

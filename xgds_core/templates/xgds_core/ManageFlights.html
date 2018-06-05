@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load nav %}
+{% load tz %}
+{% load static %}
+
+{% block siteSection %} Manage {{ settings.XGDS_CORE_FLIGHT_MONIKER }} {% endblock %}
+
+{% block nav %}
+    {% nav "planner2.manageFlight" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block sitemenu-content-secondary %}
+    {% include "xgds_planner2/planner2_subnav.html" %}
+{% endblock %}
+
+{% block contents %}
+	{% if errorString %}
+	<span class="error">{{ errorString }}</span>
+	{% endif %}
+	<div class="d-flex justify-content-between" style="width: 100%;">
+		<form name='TodayForm' id="todayForm" action="{% url 'xgds_core_updateToday' %}" method="post">
+			<label for="id_today" style="display:inline">
+				<input type="checkbox" class="mr-1" name="today" id="id_today" {% if request.session.today %} checked="checked" {%endif %} ></input>
+				Today
+			</label>
+		</form>
+        {% if settings.XGDS_CORE_SHOW_FLIGHT_MANAGEMENT %}
+		<div class="btn-group" role="group">
+			<a class="btn btn-primary" role="button" href="{% url 'xgds_core_addGroupFlight' %}" >Create {{ settings.XGDS_CORE_FLIGHT_MONIKER}}s</a>
+		</div>
+        {%  endif  %}
+	</div>
+
+	<table id="dataTable" class="planIndex table-striped">
+	<thead>
+		<tr>
+		<th>Name</th>
+		<th>Planned</th>
+		<th>Started</th>
+		<th>Ended</th>
+		<th></th>
+		</tr>
+	</thead>
+	{% for group in groups %}
+	<tr>
+		<td><a href="#">{{ group.name }}</a></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+	</tr>
+	{% for flight in group.flights %}
+	<tr {% if not flight.end_time and flight.start_time %} style="background:lightgreen;" {% endif %}>
+		<td >&nbsp;&nbsp;&nbsp;{{settings.XGDS_CORE_FLIGHT_MONIKER}}: {{ flight.name }}</td>
+		<td></td>
+		<td>{% if flight.start_time %}{% timezone flight.timezone %} {{flight.start_time|date:"Y-m-d H:i e"}}{% endtimezone %}{%endif%} <a href="{% url 'planner2_startFlight' flight.uuid %}" class="btn btn-green btn-sm">{% if flight.start_time %}re{%endif%}start</a></td>
+		<td>{% if flight.end_time %} {% timezone flight.timezone %}{{flight.end_time|date:"Y-m-d H:i e"}}{% endtimezone %}{% endif %}<a href="{% url 'planner2_stopFlight' flight.uuid %}" class="btn btn-red btn-sm ml-1">stop</a></td>
+		<td></td>
+	</tr>
+	{% for pe in flight.plans.all %}
+	{% with pe.plan.escapedName|add:".pml" as filename %}
+	<tr {% if not pe.end_time and pe.start_time %} style="background:lightgreen;" {% endif %}>
+		<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="{% url 'planner2_edit' pe.plan.id %}">{{ pe.plan.escapedName }}</a></td>
+		<td>{% if pe.planned_start_time %}{% timezone flight.timezone %} {{ pe.planned_start_time|date:"Y-m-d H:i e"}}{% endtimezone %} <a href="{% url 'planner2_planExportTime' pe.plan.uuid filename pe.planned_start_time|date:'c' %}">PML</a>{% endif %}</td>
+		<td>{% if pe.start_time %}{% timezone flight.timezone %}  {{pe.start_time|date:"Y-m-d H:i e"}}{% endtimezone %} <a href="{% url 'planner2_planExportTime' pe.plan.uuid filename pe.start_time|date:'c' %}">PML</a>{% else %} <a href="{% url 'planner2_startPlan' pe.id %}" class="btn btn-green btn-sm">Start</a>  {% endif %}</td>
+		<td>{% if pe.end_time %} {% timezone flight.timezone %} {{pe.end_time|date:"Y-m-d H:i e"}}{% endtimezone %}{% elif pe.start_time %} <a href="{% url 'planner2_stopPlan' pe.id %}" class="btn btn-red btn-sm">Stop</a> {% endif %}</td>
+		<td>{% if not pe.start_time %}<a href="{% url 'planner2_deletePlanExecution' pe.id %}">Delete</a>{% endif %}</td>
+	</tr>
+	{% endwith %}
+	{% endfor %}
+	{% endfor %}
+	{% endfor %}
+	</table>
+
+{% endblock contents %}
+
+{% block scripts %}
+  {{ block.super }}
+  	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}jquery-ui-dist/jquery-ui.min.js"></script>
+  	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}datatables/media/js/jquery.dataTables.min.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'xgds_core/js/datatablesUtils.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}jquery-ui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js"></script>
+<script type="text/javascript">
+
+/*$.post('{# url xgds_core_updateToday #}', function(data) {
+    alert(data);
+}); */
+
+$('#id_today').change(function(e){
+    var ischecked = $('#id_today').is(":checked");
+    $.ajax({
+        type: "POST",
+        url: "{% url 'xgds_core_updateToday' %}",
+        data: { today: ischecked}
+    }).done(function (response) {
+        location.reload(true);
+    })
+});
+
+
+$(document).ready( function () {
+    defaultOptions['language'] = {
+        "lengthMenu": "Display _MENU_ {{settings.XGDS_CORE_FLIGHT_MONIKER}}s & {{ settings.XGDS_PLANNER_PLAN_MONIKER}}s"
+      };
+    defaultOptions['ordering'] = false;
+	var dataTable = $('#dataTable').dataTable(defaultOptions);
+    $(window).resize(function(){
+        $('div.dataTables_scrollBody').css('height',calcDataTableHeight());
+        dataTable.fnAdjustColumnSizing();
+    });
+} );
+ </script>
+{% endblock scripts %}

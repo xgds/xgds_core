@@ -1,0 +1,17 @@
+# This file describes temperature values as provided by the temperature probe from KRex2
+name: KRex2.Temp
+class: xgds_braille_app.Temp
+extension: tsv
+delimiter: \t
+fields:
+  - name: vehicle__name
+    default: KRex2
+    type: string
+  - name: timestamp
+    type: datetime
+  - name : temperature
+    type : float
+  - name: units
+    type: string
+    default: C
+    skip: true

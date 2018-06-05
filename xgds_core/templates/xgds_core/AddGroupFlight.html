@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load nav %}
+{% block siteSection %}Add Group Flight{% endblock %}
+
+	{% block headExtras %}
+	<link rel="stylesheet" type="text/css" href="{{ EXTERNAL_URL }}jquery-ui-dist/jquery-ui.min.css" ></link>
+	{% endblock %}
+		
+		
+   {% block nav %}
+    {% nav "xgds_core_addGroupFlight" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block sitemenu-content-secondary %}
+    {% include "xgds_planner2/planner2_subnav.html" %}
+{% endblock %}
+						
+{% block contents %}
+	<h4>Create {{ settings.XGDS_CORE_FLIGHT_MONIKER }} </h4>
+  <form action="{% url 'xgds_core_addGroupFlight' %}" method="post">
+	<table>
+  	{{groupFlightForm.as_table }}
+  	<tr><td></td><td><input type="submit" value="Create" /></td></tr>
+  	</table>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+   {{ block.super }}
+   		<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}jquery-ui-dist/jquery-ui.min.js"></script>
+		
+		<script>
+		$(function() {
+			$( "#id_date" ).datepicker();
+			$( "#id_date" ).datepicker( "option", "dateFormat", "yy-mm-dd" );
+			$( "#id_date" ).datepicker("setDate",new Date({{ groupFlightForm.year }}, {{ groupFlightForm.month }},{{ groupFlightForm.day }}));
+		});
+		</script>
+{% endblock %}
