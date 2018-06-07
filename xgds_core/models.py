@@ -588,6 +588,15 @@ class AbstractFlight(UuidModel, HasVehicle):
     def __unicode__(self):
         return self.name
 
+    def update_start_time(self, start):
+        """
+        Update the start time and save
+        :param start: the start time
+        """
+        if not self.start_time or start < self.start_time:
+            self.start_time = start
+            self.save()
+
     def getTreeJsonChildren(self):
         children = []
         if hasattr(self, 'track'):

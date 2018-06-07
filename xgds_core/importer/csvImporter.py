@@ -31,7 +31,7 @@ from collections import OrderedDict
 
 from geocamUtil.loader import getModelByName
 from xgds_core.flightUtils import get_default_vehicle, getFlight, create_group_flight, \
-    get_next_available_group_flight_name, lookup_vehicle, lookup_flight
+    get_next_available_group_flight_name, lookup_vehicle, lookup_flight, get_or_create_flight
 from geocamUtil.loader import LazyGetModelByName
 from dateutil.parser import parse as dateparser
 
@@ -160,26 +160,6 @@ class CsvImporter(object):
             raise Exception('Row is missing a time' + str(row))
         return the_time
 
-    def get_or_create_flight(self, row):
-        """
-        Use the timestamp in the row to look up or create a flight, which is stored in self.flight.
-        :param row: the first row of the csv
-        """
-        start_time = self.get_start_time()
-        self.flight = getFlight(self.get_start_time(), self.vehicle)
-        if not self.flight:
-            # There was not a valid flight, so let's make a new one.  We will make a new group flight.
-            group_flight = create_group_flight(get_next_available_group_flight_name(start_time.strftime('%Y%m%d')))
-            if group_flight:
-                flights = group_flight.flights.filter(vehicle=self.vehicle)
-                self.flight = flights[0]  # there should only be one
-
-                # set its start time
-                self.flight.start_time = start_time
-                self.flight.save()
-        else:
-            self.update_flight_start(start_time)
-
     def open_csv(self, csv_file_path):
         """ Open the CSV file and return a tuple of the file, dictreader"""
         delimiter = ','
@@ -228,9 +208,7 @@ class CsvImporter(object):
         :return:
         """
         if self.flight:
-            if not self.flight.start_time or start < self.flight.start_time:
-                self.flight.start_time = start
-                self.flight.save()
+            update_flight_start(self.flight)
 
     def load_csv(self):
         """
@@ -319,7 +297,7 @@ class CsvImporter(object):
                 raise Exception('Matching data found, data already imported', first_row)
         if not self.flight and self.config['flight_required']:
             # read the first timestamp and find a flight for it
-            self.get_or_create_flight(first_row)
+            get_or_create_flight(self.get_start_time(), self.vehicle)
             if self.flight:
                 self.config['defaults']['flight_id'] = self.flight.id
         return self.config
