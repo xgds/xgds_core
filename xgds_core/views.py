@@ -991,6 +991,7 @@ def doStopFlight(request, uuid):
 def addGroupFlight(request):
     from xgds_core.forms import GroupFlightForm
     group_flight = None
+    errorString = ''
 
     if request.method != 'POST':
         groupFlightForm = GroupFlightForm()
