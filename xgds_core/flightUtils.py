@@ -135,3 +135,28 @@ def lookup_flight(flight_name):
         except:
             pass
     return flight
+
+
+def get_or_create_flight(start_time, vehicle=None):
+    """
+    Get or create a flight; will create the group flight and the flights, and set the start time.
+    :param start_time: the start time of the flight
+    :param vehicle: the vehicle
+    :return: the flight
+    """
+    if not vehicle:
+        vehicle = get_default_vehicle()
+    flight = getFlight(start_time, vehicle)
+    if not flight:
+        # There was not a valid flight, so let's make a new one.  We will make a new group flight.
+        group_flight = create_group_flight(get_next_available_group_flight_name(start_time.strftime('%Y%m%d')))
+        if group_flight:
+            flights = group_flight.flights.filter(vehicle=vehicle)
+            flight = flights[0]  # there should only be one
+
+            # set its start time
+            flight.start_time = start_time
+            flight.save()
+    else:
+        flight.update_start_time(start_time)
+    return flight
