@@ -79,6 +79,12 @@ class NamedURL(models.Model):
     object_id = models.PositiveIntegerField(db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+class HasDownloadableFiles(object):
+    """ Mixin to support models that have downloadable files """
+
+    def getDownloadableFiles(self):
+        pass
+
 
 class SearchableModel(object):
     """
