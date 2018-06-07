@@ -1035,7 +1035,7 @@ def addGroupFlight(request):
         addRelay(group_flight, None,
                  json.dumps({'name': group_flight.name, 'id': group_flight.pk, 'notes': group_flight.notes}),
                  reverse('xgds_core_relayAddGroupFlight'))
-        for f in group_flight.flights():
+        for f in group_flight.flights.all():
             addRelay(f, None, json.dumps(
                 {'group_id': group_flight.pk, 'vehicle_id': f.vehicle.pk, 'name': f.name, 'uuid': str(f.uuid),
                  'id': f.id}), reverse('xgds_core_relayAddFlight'))
