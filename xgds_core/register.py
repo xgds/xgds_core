@@ -121,7 +121,7 @@ def activateUser(request, user_id):
     mail.send_mail(
         settings.EMAIL_SUBJECT_PREFIX + "Your account has been activated",
         string.Template("""
-        Hi, $first_name.
+        Hi $first_name,
         Your xGDS registration request has been approved.  Click to log in!
         $url
         """).substitute({'username': user.username,
