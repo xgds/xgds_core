@@ -34,9 +34,12 @@ registration_email_template = string.Template(  # noqa
 """
 Greetings, xGDS managers.
 
-You have received a user registration request from xGDS from the user $username ($email).
+You have received a user registration request for $first_name $last_name.
 
-$username says:
+Username: $username
+Email: $email
+
+$first_name says:
 "$comments"
 
 To activate this user, visit:
@@ -78,9 +81,11 @@ def registerUser(request):
             user.is_active = False
             user.save()
             mail.mail_managers(
-                'Registration request from %s' % user.username,
+                'Registration request from %s %s (%s)' % (user.first_name, user.last_name, user.username),
                 registration_email_template.substitute({
                     'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
                     'email': user.email,
                     'url': request.build_absolute_uri(reverse('user-activate', args=[user.id])),
                     'comments': user_data['comments'],
@@ -90,8 +95,7 @@ def registerUser(request):
             )
             return render(request,
                           "registration/simple_message.html",
-                          {'message': "You have successfully registered.  Please notify an xGDS developer to activate your account."},  
-                          #You will receive an email notification at %s after a site manager approves your request." % user.email},
+                          {'message': "You will receive an email notification at %s after a site manager approves your request." % user.email},
                           )
 
 
@@ -117,10 +121,11 @@ def activateUser(request, user_id):
     mail.send_mail(
         settings.EMAIL_SUBJECT_PREFIX + "Your account has been activated",
         string.Template("""
-        Hi, $username.
+        Hi, $first_name.
         Your xGDS registration request has been approved.  Click to log in!
         $url
         """).substitute({'username': user.username,
+                         'first_name': user.first_name,
                         'url': request.build_absolute_uri(reverse('user-login'))}),
         settings.SERVER_EMAIL,
         [user.email],
@@ -128,11 +133,13 @@ def activateUser(request, user_id):
     mail.mail_managers(
         settings.EMAIL_SUBJECT_PREFIX + "The user %s was activated." % user.username,
         string.Template("""
-        The User $username was successfully activated by $adminuser.
+        The user $first_name $last_name ($username) was successfully activated by $adminuser.
         """).substitute({'username': user.username,
+                         'first_name': user.first_name,
+                         'last_name': user.last_name,
                         'adminuser': request.user.username}),
     )
-    return render_message("The user %s was successfully activated." % user.username)
+    return render_message("The user %s %s (%s) was successfully activated." % (user.first_name, user.last_name, user.username))
 
 
 def email_feedback(request):
