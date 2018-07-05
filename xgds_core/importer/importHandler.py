@@ -21,7 +21,6 @@ See ../../docs/dataImportYml.rst
 
 
 import yaml
-import sys
 import os
 import re
 import datetime
@@ -34,6 +33,7 @@ import traceback
 import django
 django.setup()
 from xgds_core.models import ImportedTelemetryFile
+from heapq import *
 
 
 class ImportFinder:
@@ -46,10 +46,17 @@ class ImportFinder:
         # reporting import status to users
         self.processed_files = []
         self.files_to_process = []
+        # Keep track of the disposition of all discovered files:
+        self.previously_imported_files = [] # were in the database
+        self.ignored_files = [] # matched an explicit ignore rule
+        self.ambiguous_files = [] # matched more than one config rule
+        self.unmatched_files = [] # matched no config rule
+        self.imports_that_failed = [] # tried to import and failed
+        self.imports_that_succeeded = [] # tried and succeeded
 
     def get_new_files(self):
         for dirName, subdirList, fileList in os.walk(self.config['import_path']):
-            print('Found directory: %s' % dirName)
+            #print('Found directory: %s' % dirName)
             for basename in fileList:
                 filename = os.path.join(dirName, basename)
                 # If the filename is in the list of processed files, skip it
@@ -60,7 +67,9 @@ class ImportFinder:
                 # having successfully imported previously
                 previous = ImportedTelemetryFile.objects.filter(filename=filename, returncode=0)
                 if previous:
-                    '%s is in the database as having been imported' % filename
+                    print '%s is in the database as having been imported' % filename
+                    # Add it to the previously imported files for statistics
+                    self.previously_imported_files.append(filename)
                     # Add it to the locally cached copy of processed files
                     self.processed_files.append(filename)
                     continue
@@ -68,19 +77,43 @@ class ImportFinder:
                 # Identify which importer to use, and make sure it's a unique match
                 matches = []
                 for r in self.registry:
-                    match = re.search(r['filename_pattern'], basename)
+                    #print r['filepath_pattern']
+                    match = re.search(r['filepath_pattern'], filename)
                     if match:
                         matches.append(r)
                 if 1 == len(matches):
+                    if 'ignore' in matches[0] and matches[0]['ignore']:
+                        # matched an explicit ignore rule
+                        print 'Ignoring', basename
+                        self.ignored_files.append(filename)
+                        continue
+                    if 'order' in matches[0].keys():
+                        order = matches[0]['order']
+                    else:
+                        order = 10
+                    print 'Adding', basename
                     # unique match, add to the list of things to import
-                    self.files_to_process.append((filename, matches[0]))
+                    heappush(self.files_to_process,(order,(filename,matches[0])))
                 elif 0 == len(matches):
-                    print 'Warning: file %s does not match any importer config' % basename
+                    print 'Warning: file %s does not match any importer config' % filename
+                    self.unmatched_files.append(filename)
                 else:
-                    print 'Warning: file %s matches more than one importer config' % basename
+                    print 'Warning: file %s matches more than one importer config' % filename
+                    for m in matches:
+                        print m
+                    self.ambiguous_files.append(filename)
+
+        print 'Identified files to process:'
+        for item in self.files_to_process:
+            order = item[0]
+            filename = item[1][0]
+            registry = item[1][1]
+            print '%s %s' % (order,filename)
 
     def process_files(self):
-        for filename, registry in self.files_to_process:
+        while len(self.files_to_process)>0:
+            order, pair = heappop(self.files_to_process)
+            filename, registry = pair
             arguments = ''
             if 'arguments' in registry:
                 if '%(filename)s' in registry['arguments']:
@@ -93,7 +126,7 @@ class ImportFinder:
             cmd = ' '.join([registry['importer'], arguments])
             timeout = registry['timeout']
             try:
-                print cmd
+                print order, cmd
                 proc = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
             except Exception as e:
                 print str(e)
@@ -127,16 +160,39 @@ class ImportFinder:
             itf.save()
             # If it succeeded, keep track that we did this one
             if proc.returncode == 0:
+                self.imports_that_succeeded.append(filename)
                 self.processed_files.append(filename)
+            else:
+                self.imports_that_failed.append(filename)
+
+    def print_import_stats(self):
+        print 'Found %d previously imported files' % len(self.previously_imported_files)
+        print 'Found %d files configured to ignore' % len(self.ignored_files)
+        print 'Found %d ambiguous files, matched more than one config rule' % len(self.ambiguous_files)
+        print 'Found %d unmatched files, matched no config rule' % len(self.unmatched_files)
+        print 'Tried %d imports that failed' % len(self.imports_that_failed)
+        print 'Tried %d imports that succeeded' % len(self.imports_that_succeeded)
+
+    def do_once(self,test):
+        self.get_new_files()
+        self.process_files()
 
     def loop(self):
         while True:
-            self.get_new_files()
-            self.process_files()
+            self.do_once()
             time.sleep(10)
 
 
 if __name__ == '__main__':
-    print os.getcwd()
-    finder = ImportFinder(sys.argv[1])
-    finder.loop()
+    import optparse
+    parser = optparse.OptionParser('usage: %prog')
+    parser.add_option('-t', '--test',
+                      action='store_true', default=False,
+                      help='Run in test mode: find files and report them but do not process them')
+    opts, args = parser.parse_args()
+
+    finder = ImportFinder(args[0])
+    finder.get_new_files()
+    if not opts.test:
+        finder.process_files()
+    finder.print_import_stats()
