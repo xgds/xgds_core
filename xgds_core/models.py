@@ -538,6 +538,38 @@ class HasVehicle(object):
             return self.vehicle.name
         return ''
 
+class IsTreeChild(object):
+    """
+    Interface for providing a child block of json for fancytree
+    """
+
+    @classmethod
+    def get_tree_json(cls, parent_class, parent_pk):
+        """
+        Get the json block for the tree based on the parent class and pk.
+        Sample json:
+        {"title": settings.GEOCAM_TRACK_TRACK_MONIKER,
+                             "selected": False,
+                             "tooltip": "Tracks for " + self.name,
+                             "key": self.uuid + "_tracks",
+                             "data": {
+                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(self.track.uuid)}),
+                                 "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
+                                 "sseUrl": "",
+                                 "type": 'MapLink',
+                             }
+                             }
+        :param parent_class: the package & class name
+        :param parent_pk: the pk of the parent
+        :return: valid json block for the tree, or None
+        """
+        # TODO subclass should implement this
+        return None
+
+
+class IsFlightChild(IsTreeChild):
+    pass
+
 
 class AbstractFlight(UuidModel, HasVehicle):
     objects = NameManager()
@@ -624,6 +656,12 @@ class AbstractFlight(UuidModel, HasVehicle):
                                       "type": 'MapLink',
                                       }
                              })
+
+        for the_class in IsFlightChild.__subclasses__():
+            tree_json = the_class.get_tree_json(settings.XGDS_CORE_FLIGHT_MODEL, self.pk)
+            if tree_json:
+                children.append(tree_json)
+
         return children
 
     def getTreeJson(self):
