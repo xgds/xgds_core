@@ -809,3 +809,25 @@ class GroupFlight(AbstractGroupFlight):
     def flights(self):
         return self.flight_set.all()
 
+class ImportedTelemetryFile(models.Model):
+    # The name of the file imported
+    filename = models.CharField(max_length=256,blank=False,null=False,db_index=True)
+    # Command line used to import
+    commandline = models.CharField(max_length=512,blank=False,null=False)
+    # When it was imported
+    timestamp = models.DateTimeField(blank=False,null=False)
+    # How long it took to import
+    duration = models.IntegerField(blank=False,null=False,default=0)
+    # The return code from running the importer
+    returncode = models.IntegerField(blank=False,null=False)
+    # The output of the script that imported the file
+    runlog = models.TextField()
+    errlog = models.TextField()
+    # If the import fails and we keep trying keep track of how many times
+    retry_count = models.IntegerField()
+
+    def __unicode__(self):
+        status = 'success'
+        if self.returncode <> 0:
+            status = 'failed'
+        return '%s @ %s (%s)' % (self.filename, self.timestamp, status)
