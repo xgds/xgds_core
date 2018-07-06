@@ -84,13 +84,20 @@
 <td>Timezone</td>
 <td>{{flight.timezone}}</td>
 </tr>
+    <tr>
+<td>Scalar Data</td>
+<td><a href="{% url 'map_replay_flight' flight.name %}">Replay</a></td>
+</tr>
+
+
 {% endtimezone %}
 {% endif %}
 {% block flightContents %}
-{% if flight.basaltnote_set.exists %}
+    <!-- TODO make this flexible -->
+{% if flight.xgds_notes2_locatednote_related.exists %}
 <tr>
 <td>Notes</td>
-<td><a href="{% url 'search_xgds_notes_map_filter' theFilter %}" target="_blank">{{flight.basaltnote_set.count}}</a></td>
+<td><a href="{% url 'search_xgds_notes_map_filter' theFilter %}" target="_blank">{{flight.xgds_notes2_locatednote_related.count}}</a></td>
 </tr>
 {% endif %}
 {% endblock flightContents %}

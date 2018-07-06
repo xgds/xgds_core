@@ -787,7 +787,7 @@ class AbstractGroupFlight(models.Model):
         return ''  # TODO implement
 
     def summary_url(self):
-        return self.view_url()
+        return reverse('xgds_core_group_flight_summary', kwargs={'groupFlightName': self.name})
 
     @property
     def flights(self):

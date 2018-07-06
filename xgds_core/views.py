@@ -1143,12 +1143,12 @@ def getTodaysGroupFlights():
 
 def getGroupFlightSummary(request, groupFlightName):
     try:
-        group = GROUP_FLIGHT_MODEL.get().objects.get(name=groupFlightName)
+        group = GROUP_FLIGHT_MODEL.get().objects.get(name__startswith=groupFlightName)
         return render(request,
                       "xgds_core/groupFlightSummary.html",
                       {'groupFlight': group},
                       )
-    except:
+    except ObjectDoesNotExist:
         raise Http404("%s %s does not exist" % (settings.XGDS_CORE_GROUP_FLIGHT_MONIKER, groupFlightName))
 
 
