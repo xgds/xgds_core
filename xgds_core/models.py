@@ -546,9 +546,9 @@ class IsTreeChild(object):
     @classmethod
     def get_tree_json(cls, parent_class, parent_pk):
         """
-        Get the json block for the tree based on the parent class and pk.
+        Get a list of json blocks for the tree based on the parent class and pk.
         Sample json:
-        {"title": settings.GEOCAM_TRACK_TRACK_MONIKER,
+        [{"title": settings.GEOCAM_TRACK_TRACK_MONIKER,
                              "selected": False,
                              "tooltip": "Tracks for " + self.name,
                              "key": self.uuid + "_tracks",
@@ -558,10 +558,10 @@ class IsTreeChild(object):
                                  "sseUrl": "",
                                  "type": 'MapLink',
                              }
-                             }
+                             }]
         :param parent_class: the package & class name
         :param parent_pk: the pk of the parent
-        :return: valid json block for the tree, or None
+        :return: a list of valid json block for the tree, or None
         """
         # TODO subclass should implement this
         return None
@@ -658,9 +658,9 @@ class AbstractFlight(UuidModel, HasVehicle):
                              })
 
         for the_class in IsFlightChild.__subclasses__():
-            tree_json = the_class.get_tree_json(settings.XGDS_CORE_FLIGHT_MODEL, self.pk)
-            if tree_json:
-                children.append(tree_json)
+            tree_jsons = the_class.get_tree_json(settings.XGDS_CORE_FLIGHT_MODEL, self.pk)
+            if tree_jsons:
+                children.extend(tree_jsons)
 
         return children
 
