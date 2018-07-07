@@ -538,6 +538,7 @@ class HasVehicle(object):
             return self.vehicle.name
         return ''
 
+
 class IsTreeChild(object):
     """
     Interface for providing a child block of json for fancytree
@@ -568,7 +569,29 @@ class IsTreeChild(object):
 
 
 class IsFlightChild(IsTreeChild):
+    """
+    Interface specifically for providing children to a flight for the tree (fancytree)
+    """
     pass
+
+
+class IsFlightData(object):
+    """
+    Interface to provide name and link to search results / viewing page for searchable data that is part of a flight
+    """
+
+    @classmethod
+    def get_info_json(cls, flight_pk):
+        """
+        Implement this in derived classes
+        Return a block of json that has
+        { name: renderable name, ie Notes,
+          count: number of items, ie 10,
+          url: link to open the items }
+        :param flight_pk: the pk of the containing flight
+        :return: json, or none
+        """
+        return None
 
 
 class AbstractFlight(UuidModel, HasVehicle):
@@ -678,6 +701,18 @@ class AbstractFlight(UuidModel, HasVehicle):
                   # "children": self.getTreeJsonChildren()
                   }
 
+        return result
+
+    def get_info_jsons(self):
+        """
+        Get all the flight data json descriptive blocks
+        :return: a list of json blocks
+        """
+        result = []
+        for the_class in IsFlightData.__subclasses__():
+            flight_data_json = the_class.get_info_json(self.pk)
+            if flight_data_json:
+                result.append(flight_data_json)
         return result
 
     @property
