@@ -69,6 +69,10 @@ class AbstractImportVehicleForm(AbstractImportForm, AbstractPrimaryVehicleForm):
 
 
 class AbstractFlightVehicleForm(forms.Form):
+    # TODO We should be able to search on hidden flight id or flight pk but cannot; it does not show up in base fields or cleaned data.
+    # flight__id = IntegerField(blank=True)
+    # flight__pk = IntegerField(blank=True)
+
     flight__vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
                                        label=settings.XGDS_CORE_VEHICLE_MONIKER)
 
@@ -80,9 +84,14 @@ class AbstractFlightVehicleForm(forms.Form):
 
     class Meta:
         abstract = True
+        # widgets = {
+        #     'flight__pk': forms.HiddenInput(),
+        #     'flight__id': forms.HiddenInput(),
+        # }
 
 
 class SearchForm(ModelForm, AbstractFlightVehicleForm):
+
     queries = None
 
     def addQuery(self, query):
@@ -94,15 +103,18 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
     
     def buildContainsQuery(self, fieldname, field, value):
         return Q(**{fieldname+'__icontains':str(value)})
-    
+
+    def buildQueryForHiddenField(self, fieldname, field, value):
+        return Q(**{fieldname: value})
+
     def buildQueryForCharField(self, fieldname, field, value):
         return Q(**{fieldname+'__icontains':value})
 
     def buildQueryForBooleanField(self, fieldname, field, value):
-        return Q(**{fieldname:value})
+        return Q(**{fieldname: value})
     
     def buildQueryForChoiceField(self, fieldname, field, value):
-        return Q(**{fieldname:value})
+        return Q(**{fieldname: value})
     
     def buildQueryForModelChoiceField(self, fieldname, field, value):
         return Q(**{fieldname+'__id': value.pk})
@@ -125,7 +137,9 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
     def buildQueryForField(self, fieldname, field, value, minimum=False, maximum=False):
         field_typename = type(field).__name__
         try:
-            if field_typename == 'CharField':
+            if field.widget.is_hidden:
+                return self.buildQueryForHiddenField(fieldname, field, value)
+            elif field_typename == 'CharField':
                 return self.buildQueryForCharField(fieldname, field, value)
             elif field_typename == 'BooleanField':
                 return self.buildQueryForBooleanField(fieldname, field, value)
@@ -146,6 +160,7 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
         #iterate through all of your non-empty fields and build query for them
         # and them together
         self.queries = None
+
         for key in self.changed_data:
             try:
                 value = self.cleaned_data[key]

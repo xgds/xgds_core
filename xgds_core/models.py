@@ -844,6 +844,7 @@ class GroupFlight(AbstractGroupFlight):
     def flights(self):
         return self.flight_set.all()
 
+
 class ImportedTelemetryFile(models.Model):
     # The name of the file imported
     filename = models.CharField(max_length=256,blank=False,null=False,db_index=True)
