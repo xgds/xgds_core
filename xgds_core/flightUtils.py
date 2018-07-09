@@ -25,7 +25,7 @@ GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 
 
-def getFlight(event_time, vehicle):
+def getFlight(event_time, vehicle=None):
     """ Returns the flight that contains that event_time """
     if vehicle:
         found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(vehicle=vehicle, start_time__lte=event_time, end_time__gte=event_time)
