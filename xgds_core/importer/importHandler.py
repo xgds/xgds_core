@@ -111,7 +111,7 @@ class ImportFinder:
             registry = item[1][1]
             print '%s %s' % (order,filename)
 
-    def process_files(self):
+    def process_files(self, username=None, password=None):
         while len(self.files_to_process)>0:
             order, pair = heappop(self.files_to_process)
             filename, registry = pair
@@ -123,7 +123,13 @@ class ImportFinder:
                 else:
                     arguments = ' '.join([registry['arguments'], filename])
             else:
-                    arguments = filename
+                arguments = filename
+
+            auth = False
+            if 'auth' in registry:
+                auth = registry['auth']
+            if auth and 'username' not in arguments and username:
+                arguments = '--username %s --password %s %s' % (username, password, arguments)
             cmd = ' '.join([registry['importer'], arguments])
             timeout = registry['timeout']
             try:
@@ -190,10 +196,13 @@ if __name__ == '__main__':
     parser.add_option('-t', '--test',
                       action='store_true', default=False,
                       help='Run in test mode: find files and report them but do not process them')
+    parser.add_option('-u', '--username', default='irg', help='username for xgds auth')
+    parser.add_option('-p', '--password', help='authtoken for xgds authentication.  Can get it from https://xgds_server_name/accounts/rest/genToken/<username>')
+
     opts, args = parser.parse_args()
 
     finder = ImportFinder(args[0])
     finder.get_new_files()
     if not opts.test:
-        finder.process_files()
+        finder.process_files(username=opts.username, password=opts.password)
     finder.print_import_stats()
