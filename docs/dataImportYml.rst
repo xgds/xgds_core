@@ -46,7 +46,7 @@ KRex2_PastPosition.yaml::
      default: KRex2
      type: string
    - name: timestamp
-     type: datetime
+     type: iso8601
    - name: longitude
      type: float
      min: -180.0
@@ -90,7 +90,7 @@ Hercules_TempProbe.yaml::
        type: string
        skip: true
      timestamp:
-       type: datetime
+       type: iso8601
      instrument_name:
        type: string
        default: TEMPPROBE
@@ -188,50 +188,52 @@ Field Specification
 A Field Specification defines the mapping between the columnar data in the import file and 
 the Python model fields.
 
-+--------------------+----------------+-----------------+------------------------------------+
-|Member              |Type            |Values           |Meaning                             |
-+====================+================+=================+====================================+
-|``type``            | string         |string           |The type                            |
-|                    |                |text             |                                    |
-|                    |                |integer          |                                    |
-|                    |                |float            |                                    |
-|                    |                |nullboolean      |                                    |
-|                    |                |boolean          |                                    |
-|                    |                |date             |                                    |
-|                    |                |time             |                                    |
-|                    |                |datetime         |                                    |
-|                    |                |regex            |                                    |
-+--------------------+----------------+-----------------+------------------------------------+
-|``skip``            |boolean         |false            |True if this columnar data does not |
-|                    |                |                 |map to a model field.               |
-+--------------------+----------------+-----------------+------------------------------------+
-|``default``         |                |optional         |Default value                       |
-+--------------------+----------------+-----------------+------------------------------------+
-|``flight_required`` |                |false            |True if flight is required; it can  |
-|                    |                |                 |be looked up or created.            |
-+--------------------+----------------+-----------------+------------------------------------+
-|``label``           |                |optional         |The label for plots etc             |
-+--------------------+----------------+-----------------+------------------------------------+
-|``min``             |                |optional         |Minimum value, inclusive            |
-+--------------------+----------------+-----------------+------------------------------------+
-|``max``             |                |optional         |Maximum value, inclusive            |
-+--------------------+----------------+-----------------+------------------------------------+
-|``max_length``      |integer         |optional         |For fields of type string, the max  |
-|                    |                |                 |length (for model creation).        |
-+--------------------+----------------+-----------------+------------------------------------+
-|``units``           |string          |optional         |The expected units of measure       |
-+--------------------+----------------+-----------------+------------------------------------+
-|``interval``        |float           |optional         |The interval of received data in    |
-|                    |                |                 |the model.  No value = unknown      |
-+--------------------+----------------+-----------------+------------------------------------+
-|``regex``           |regex string    |optional         |Regex to use to parse the value.    |
-+--------------------+----------------+-----------------+------------------------------------+
-|``fields``          |list            | optional        |In the case of a regex field, this  |
-|                    |                |                 |will process the regex values into  |
-|                    |                |                 |the specified model fields. They    |
-|                    |                |                 |are not nested within the model;    |
-|                    |                |                 |it is a flat model object.          |
-+--------------------+----------------+-----------------+------------------------------------+
++--------------------+----------------+-------------------------+------------------------------------+
+|Member              |Type            |Values                   |Meaning                             |
++====================+================+=========================+====================================+
+|``type``            | string         |string                   |The type                            |
+|                    |                |text                     |                                    |
+|                    |                |integer                  |                                    |
+|                    |                |float                    |                                    |
+|                    |                |nullboolean              |                                    |
+|                    |                |boolean                  |                                    |
+|                    |                |date                     |                                    |
+|                    |                |time                     |                                    |
+|                    |                |iso8601                  |                                    |
+|                    |                |unixtime_float_second    |                                    |
+|                    |                |unixtime_int_microsecond |                                    |
+|                    |                |regex                    |                                    |
++--------------------+----------------+-------------------------+------------------------------------+
+|``skip``            |boolean         |false                    |True if this columnar data does not |
+|                    |                |                         |map to a model field.               |
++--------------------+----------------+-------------------------+------------------------------------+
+|``default``         |                |optional                 |Default value                       |
++--------------------+----------------+-------------------------+------------------------------------+
+|``flight_required`` |                |false                    |True if flight is required; it can  |
+|                    |                |                         |be looked up or created.            |
++--------------------+----------------+-------------------------+------------------------------------+
+|``label``           |                |optional                 |The label for plots etc             |
++--------------------+----------------+-------------------------+------------------------------------+
+|``min``             |                |optional                 |Minimum value, inclusive            |
++--------------------+----------------+-------------------------+------------------------------------+
+|``max``             |                |optional                 |Maximum value, inclusive            |
++--------------------+----------------+-------------------------+------------------------------------+
+|``max_length``      |integer         |optional                 |For fields of type string, the max  |
+|                    |                |                         |length (for model creation).        |
++--------------------+----------------+-------------------------+------------------------------------+
+|``units``           |string          |optional                 |The expected units of measure       |
++--------------------+----------------+-------------------------+------------------------------------+
+|``interval``        |float           |optional                 |The interval of received data in    |
+|                    |                |                         |the model.  No value = unknown      |
++--------------------+----------------+-------------------------+------------------------------------+
+|``regex``           |regex string    |optional                 |Regex to use to parse the value.    |
++--------------------+----------------+-------------------------+------------------------------------+
+|``fields``          |list            | optional                |In the case of a regex field, this  |
+|                    |                |                         |will process the regex values into  |
+|                    |                |                         |the specified model fields. They    |
+|                    |                |                         |are not nested within the model;    |
+|                    |                |                         |it is a flat model object.          |
++--------------------+----------------+-------------------------+------------------------------------+
 
 .. _ChildSpecification:
 

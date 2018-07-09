@@ -36,7 +36,9 @@ def get_field_model_type(field_type):
     """
     Convert the simple field type string to a field model type, ie
     float -> FloatField
-    datetime -> DateTimeField
+    iso8601 -> DateTimeField
+    unixtime_float_second -> DateTimeField
+    unixtime_int_microsecond -> DateTimeField
     boolean -> BooleanField
     These are then used to look up the database data type from the connection
     :param field_type: incoming simple field type (string)
@@ -44,7 +46,7 @@ def get_field_model_type(field_type):
     """
     if field_type == 'string':
         return 'CharField'
-    if field_type == 'datetime':
+    if field_type in ['iso8601', 'unixtime_float_second', 'unixtime_int_microsecond']:
         return 'DateTimeField'
     if field_type == 'nullboolean':
         return 'NullBooleanField'

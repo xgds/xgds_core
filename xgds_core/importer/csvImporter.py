@@ -124,7 +124,7 @@ class CsvImporter(object):
 
         self.config['timefields'] = []
         for key, value in self.config['fields'].iteritems():
-            if 'time' in value['type']:
+            if 'time' in value['type'] or 'iso8601' in value['type']:
                 self.config['timefields'].append(key)
 
         if 'flight_required' not in self.config:
@@ -150,7 +150,15 @@ class CsvImporter(object):
         if field_name in row:
             value = row[field_name]
             if not isinstance(value, datetime.datetime):
-                the_time = dateparser(row[field_name])
+                time_type = self.config['fields'][field_name]['type']
+                if time_type == 'iso8601':
+                    the_time = dateparser(row[field_name])
+                elif time_type == 'unixtime_float_second':
+                    the_time = datetime.datetime.fromtimestamp(float(row[field_name]))
+                elif time_type == 'unixtime_int_microsecond':
+                    the_time = datetime.datetime.fromtimestamp(int(row[field_name])/1000000)
+                else:
+                    raise Exception('Unsupported time type %s for row %s' % (time_type, field_name))
             else:
                 the_time = value
             if not the_time.tzinfo or the_time.tzinfo.utcoffset(the_time) is None:
