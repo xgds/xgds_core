@@ -236,9 +236,18 @@ class CsvImporter(object):
                 new_models.append(the_model(**row))
             self.update_flight_end(row['timestamp'])
             the_model.objects.bulk_create(new_models)
+            self.handle_last_row(row)
         finally:
             self.csv_file.close()
         return new_models
+
+    def handle_last_row(self, row):
+        """
+        Special processing after the last row
+        :param row: the last row
+        :return:
+        """
+        pass
 
     def check_data_exists(self, row):
         """
