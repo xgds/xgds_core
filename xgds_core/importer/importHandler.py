@@ -33,6 +33,7 @@ import time
 import traceback
 import django
 django.setup()
+from django.db import connection
 from xgds_core.models import ImportedTelemetryFile
 from heapq import *
 
@@ -150,6 +151,11 @@ class ImportFinder:
             end_import_time = pytz.timezone('utc').localize(datetime.datetime.utcnow())
 
             # Add or update metadata about this import in the database
+            try:
+                connection.close()
+            except:
+                traceback.print_exc()
+
             try:
                 itf = ImportedTelemetryFile()
                 previous_itf = ImportedTelemetryFile.objects.filter(filename=filename)
