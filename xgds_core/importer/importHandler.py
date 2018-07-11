@@ -150,21 +150,25 @@ class ImportFinder:
             end_import_time = pytz.timezone('utc').localize(datetime.datetime.utcnow())
 
             # Add or update metadata about this import in the database
-            itf = ImportedTelemetryFile()
-            previous_itf = ImportedTelemetryFile.objects.filter(filename=filename)
-            retry_count = 0
-            if previous_itf.count() > 0:
-                itf = previous_itf[0]
-                retry_count = itf.retry_count + 1
-            itf.filename = filename
-            itf.commandline = cmd
-            itf.timestamp = end_import_time
-            itf.duration = (end_import_time - start_import_time).total_seconds()
-            itf.returncode = proc.returncode
-            itf.runlog = stdout
-            itf.errlog = stderr
-            itf.retry_count = retry_count
-            itf.save()
+            try:
+                itf = ImportedTelemetryFile()
+                previous_itf = ImportedTelemetryFile.objects.filter(filename=filename)
+                retry_count = 0
+                if previous_itf.count() > 0:
+                    itf = previous_itf[0]
+                    retry_count = itf.retry_count + 1
+                itf.filename = filename
+                itf.commandline = cmd
+                itf.timestamp = end_import_time
+                itf.duration = (end_import_time - start_import_time).total_seconds()
+                itf.returncode = proc.returncode
+                itf.runlog = stdout
+                itf.errlog = stderr
+                itf.retry_count = retry_count
+                itf.save()
+            except:
+                traceback.print_exc()
+
             # If it succeeded, keep track that we did this one
             if proc.returncode == 0:
                 self.imports_that_succeeded.append(filename)
