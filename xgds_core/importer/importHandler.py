@@ -177,6 +177,8 @@ class ImportFinder:
         print 'Found %d files configured to ignore' % len(self.ignored_files)
         print 'Found %d ambiguous files, matched more than one config rule' % len(self.ambiguous_files)
         print 'Found %d unmatched files, matched no config rule' % len(self.unmatched_files)
+        if len(self.files_to_process)>0:
+            print 'Found %d files to process' % len(self.files_to_process)
         print 'Tried %d imports that failed' % len(self.imports_that_failed)
         print 'Tried %d imports that succeeded' % len(self.imports_that_succeeded)
 
