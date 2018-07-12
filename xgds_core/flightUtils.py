@@ -139,11 +139,13 @@ def lookup_flight(flight_name):
     return flight
 
 
-def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True):
+def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True, end_time=None):
     """
     Get or create a flight; will create the group flight and the flights, and set the start time.
     :param start_time: the start time of the flight
     :param vehicle: the vehicle
+    :param check_flight_exists: flag to check if the flight exists
+    :param end_time: Not used for search, but if you want to set the end time of the newly created flight pass it here
     :return: the flight
     """
     if not vehicle:
@@ -160,13 +162,14 @@ def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True):
 
             # set its start time
             flight.start_time = start_time
+            flight.end_time = end_time
             flight.save()
     else:
         flight.update_start_time(start_time)
     return flight
 
 
-def get_or_create_flight_with_source_root(source_root, timestamp):
+def get_or_create_flight_with_source_root(source_root, timestamp, end_time=None):
     """
     See if there is already a flight for this directory, or create it.
     It is on us to guarantee uniqueness (db has limitation of 255 characters for unique)
@@ -179,7 +182,7 @@ def get_or_create_flight_with_source_root(source_root, timestamp):
         flight = FLIGHT_MODEL.get().objects.get(source_root__icontains=source_root)
     except ObjectDoesNotExist:
         # create it
-        flight = get_or_create_flight(timestamp, check_flight_exists=False)
+        flight = get_or_create_flight(timestamp, check_flight_exists=False, end_time=end_time)
         flight.source_root = source_root
         flight.save()
     return flight
