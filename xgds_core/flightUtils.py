@@ -17,7 +17,9 @@
 
 from uuid import uuid4
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from geocamUtil.loader import LazyGetModelByName
+
 
 ACTIVE_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
@@ -31,7 +33,7 @@ def getFlight(event_time, vehicle=None):
         found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(vehicle=vehicle, start_time__lte=event_time, end_time__gte=event_time)
     else:
         found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(start_time__lte=event_time, end_time__gte=event_time)
-        
+
     if found_flights.count() == 0:
         found_active_flight = getActiveFlight(vehicle)
         if found_active_flight and found_active_flight.start_time:
@@ -137,7 +139,7 @@ def lookup_flight(flight_name):
     return flight
 
 
-def get_or_create_flight(start_time, vehicle=None):
+def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True):
     """
     Get or create a flight; will create the group flight and the flights, and set the start time.
     :param start_time: the start time of the flight
@@ -146,7 +148,9 @@ def get_or_create_flight(start_time, vehicle=None):
     """
     if not vehicle:
         vehicle = get_default_vehicle()
-    flight = getFlight(start_time, vehicle)
+    flight = None
+    if check_flight_exists:
+        flight = getFlight(start_time, vehicle)
     if not flight:
         # There was not a valid flight, so let's make a new one.  We will make a new group flight.
         group_flight = create_group_flight(get_next_available_group_flight_name(start_time.strftime('%Y%m%d')))
@@ -159,4 +163,23 @@ def get_or_create_flight(start_time, vehicle=None):
             flight.save()
     else:
         flight.update_start_time(start_time)
+    return flight
+
+
+def get_or_create_flight_with_source_root(source_root, timestamp):
+    """
+    See if there is already a flight for this directory, or create it.
+    It is on us to guarantee uniqueness (db has limitation of 255 characters for unique)
+    #TODO have flexible flight naming convention and make sure that works
+    :param source_root: the path that should correspond to a flight
+    :param timestamp: the timestamp to be used when building flight name
+    :return: the flight
+    """
+    try:
+        flight = FLIGHT_MODEL.get().objects.get(source_root__icontains=source_root)
+    except ObjectDoesNotExist:
+        # create it
+        flight = get_or_create_flight(timestamp, check_flight_exists=False)
+        flight.source_root = source_root
+        flight.save()
     return flight

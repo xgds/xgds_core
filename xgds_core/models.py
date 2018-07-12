@@ -607,6 +607,9 @@ class AbstractFlight(UuidModel, HasVehicle):
     notes = models.TextField(blank=True, null=True)
     group = 'set to DEFAULT_GROUP_FLIGHT_FIELD() or similar in derived classes'
 
+    # if this was from a file import, include information about the source
+    source_root = models.CharField(null=True, blank=True, max_length=512)
+
     def natural_key(self):
         return (self.name)
 
