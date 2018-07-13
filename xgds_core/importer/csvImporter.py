@@ -314,9 +314,14 @@ class CsvImporter(object):
                 raise Exception('Matching data found, data already imported', first_row)
         if not self.flight and self.config['flight_required']:
             # read the first timestamp and find a flight for it
-            get_or_create_flight(self.get_start_time(), self.vehicle)
+            self.flight = getFlight(self.get_start_time(), self.vehicle)
             if self.flight:
                 self.config['defaults']['flight_id'] = self.flight.id
+            else:
+                print " ABORTING: NO FLIGHT FOUND"
+                # TODO for subsea we will have new rows in existing files so we have to check each row
+                print first_row
+                raise Exception('No flight found but flight required', first_row)
         return self.config
 
 
