@@ -152,11 +152,14 @@ class CsvImporter(object):
             if not isinstance(value, datetime.datetime):
                 time_type = self.config['fields'][field_name]['type']
                 if time_type == 'iso8601':
+                    # iso8601 format should include the timezone
                     the_time = dateparser(row[field_name])
                 elif time_type == 'unixtime_float_second':
-                    the_time = datetime.datetime.fromtimestamp(float(row[field_name]))
+                    # unix time is always UTC
+                    the_time = datetime.datetime.utcfromtimestamp(float(row[field_name])).replace(tzinfo=pytz.utc)
                 elif time_type == 'unixtime_int_microsecond':
-                    the_time = datetime.datetime.fromtimestamp(int(row[field_name])/1000000)
+                    # unix time is always UTC and we should retain the fractional part
+                    the_time = datetime.datetime.utcfromtimestamp(int(row[field_name])/1000000.).replace(tzinfo=pytz.utc)
                 else:
                     raise Exception('Unsupported time type %s for row %s' % (time_type, field_name))
             else:
