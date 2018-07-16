@@ -18,6 +18,7 @@
 Utilities for loading a csv file into the database per the yaml specification.
 see ../../docs/dataImportYml.rst
 """
+import math
 import yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -27,6 +28,7 @@ except ImportError:
 import pytz
 import csv
 import datetime
+from pydoc import locate
 from collections import OrderedDict
 
 from geocamUtil.loader import getModelByName
@@ -111,7 +113,11 @@ class CsvImporter(object):
         self.start_time = None
         self.first_row = None
         self.timezone = self.get_timezone(timezone_name)
+        # converters, from: to
+        self.converters = {'radians': {'degrees': math.degrees},
+                           'degrees': {'radians': math.radians}}
         self.configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults, force)
+
 
     def load_config(self, yaml_file_path, defaults={}):
         """
@@ -189,6 +195,26 @@ class CsvImporter(object):
             self.csv_file.close()
             raise e
 
+    def convert(self, row):
+        """
+        For any values in the row that have different storage units from units, look for a converter and invoke it
+        :param row: the row to process
+        :return:
+        """
+        for field_name in self.config['fields']:
+            try:
+                field_config = self.config['fields'][field_name]
+                storage_units = field_config['storage_units']
+                units = field_config['units']
+                if units in self.converters:
+                    converters = self.converters[units]
+                    if storage_units in converters:
+                        fcn = locate(field_config['type'])
+                        new_value = converters[storage_units](fcn(row[field_name]))
+                        row[field_name] = new_value
+            except:
+                pass
+
     def update_row(self, row):
         """
         Update the row from the self.config
@@ -199,6 +225,7 @@ class CsvImporter(object):
             row.update(self.config['defaults'])
             for field_name in self.config['timefields']:
                 row[field_name] = self.get_time(row, field_name)
+            self.convert(row)
         return row
 
     def update_flight_end(self, end):

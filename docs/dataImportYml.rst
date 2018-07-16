@@ -64,16 +64,19 @@ KRex2_PastPosition.yaml::
      min: -math.pi
      max: math.pi
      units: radians
+     storage_units: degrees
    - name: pitch
      type: float
      min: -math.pi
      max: math.pi
      units: radians
+     storage_units: degrees
    - name: roll
      type: float
      min: -math.pi
      max: math.pi
      units: radians
+     storage_units: degrees
 
 Hercules_TempProbe.yaml::
 
@@ -222,6 +225,8 @@ the Python model fields.
 |                    |                |                         |length (for model creation).        |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``units``           |string          |optional                 |The expected units of measure       |
++--------------------+----------------+-------------------------+------------------------------------+
+|``storage_units``   |string          |optional                 |The units to convert to for storage |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``interval``        |float           |optional                 |The interval of received data in    |
 |                    |                |                         |the model.  No value = unknown      |
