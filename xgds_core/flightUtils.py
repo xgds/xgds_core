@@ -140,13 +140,14 @@ def lookup_flight(flight_name):
     return flight
 
 
-def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True, end_time=None):
+def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True, end_time=None, name=None):
     """
     Get or create a flight; will create the group flight and the flights, and set the start time.
     :param start_time: the start time of the flight
     :param vehicle: the vehicle
     :param check_flight_exists: flag to check if the flight exists
     :param end_time: Not used for search, but if you want to set the end time of the newly created flight pass it here
+    :param name: The name for the group flight
     :return: the flight
     """
     if not vehicle:
@@ -158,8 +159,10 @@ def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True, end
         # There was not a valid flight, so let's make a new one.  We will make a new group flight.
 
         # localize the time
-        local_start_time = start_time.astimezone(pytz.timezone(settings.TIME_ZONE))
-        group_flight = create_group_flight(get_next_available_group_flight_name(local_start_time.strftime('%Y%m%d')))
+        if not name:
+            local_start_time = start_time.astimezone(pytz.timezone(settings.TIME_ZONE))
+            name = get_next_available_group_flight_name(local_start_time.strftime('%Y%m%d'))
+        group_flight = create_group_flight(name)
         if group_flight:
             flights = group_flight.flights.filter(vehicle=vehicle)
             flight = flights[0]  # there should only be one
@@ -173,20 +176,22 @@ def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True, end
     return flight
 
 
-def get_or_create_flight_with_source_root(source_root, timestamp, end_time=None):
+def get_or_create_flight_with_source_root(source_root, timestamp, end_time=None, name=None):
     """
     See if there is already a flight for this directory, or create it.
     It is on us to guarantee uniqueness (db has limitation of 255 characters for unique)
     #TODO have flexible flight naming convention and make sure that works
     :param source_root: the path that should correspond to a flight
     :param timestamp: the timestamp to be used when building flight name
+    :param end_time: the end time for the flight
+    :param name: the custom name for the flight (and group flight)
     :return: the flight
     """
     try:
         flight = FLIGHT_MODEL.get().objects.get(source_root__icontains=source_root)
     except ObjectDoesNotExist:
         # create it
-        flight = get_or_create_flight(timestamp, check_flight_exists=False, end_time=end_time)
+        flight = get_or_create_flight(timestamp, check_flight_exists=False, end_time=end_time, name=name)
         flight.source_root = source_root
         flight.save()
     return flight
