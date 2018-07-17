@@ -15,6 +15,7 @@
 #__END_LICENSE__
 # pylint: disable=W0702
 
+import pytz
 from uuid import uuid4
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -155,7 +156,10 @@ def get_or_create_flight(start_time, vehicle=None, check_flight_exists=True, end
         flight = getFlight(start_time, vehicle)
     if not flight:
         # There was not a valid flight, so let's make a new one.  We will make a new group flight.
-        group_flight = create_group_flight(get_next_available_group_flight_name(start_time.strftime('%Y%m%d')))
+
+        # localize the time
+        local_start_time = start_time.astimezone(pytz.timezone(settings.TIME_ZONE))
+        group_flight = create_group_flight(get_next_available_group_flight_name(local_start_time.strftime('%Y%m%d')))
         if group_flight:
             flights = group_flight.flights.filter(vehicle=vehicle)
             flight = flights[0]  # there should only be one
