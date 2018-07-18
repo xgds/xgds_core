@@ -19,6 +19,7 @@ from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
@@ -214,8 +215,43 @@ class SearchableModel(object):
         return None
 
     @classmethod
-    def buildNoteQuery(cls, search_value):
-        return None
+    def buildNoteQuery(cls, search_keywords, model_class=None):
+        """
+        Build a query that will search for a note that contains the keyword for notes that point to the object type of this class
+        :param search_keywords: keywords to search for in the format keyword and keyword or keyword etc
+        :return: the found list of pks
+        """
+
+        if model_class:
+            master_query = LazyGetModelByName(settings.XGDS_NOTES_NOTE_MODEL).get().objects.filter(content_type__app_label=model_class._meta.app_label,
+                                                                                                   content_type__model=model_class._meta.model_name)
+        else:
+            master_query = LazyGetModelByName(settings.XGDS_NOTES_NOTE_MODEL).get().objects.all()
+
+        counter = 0
+        last_query = None
+        keyword_query = None
+        while counter < len(search_keywords):
+            if counter % 2 == 0:
+                last_query = Q(**{'content__icontains': search_keywords[counter]})
+            else:
+                if not keyword_query:
+                    keyword_query = last_query
+                else:
+                    join_type = search_keywords[counter]
+                    if join_type == 'and':
+                        keyword_query &= last_query
+                    else:
+                        keyword_query |= last_query
+            counter += 1
+        if not keyword_query:
+            keyword_query = last_query
+
+        result = master_query.filter(keyword_query)
+        object_ids = result.values_list('object_id', flat=True)
+
+        return list(object_ids)
+
 
     def to_kml(self, id, name, description, lat, lon):
         alt = 0.0

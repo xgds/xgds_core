@@ -56,7 +56,7 @@ from django.core.cache import caches
 from django.http import (HttpResponse,
                          HttpResponseNotAllowed)
 
-from geocamUtil.loader import LazyGetModelByName
+from geocamUtil.loader import LazyGetModelByName, getModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 
 from xgds_core.models import TimeZoneHistory, DbServerInfo, Constant, RelayEvent, RelayFile
@@ -194,6 +194,9 @@ class OrderListJson(BaseDatatableView):
     # to hold the Q queries for and-ing/or-ing a keyword search
     keywordQueries = None
 
+    # to hold the query with the found objects which have notes that have content that matches on the keyword search
+    noteContentResults = None
+
     # to hold the Q queries for and-ing/or-ing a tag search
     tagQueries = None
     
@@ -292,11 +295,11 @@ class OrderListJson(BaseDatatableView):
             taggedNote = LazyGetModelByName(settings.XGDS_NOTES_TAGGED_NOTE_MODEL)
             model = self.request.POST.get(u'modelName', None)
 
-            if (model == "Note"):
+            if model == settings.XGDS_NOTES_NOTE_MONIKER:
                 query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId])})
             else:
                 # Nest tags is not checked
-                if (nestTags == "false"):
+                if nestTags == "false":
                     query = Q(**{'notes__in': taggedNote.get().objects.filter(tag_id__in=[tagId]).values('content_object')})
                 # Nest tags so search by HierarchichalTags
                 else:
@@ -336,7 +339,7 @@ class OrderListJson(BaseDatatableView):
             
         # TODO handle search with sphinx
         search = self.request.POST.get(u'search[value]', None)
-        if model == "Note":
+        if model == settings.XGDS_NOTES_NOTE_MONIKER:
             tags = self.request.POST.getlist('noteTags[]')
         else:
             tags = self.request.POST.get(u'tags', None)
@@ -379,24 +382,46 @@ class OrderListJson(BaseDatatableView):
 
         return qs.distinct()
 
-    # Combines keyword with tag search via the and/or between the two inputs
     def combine_simple_search(self):
+        """
+        Combines keyword with tag search via the and/or between the two inputs
+        :return:
+        """
+
         connector = self.request.POST.get(u'connector', None)
-        if not self.keywordQueries and not self.tagQueries:
+        if not self.keywordQueries and not self.tagQueries and not self.noteContentResults:
             return None
+
         elif not self.tagQueries:
-            return self.keywordQueries
+            # we have only keyword queries
+            if self.noteContentResults:
+                return self.keywordQueries | self.noteContentResults
+            else:
+                return self.keywordQueries
         elif not self.keywordQueries:
             return self.tagQueries
         else:
+            # we have both keyword and tag queries
             if connector == "or":
                 # TODO this is slow; we tried various things but don't know why
-                return self.tagQueries | self.keywordQueries
+                if self.noteContentResults:
+                    return self.noteContentResults | self.tagQueries | self.keywordQueries
+                else:
+                    return self.tagQueries | self.keywordQueries
             else:
-                return self.tagQueries & self.keywordQueries
+                # and connector
+                if self.noteContentResults:
+                    return (self.tagQueries & self.keywordQueries) | (self.noteContentResults & self.tagQueries)
+                else:
+                    return self.tagQueries & self.keywordQueries
 
     # Creates the keyword queries to be used on the queryset
     def filter_keyword_search(self, qs, search):
+        model = self.request.POST.get(u'modelName', None)
+        model_class = None
+        if model:
+            model_class = getModelByName(settings.XGDS_MAP_SERVER_JS_MAP[model]['model'])
+
         noteQuery = None
         words = []
         counter = 0
@@ -408,29 +433,38 @@ class OrderListJson(BaseDatatableView):
         # Adds the individual queries for each word into an array
         fieldsQuery = None
         keywordQueriesArray = []
-        while (counter < len(words)):
-            if (counter % 2 == 0):
+        keywords = []
+
+        # Loop through the words and construct a list of queries based on each keyword.
+        # The words will be something like
+        # KEYWORD OR KEYWORD OR KEYWORD
+        # KEYWORD AND KEYWORD AND KEYWORD
+        # KEYWORD AND KEYWORD OR KEYWORD
+        # note we don't support parens yet
+        # we are building arrays where it is [Q, 'and', Q, 'or' ...]
+        while counter < len(words):
+            if counter % 2 == 0:
+                keywords.append(str(words[counter]))
                 fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
                 keywordQueriesArray.append(fieldsQuery)
             else:
                 keywordQueriesArray.append(str(words[counter]))
-            # This doesn't do anything right now - we want to do a sphinx search
-            # in the content of the notes that points to the ground model pks
-            noteQuery = self.model.buildNoteQuery(words[counter])
+
             counter += 1
 
         # Combines the queries at each index in the array based on and/or
         counter = 0
-        while (counter < len(keywordQueriesArray)):
-            if (counter == 0):
+        while counter < len(keywordQueriesArray):
+            if counter == 0:
                 self.addKeywordQuery(keywordQueriesArray[counter], "")
             else:
                 self.addKeywordQuery(keywordQueriesArray[counter], keywordQueriesArray[counter - 1])
             counter += 2
 
-        # Unused at this time -> should be for text search in notes
-        if noteQuery:
-            qs = qs.filter(noteQuery)
+        # for text search in note content for relevant notes
+        found_object_ids = self.model.buildNoteQuery(words, model_class)
+        if found_object_ids:
+            self.noteContentResults = Q(**{'id__in': found_object_ids})
 
         return self.keywordQueries
 
@@ -442,7 +476,7 @@ class OrderListJson(BaseDatatableView):
         tagQueriesArray = []
 
         # Adds the individual queries for each tag into an array
-        if model == "Note":
+        if model == settings.XGDS_NOTES_NOTE_MONIKER:
             while (counter < len(tags)):
                 if (counter % 2 == 0):
                     tagQuery = self.model.buildTagsQuery(tags[counter])
