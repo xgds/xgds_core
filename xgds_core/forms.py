@@ -21,6 +21,9 @@ from django.conf import settings
 from django.utils import timezone
 
 from django import forms
+
+from dal import autocomplete
+
 from xgds_core.models import NamedURL
 from django.db.models.fields import *
 from django.db.models import Q
@@ -38,10 +41,11 @@ from geocamUtil.forms.AbstractImportForm import AbstractImportForm
 #         model = NamedURL
 
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
+GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
 
 
 class AbstractVehicleForm(forms.Form):
-    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().get_vehicles_for_dropdown(),
                                label=settings.XGDS_CORE_VEHICLE_MONIKER)
 
     def getVehicle(self):
@@ -55,7 +59,7 @@ class AbstractVehicleForm(forms.Form):
 
 
 class AbstractPrimaryVehicleForm(AbstractVehicleForm):
-    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.filter(primary=True),
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().get_vehicles_for_dropdown().filter(primary=True),
                                label=settings.XGDS_CORE_VEHICLE_MONIKER)
 
     class Meta:
@@ -73,8 +77,14 @@ class AbstractFlightVehicleForm(forms.Form):
     # flight__id = IntegerField(blank=True)
     # flight__pk = IntegerField(blank=True)
 
-    flight__vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().objects.all(),
+    flight__vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().get_vehicles_for_dropdown(),
                                        label=settings.XGDS_CORE_VEHICLE_MONIKER)
+
+    flight__group = forms.ModelChoiceField(required=False,
+                                           queryset=GROUP_FLIGHT_MODEL.get().objects.all(),
+                                           label=settings.XGDS_CORE_FLIGHT_MONIKER)
+                                           # widget=autocomplete.ModelSelect2(
+                                           #     url='/xgds_core/complete/basaltApp.BasaltGroupFlight.json/'))
 
     def getVehicle(self):
         if self.cleaned_data['flight__vehicle']:
