@@ -42,6 +42,7 @@ from geocamUtil.forms.AbstractImportForm import AbstractImportForm
 
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
+GROUP_FLIGHT_FILTER_URL = '/xgds_core/complete/%s.json/' % settings.XGDS_CORE_GROUP_FLIGHT_MODEL
 
 
 class AbstractVehicleForm(forms.Form):
@@ -82,9 +83,8 @@ class AbstractFlightVehicleForm(forms.Form):
 
     flight__group = forms.ModelChoiceField(required=False,
                                            queryset=GROUP_FLIGHT_MODEL.get().objects.all(),
-                                           label=settings.XGDS_CORE_FLIGHT_MONIKER)
-                                           # widget=autocomplete.ModelSelect2(
-                                           #     url='/xgds_core/complete/basaltApp.BasaltGroupFlight.json/'))
+                                           label=settings.XGDS_CORE_FLIGHT_MONIKER,
+                                           widget=autocomplete.ModelSelect2(url=GROUP_FLIGHT_FILTER_URL))
 
     def getVehicle(self):
         if self.cleaned_data['flight__vehicle']:
