@@ -20,7 +20,6 @@ Utilities for discovering telemetry files and launching the corresponding loader
 See ../../docs/dataImportYml.rst
 """
 
-
 import yaml
 import os
 import re
@@ -191,6 +190,8 @@ class ImportFinder:
             print 'Found %d files to process' % len(self.files_to_process)
         print 'Tried %d imports that failed' % len(self.imports_that_failed)
         print 'Tried %d imports that succeeded' % len(self.imports_that_succeeded)
+        if self.duration:
+            print 'Total duration (H:M:S): %s ' % self.duration
 
     def do_once(self,test):
         self.get_new_files()
@@ -213,8 +214,15 @@ if __name__ == '__main__':
 
     opts, args = parser.parse_args()
 
+
+    start_time = datetime.datetime.now()
+    end_time = None
     finder = ImportFinder(args[0])
     finder.get_new_files()
     if not opts.test:
         finder.process_files(username=opts.username, password=opts.password)
+        end_time = datetime.datetime.now()
+    if end_time:
+        finder.duration = end_time - start_time
     finder.print_import_stats()
+
