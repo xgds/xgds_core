@@ -154,7 +154,7 @@ def get_file_from_couch(docDir, docName):
     if docDir[-1] == '/':  #get rid of the trailing slash
         docDir = docDir[:len(docDir)-1]  
     docPath = "%s/%s" % (docDir, docName)
-    dbServer = couchdb.Server()
+    dbServer = couchdb.server(settings.COUCHDB_URL)
     db = dbServer[settings.COUCHDB_FILESTORE_NAME]
     doc = db[docPath]
     # By convention, attachment has the same basename as document
@@ -166,7 +166,7 @@ def get_file_from_couch(docDir, docName):
 def get_db_attachment(request, docDir, docName):
     try:
         docPath = "%s/%s" % (docDir, docName)
-        dbServer = couchdb.Server()
+        dbServer = couchdb.server(settings.COUCHDB_URL)
         db = dbServer[settings.COUCHDB_FILESTORE_NAME]
         doc = db[docPath]
         # By convention, attachment has the same basename as document

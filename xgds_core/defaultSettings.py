@@ -57,7 +57,7 @@ XGDS_SSE_CHANNELS = ['sse']
 XGDS_CORE_CONDITION_MODEL = "xgds_core.Condition"
 XGDS_CORE_CONDITION_HISTORY_MODEL = "xgds_core.ConditionHistory"
 
-
+COUCHDB_URL = "http://localhost:5984"
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
