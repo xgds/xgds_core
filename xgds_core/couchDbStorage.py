@@ -22,7 +22,7 @@ class CouchDbStorage(Storage):
 
     def _setupIfNeeded(self):
         if not self.setupComplete:
-            self.couchServer = couchdb.Server()
+            self.couchServer = couchdb.Server(settings.COUCHDB_URL)
             if self.database:
                 self.couchDb = self.couchServer[self.database]
             else:
