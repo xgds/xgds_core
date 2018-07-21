@@ -103,9 +103,13 @@ class SearchableModel(object):
         try:
             text = getattr(self, column)
         except AttributeError:
-            for part in column.split('.'):
-                obj = getattr(self, part)
-            text = obj
+            try:
+                for part in column.split('.'):
+                    obj = getattr(self, part)
+                text = obj
+            except:
+                #TODO: look at datatables select.  We are doing this here to bypass the checkbox problem but it will swallow other errors
+                pass
         if text is None:
             text = ''
         return text
