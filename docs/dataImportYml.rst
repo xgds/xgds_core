@@ -178,6 +178,9 @@ interpretation of other members.
 |                  |                |                 |exact name of the Python model field|
 |                  |                |                 |is the key in the dictionary.       |
 +------------------+----------------+-----------------+------------------------------------+
+|``stateful``      |boolean         |optional         |Defaults to false; override with    |
+|                  |                |                 |true if this data is stateful.      |
++------------------+----------------+-----------------+------------------------------------+
 |``children``      |list            |optional         |A list of child specifications;     |
 |                  |                |                 |these will be nested models.        |
 +------------------+----------------+-----------------+------------------------------------+

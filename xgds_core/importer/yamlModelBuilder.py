@@ -145,6 +145,10 @@ def create_model_code(config, yaml_file, model_name):
     if 'flight_required' in config and config['flight_required']:
         result += "%sflight = models.ForeignKey('%s', on_delete=models.SET_NULL, blank=True, null=True)\n" % (INDENT, settings.XGDS_CORE_FLIGHT_MODEL)
 
+    # set the stateful flag if it is true, defaults to false
+    if 'stateful' in config and config['stateful']:
+        result += "%sstateful=True\n" % INDENT
+
     # add the title, splitting out camelcase
     result += '\n'
     splits = re.sub('([a-z])([A-Z])', r'\1 \2', model_name).split()
