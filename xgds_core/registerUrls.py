@@ -20,7 +20,7 @@ from django.conf import settings
 
 from xgds_core import register
 
-logout_redirect = '/' + settings.XGDS_SITE_APP + '/'
+logout_redirect = settings.SCRIPT_NAME
 
 urlpatterns = [url(r'^login/$', auth.views.login, {}, 'user-login'),
                url(r'^logout/$', auth.views.logout, {'next_page': logout_redirect}, 'user-logout'),
