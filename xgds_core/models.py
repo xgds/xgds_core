@@ -86,6 +86,11 @@ class HasDownloadableFiles(object):
     def getDownloadableFiles(self):
         pass
 
+class HasDataFrame(object):
+    """ Mixin to support models that have a Pandas DataFrame """
+
+    def getDataFrame(self):
+        pass
 
 class SearchableModel(object):
     """
