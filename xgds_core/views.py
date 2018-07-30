@@ -1185,6 +1185,17 @@ def getGroupFlightSummary(request, groupFlightName):
     except ObjectDoesNotExist:
         raise Http404("%s %s does not exist" % (settings.XGDS_CORE_GROUP_FLIGHT_MONIKER, groupFlightName))
 
+def getFlightSummary(request, flightName):
+    try:
+        flight = FLIGHT_MODEL.get().objects.get(name=flightName)
+        return render(request,
+                      "xgds_core/flightSummary.html",
+                      {'flight': flight},
+                      )
+    except ObjectDoesNotExist:
+        raise Http404("%s %s does not exist" % (settings.XGDS_CORE_FLIGHT_MONIKER, flightName))
+
+
 
 def updateTodaySession(request):
     if not request.is_ajax() or not request.method == 'POST':

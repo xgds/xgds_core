@@ -36,6 +36,7 @@ settings object will not know about the default value!
 """
 from geocamUtil.SettingsUtil import getOrCreateArray, getOrCreateDict
 
+
 XGDS_CORE_TEMPLATE_DEBUG = False # If this is true, handlebars templates will not be cached.
 XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictionary to store directories of handlebars to load based on class name
 XGDS_CORE_LIVE_INDEX_URL = '/'
@@ -101,3 +102,26 @@ XGDS_CORE_GROUP_FLIGHT_MONIKER = "Group Flight"
 XGDS_CORE_DEFAULT_VEHICLE_PK = 1  # To be used when vehicle is required but not specified.
 
 XGDS_CORE_SHOW_FLIGHT_MANAGEMENT = True
+
+
+# to be used by forms
+XGDS_CORE_DATE_FORMATS = [
+    '%Y-%m-%d %H:%M:%S',
+    '%Y-%m-%d %H:%M:%S.%f', 
+    '%Y-%m-%d %H:%M', 
+    '%Y-%m-%d', 
+    '%Y/%m/%d %H:%M:%S',
+    '%Y/%m/%d %H:%M:%S.%f',
+    '%Y-%m-%d %H:%M:%S 00:00',
+    '%Y-%m-%d %H:%M:%S.%f 00:00',
+    '%Y/%m/%d %H:%M:%S UTC',
+    '%Y/%m/%d %H:%M:%S.%f UTC',
+    '%Y-%m-%d %H:%M:%S UTC',
+    '%Y-%m-%d %H:%M:%S.%f UTC',
+    '%Y-%m-%dT%H:%M:%S+00:00',
+    '%Y-%m-%dT%H:%M:%S.%f+00:00',
+    '%Y-%m-%dT%H:%M:%S 00:00',
+    '%Y-%m-%dT%H:%M:%S.%f 00:00',
+    '%Y-%m-%dT%H:%M:%SZ',
+    '%Y-%m-%dT%H:%M:%S.%fZ',
+]

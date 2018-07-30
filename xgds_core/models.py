@@ -694,7 +694,7 @@ class AbstractFlight(UuidModel, HasVehicle):
         return self.view_url()
 
     def view_url(self):
-        return ''
+        return reverse('xgds_core_flight_summary', kwargs={'flightName': self.name})
 
     def __unicode__(self):
         return self.name
