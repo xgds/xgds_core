@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+
 import pytz
 import traceback
 
@@ -194,8 +195,9 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
             return None
         else:
             if timezone:
-                tz = pytz.timezone(timezone)
-                event_time = event_time.replace(tzinfo=tz)
+                if event_time.tzinfo.zone != timezone:
+                    tz = pytz.timezone(timezone)
+                    event_time = event_time.replace(tzinfo=tz)
             # if there is no timezone it will already be in the settings' local time.
             event_time = TimeUtil.timeZoneToUtc(event_time)
             return event_time
