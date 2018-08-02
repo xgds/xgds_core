@@ -523,6 +523,10 @@ def helpPopup(request, help_content_path, help_title):
 
 
 def addRelay(dataProduct, filesToSave, serializedForm, url, broadcast=True, update=False):
+
+    if not settings.XGDS_CORE_RELAY:
+        return
+
     # first see if there is an existing relayEvent
     content_type=ContentType.objects.get_for_model(dataProduct)
     object_id=dataProduct.pk

@@ -42,6 +42,7 @@ XGDS_CORE_TEMPLATE_DIRS = getOrCreateDict('XGDS_CORE_TEMPLATE_DIRS')  # a dictio
 XGDS_CORE_LIVE_INDEX_URL = '/'
 
 #support for data relay via REDIS
+XGDS_CORE_RELAY = False  # IMPORTANT: set to true if you need relay
 XGDS_CORE_RELAY_SUBDIRECTORY = 'relay/'
 XGDS_CORE_REDIS_PORT = 6379
 XGDS_CORE_REDIS = False
@@ -102,6 +103,7 @@ XGDS_CORE_GROUP_FLIGHT_MONIKER = "Group Flight"
 XGDS_CORE_DEFAULT_VEHICLE_PK = 1  # To be used when vehicle is required but not specified.
 
 XGDS_CORE_SHOW_FLIGHT_MANAGEMENT = True
+XGDS_CORE_ADD_GROUP_FLIGHT = True
 
 
 # to be used by forms
