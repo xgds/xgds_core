@@ -134,7 +134,7 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
         if minimum:
             return Q(**{fieldname+'__gte': value})
         elif maximum:
-            return Q(**{fieldname+'__lt': value})
+            return Q(**{fieldname+'__lte': value})
         #TODO handle close to date
         return Q(**{fieldname+'__exact': value})
 
@@ -197,9 +197,11 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
             if timezone:
                 if event_time.tzinfo.zone != timezone:
                     tz = pytz.timezone(timezone)
-                    event_time = event_time.replace(tzinfo=tz)
-            # if there is no timezone it will already be in the settings' local time.
-            event_time = TimeUtil.timeZoneToUtc(event_time)
+                    # it will come in as a datetime aware time
+                    event_time = event_time.replace(tzinfo=None)
+                    event_time = tz.localize(event_time)
+            if event_time.tzinfo != pytz.utc:
+                event_time = TimeUtil.timeZoneToUtc(event_time)
             return event_time
 
     class Meta: 
@@ -215,7 +217,6 @@ class GroupFlightForm(forms.Form):
     prefix = forms.CharField(widget=forms.TextInput(attrs={'size': 4}),
                              label="Prefix",
                              required=True)
-
     notes = forms.CharField(widget=forms.TextInput(attrs={'size': 128}), label="Notes", required=False,
                             help_text='Optional')
 
