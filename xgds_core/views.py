@@ -197,6 +197,9 @@ class OrderListJson(BaseDatatableView):
     # to hold the query with the found objects which have notes that have content that matches on the keyword search
     noteContentResults = None
 
+    # to hold the query with the found objects which have text annotations that have content that matches on the keyword search
+    textAnnotationResults = None
+
     # to hold the Q queries for and-ing/or-ing a tag search
     tagQueries = None
     
@@ -232,13 +235,21 @@ class OrderListJson(BaseDatatableView):
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
     def addOrQuery(self, queries, query):
+        """
+        Or a query to a list of or'd queries.  Handles the case where queries or query are None.
+        :param queries: the list of or'd queries
+        :param query: the new query to or
+        :return: the new list of or'd queries
+        """
+        if not query:
+            return queries
         if queries:
             queries |= query
         else:
             queries = query
         return queries
 
-    def addAndQuery(self, query):
+    def andToFormQueries(self, query):  #TODO we discovered &= does not work for some reason
         if self.formQueries:
             self.formQueries &= query
         else:
@@ -375,45 +386,38 @@ class OrderListJson(BaseDatatableView):
         if searchDict:
             for key in searchDict:
                 if unicode(searchDict[key]).isnumeric():
-                    self.addAndQuery(Q(**{key: searchDict[key]}))
+                    self.andToFormQueries(Q(**{key: searchDict[key]}))
                 else:
-                    self.addAndQuery(Q(**{key + '__icontains': searchDict[key]}))
+                    self.andToFormQueries(Q(**{key + '__icontains': searchDict[key]}))
             qs = qs.filter(self.formQueries)
 
         return qs.distinct()
 
     def combine_simple_search(self):
         """
-        Combines keyword with tag search via the and/or between the two inputs
+        Combines keyword with tag search and note search and text annotation search via the and/or between the two inputs
         :return:
         """
 
         connector = self.request.POST.get(u'connector', None)
-        if not self.keywordQueries and not self.tagQueries and not self.noteContentResults:
-            return None
 
-        elif not self.tagQueries:
-            # we have only keyword queries
-            if self.noteContentResults:
-                return self.keywordQueries | self.noteContentResults
-            else:
-                return self.keywordQueries
-        elif not self.keywordQueries:
-            return self.tagQueries
+        needsAnd = False
+        if connector == "and":
+            if self.tagQueries and self.keywordQueries:
+                needsAnd = True
+
+        result = None
+        if not needsAnd:
+            result = self.addOrQuery(result, self.tagQueries)
+            result = self.addOrQuery(result, self.keywordQueries)
+            result = self.addOrQuery(result, self.noteContentResults)
+            result = self.addOrQuery(result, self.textAnnotationResults)
+            return result
         else:
-            # we have both keyword and tag queries
-            if connector == "or":
-                # TODO this is slow; we tried various things but don't know why
-                if self.noteContentResults:
-                    return self.noteContentResults | self.tagQueries | self.keywordQueries
-                else:
-                    return self.tagQueries | self.keywordQueries
-            else:
-                # and connector
-                if self.noteContentResults:
-                    return (self.tagQueries & self.keywordQueries) | (self.noteContentResults & self.tagQueries)
-                else:
-                    return self.tagQueries & self.keywordQueries
+            result = self.addOrQuery(result, self.keywordQueries)
+            result = self.addOrQuery(result, self.noteContentResults)
+            result = self.addOrQuery(result, self.textAnnotationResults)
+            return self.tagQueries & result
 
     # Creates the keyword queries to be used on the queryset
     def filter_keyword_search(self, qs, search):
@@ -431,8 +435,8 @@ class OrderListJson(BaseDatatableView):
             words.append(search)
 
         # Adds the individual queries for each word into an array
-        fieldsQuery = None
         keywordQueriesArray = []
+        textAnnotationQueriesArray = []
         keywords = []
 
         # Loop through the words and construct a list of queries based on each keyword.
@@ -444,11 +448,12 @@ class OrderListJson(BaseDatatableView):
         # we are building arrays where it is [Q, 'and', Q, 'or' ...]
         while counter < len(words):
             if counter % 2 == 0:
-                keywords.append(str(words[counter]))
-                fieldsQuery = self.buildSearchableFieldsQuery(str(words[counter]))
+                word = str(words[counter])
+                keywords.append(word)
+                fieldsQuery = self.buildSearchableFieldsQuery(word)
                 keywordQueriesArray.append(fieldsQuery)
             else:
-                keywordQueriesArray.append(str(words[counter]))
+                keywordQueriesArray.append(word)
 
             counter += 1
 
@@ -465,6 +470,10 @@ class OrderListJson(BaseDatatableView):
         found_object_ids = self.model.buildNoteQuery(words, model_class)
         if found_object_ids:
             self.noteContentResults = Q(**{'id__in': found_object_ids})
+
+        if model and model == settings.XGDS_IMAGE_IMAGE_SET_MONIKER:
+            found_image_ids_from_text_annotation = self.model.buildTextAnnotationQuery(words)
+            self.textAnnotationResults = Q(**{'id__in': found_image_ids_from_text_annotation})
 
         return self.keywordQueries
 
