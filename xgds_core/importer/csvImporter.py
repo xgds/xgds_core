@@ -94,7 +94,7 @@ class CsvImporter(object):
     """
 
     def __init__(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, timezone_name='UTC',
-                 defaults=None, force=False):
+                 defaults=None, force=False, replace=False):
         """
         Initialize with a path to a configuration yaml file and a path to a csv file
         :param yaml_file_path: The path to the yaml self.configuration file for import
@@ -103,6 +103,8 @@ class CsvImporter(object):
         :param flight_name: The name of the flight
         :param timezone_name: The name of the time zone, defaults to UTC
         :param defaults: Optional additional defaults to add to objects
+        :param force: force load even if data already exists
+        :param replace: replace rows instead of creating new ones, matches based on timestamp.
         :return: the imported items
         """
         self.csv_reader = None
@@ -113,11 +115,11 @@ class CsvImporter(object):
         self.start_time = None
         self.first_row = None
         self.timezone = self.get_timezone(timezone_name)
+        self.replace = replace
         # converters, from: to
         self.converters = {'radians': {'degrees': math.degrees},
                            'degrees': {'radians': math.radians}}
         self.configure(yaml_file_path, csv_file_path, vehicle_name, flight_name, defaults, force)
-
 
     def load_config(self, yaml_file_path, defaults={}):
         """
@@ -263,13 +265,37 @@ class CsvImporter(object):
             self.reset_csv()
             for row in self.csv_reader:
                 row = self.update_row(row)
-                new_models.append(the_model(**row))
+                if not self.replace:
+                    new_models.append(the_model(**row))
             self.update_flight_end(row['timestamp'])
-            the_model.objects.bulk_create(new_models)
+            if not self.replace:
+                the_model.objects.bulk_create(new_models)
+            else:
+                self.update_stored_data(the_model)
             self.handle_last_row(row)
         finally:
             self.csv_file.close()
         return new_models
+
+    def update_stored_data(self, the_model):
+        """
+        # search for matching data based on each row, and update it.
+        :return:
+        """
+        self.reset_csv()
+        for row in self.csv_reader:
+            # TODO right now we use timestamp.
+            found = the_model.objects.filter(timestamp=row['timestamp'])
+            if self.flight:
+                found = found.filter(flight=self.flight)
+                if found.count() != 1:
+                    print "ERROR: DID NOT FIND MATCH FOR %s" % str(row['timestamp'])
+                else:
+                    item = found[0]
+                    for key, value in row.iteritems():
+                        setattr(item, key, value)
+                    print 'UPDATED: %s ' % str(item)
+                    item.save()
 
     def handle_last_row(self, row):
         """
@@ -328,6 +354,7 @@ class CsvImporter(object):
         :param flight_name: The name of the flight
         :param timezone_name: The name of the timezone, ie America/Los_Angeles
         :param defaults: Optional additional defaults to add to objects
+        :param force: force load even if we already have existing data
         :return: the self.config, which will contain the vehicle, flight, csv_file and csv_reader
         """
         self.vehicle = lookup_vehicle(vehicle_name)
@@ -335,7 +362,7 @@ class CsvImporter(object):
         self.load_config(yaml_file_path, defaults)
         self.open_csv(csv_file_path)
         first_row = self.get_first_row()
-        if not force:
+        if not force and not self.replace:
             exists = self.check_data_exists(first_row)
             if exists:
                 print " ABORTING: MATCHING DATA FOUND"
