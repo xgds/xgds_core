@@ -23,7 +23,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.core.serializers import serialize
@@ -80,17 +80,23 @@ class NamedURL(models.Model):
     object_id = models.PositiveIntegerField(db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    def __unicode__(self):
+        return u'%s %s %s' % (self.name, self.url, str(self.content_object))
+
+
 class HasDownloadableFiles(object):
     """ Mixin to support models that have downloadable files """
 
     def getDownloadableFiles(self):
         pass
 
+
 class HasDataFrame(object):
     """ Mixin to support models that have a Pandas DataFrame """
 
     def getDataFrame(self):
         pass
+
 
 class SearchableModel(object):
     """
@@ -662,6 +668,8 @@ class AbstractFlight(UuidModel, HasVehicle):
 
     # if this was from a file import, include information about the source
     source_root = models.CharField(null=True, blank=True, max_length=512)
+
+    links = GenericRelation('NamedURL', related_name='links_set')
 
     def natural_key(self):
         return (self.name)

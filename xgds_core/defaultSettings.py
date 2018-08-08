@@ -167,4 +167,6 @@ XGDS_CORE_DATE_FORMATS = [
     '%Y-%m-%dT%H:%M:%S.%f 00:00',
     '%Y-%m-%dT%H:%M:%SZ',
     '%Y-%m-%dT%H:%M:%S.%fZ',
+
+    '%Y-%m-%dT%H%M%S.%f',
 ]
