@@ -260,30 +260,33 @@ class CsvImporter(object):
 
         the_model = getModelByName(self.config['class'])
         new_models = []
+        rows = []
 
         try:
             self.reset_csv()
             for row in self.csv_reader:
                 row = self.update_row(row)
+                rows.append(row)
                 if not self.replace:
                     new_models.append(the_model(**row))
             self.update_flight_end(row['timestamp'])
             if not self.replace:
                 the_model.objects.bulk_create(new_models)
             else:
-                self.update_stored_data(the_model)
+                self.update_stored_data(the_model, rows)
             self.handle_last_row(row)
         finally:
             self.csv_file.close()
         return new_models
 
-    def update_stored_data(self, the_model):
+    def update_stored_data(self, the_model, rows):
         """
         # search for matching data based on each row, and update it.
+        :param the_model: the model we are working with
+        :param rows: the cleaned up rows we are working with
         :return:
         """
-        self.reset_csv()
-        for row in self.csv_reader:
+        for row in rows:
             # TODO right now we use timestamp.
             found = the_model.objects.filter(timestamp=row['timestamp'])
             if self.flight:
