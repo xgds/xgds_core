@@ -281,6 +281,15 @@ class SearchableModel(object):
 
         return placemark
 
+    @classmethod
+    def get_time_bounds_field_name(cls):
+        """
+        If your min/max time search field differs from this name override this method.
+        :return:
+        """
+        return 'acquisition_time'
+
+
 def getRelayFileName(instance, filename):
     return settings.XGDS_CORE_RELAY_SUBDIRECTORY + filename
 

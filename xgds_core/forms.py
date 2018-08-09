@@ -190,19 +190,7 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
     
     # populate the times properly
     def clean_time(self, key, timezone):
-        event_time = self.cleaned_data[key]
-        if not event_time:
-            return None
-        else:
-            if timezone:
-                if event_time.tzinfo.zone != timezone:
-                    tz = pytz.timezone(timezone)
-                    # it will come in as a datetime aware time
-                    event_time = event_time.replace(tzinfo=None)
-                    event_time = tz.localize(event_time)
-            if event_time.tzinfo != pytz.utc:
-                event_time = TimeUtil.timeZoneToUtc(event_time)
-            return event_time
+        return TimeUtil.convert_time_with_zone(self.cleaned_data[key], timezone)
 
     class Meta: 
         abstract = True

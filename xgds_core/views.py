@@ -74,9 +74,11 @@ VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 
 
 def buildFilterDict(theFilter):
+    filterDict = {}
+    if not theFilter:
+        return filterDict
     if isinstance(theFilter, dict):
         return theFilter
-    filterDict = {}
     dictEntries = str(theFilter).split(",")
     for entry in dictEntries:
         splits = str(entry).split(":")
@@ -333,7 +335,6 @@ class OrderListJson(BaseDatatableView):
     # Overrides the django_datatables filter_queryset function.
     # Does either advanced search or simple search depending on values passed
     def filter_queryset(self, qs):
-        model = self.request.POST.get(u'modelName', None)
         if self.formQueries:
             qs = qs.filter(self.formQueries)
         elif self.filterDict:
@@ -349,14 +350,32 @@ class OrderListJson(BaseDatatableView):
                 qs = qs.filter(**filterDict)
             
         # TODO handle search with sphinx
+        model = self.request.POST.get(u'modelName', None)
         search = self.request.POST.get(u'search[value]', None)
-        if model == settings.XGDS_NOTES_NOTE_MONIKER:
-            tags = self.request.POST.getlist('noteTags[]')
+        tags = None
+        needsSearch = False
+        if not search:
+            # see if it is coming from the extract form
+            try:
+                simpleSearchData = json.loads(self.request.POST.get('simpleSearchData', None))
+                if simpleSearchData:
+                    search = simpleSearchData["search"]
+                    tags = simpleSearchData["tags"]
+                    if search or tags:
+                        needsSearch = True
+            except:
+                pass
         else:
-            tags = self.request.POST.get(u'tags', None)
+            needsSearch = True
+
+        if not tags:
+            if model == settings.XGDS_NOTES_NOTE_MONIKER:
+                tags = self.request.POST.getlist('noteTags[]')
+            else:
+                tags = self.request.POST.get(u'tags', None)
 
         # This part handles the search with the input boxes above the datatable
-        if self.request.POST.get(u'simpleSearch', None):
+        if needsSearch or self.request.POST.get(u'simpleSearch', None):
             qs = self.filter_queryset_simple_search(qs, search, tags)
 
         last = self.request.POST.get(u'last', -1)
