@@ -579,12 +579,17 @@ class AbstractVehicle(models.Model):
         return (self.name)
     
     @classmethod
-    def get_vehicles_for_dropdown(cls):
+    def get_vehicles_for_dropdown(cls, primary=False):
         """ Exclude DefaultVehicle if it is not the only one"""
-        vehicles = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL).get().objects.all()
-        if vehicles.count() > 1:
-            vehicles = vehicles.exclude(type='GenericVehicle')
-        return vehicles
+        try:
+            vehicles = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL).get().objects.all()
+            if vehicles.count() > 1:
+                vehicles = vehicles.exclude(type='GenericVehicle')
+            if primary:
+                vehicles = vehicles.filter(primary=True)
+            return vehicles
+        except:
+            return None
 
 
 class Vehicle(AbstractVehicle):

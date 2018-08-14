@@ -61,7 +61,7 @@ class AbstractVehicleForm(forms.Form):
 
 
 class AbstractPrimaryVehicleForm(AbstractVehicleForm):
-    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().get_vehicles_for_dropdown().filter(primary=True),
+    vehicle = ModelChoiceField(required=False, queryset=VEHICLE_MODEL.get().get_vehicles_for_dropdown(primary=True),
                                label=settings.XGDS_CORE_VEHICLE_MONIKER)
 
     class Meta:
