@@ -137,9 +137,10 @@ def create_model_code(config, yaml_file, model_name):
 
     channel_descriptions = OrderedDict()
     for field_name, field_info in config['fields'].iteritems():
-        result += create_field_code(field_name, field_info)
-        if field_name != time_field:
-            channel_descriptions[field_name] = create_channel_description(field_name, field_info)
+        if not config['fields']['skip']:
+            result += create_field_code(field_name, field_info)
+            if field_name != time_field:
+                channel_descriptions[field_name] = create_channel_description(field_name, field_info)
 
     # special case the foreign key to a flight, if required
     if 'flight_required' in config and config['flight_required']:
@@ -203,6 +204,10 @@ def model_exists(app_name, model_name):
 def main():
     # YAML files are specified on the command line
     yaml_files = sys.argv[1:]
+
+    if not yaml_files:
+        print 'yaml file must be in the argument'
+        exit()
 
     apps_needing_migration = set()
 
