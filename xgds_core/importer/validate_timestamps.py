@@ -35,6 +35,51 @@ from csv import DictReader
 from dateutil.parser import parse as dateparser
 
 
+def get_timestamp_from_filename(filename, time_format, regex=None):
+    """
+    Returns a utz timezone aware time parsed from the filename given the time format & regex
+    :param filename: the actual filename to parse for time
+    :param time_format: seconds, microseconds or dateparser
+    :param regex:  The last pattern matched in the regex should hold the time
+    :return: time
+    """
+    # Some filenames contain float seconds, some int microseconds
+    result = None
+
+    if time_format == 'seconds':
+        timestamp_pattern = '(\d{10}\.\d{4,10})'
+        match = re.search(timestamp_pattern, filename)
+        if match:
+            timestamp_string = match.groups()[-1]
+            result = datetime.datetime.utcfromtimestamp(float(timestamp_string)).replace(tzinfo=pytz.UTC)
+        else:
+            raise ValueError('Could not find expected time string in %s' % filename)
+
+    elif time_format == 'microseconds':
+        timestamp_pattern = '(\d{16})'
+        match = re.search(timestamp_pattern, filename)
+        if match:
+            timestamp_string = match.groups()[-1]
+            result = datetime.datetime.utcfromtimestamp(1e-6 * int(timestamp_string)).replace(tzinfo=pytz.UTC)
+        else:
+            raise ValueError('Could not find expected time string in %s' % filename)
+    elif time_format == 'dateparser':
+        if regex:
+            timestamp_pattern = regex
+            match = re.search(timestamp_pattern, filename)
+            if match:
+                timestamp_string = match.groups()[-1]
+                zoneless_timestamp = dateparser(timestamp_string)
+                result = pytz.utc.localize(zoneless_timestamp)
+            else:
+                raise ValueError('Could not find expected time string in %s' % filename)
+        else:
+            raise ValueError('dateparser configuration requires regex: %s' % filename)
+
+    else:
+        raise ValueError('invalid type for filename timestamp: %s' % time_format)
+    return result
+
 class TimestampValidator:
     def __init__(self, config_yaml_path):
         # config comes from a YAML file
@@ -109,6 +154,8 @@ class TimestampValidator:
                     self.get_timestamp_from_exif(filename, registry)
                 elif registry['from'] == 'doc':
                     self.get_timestamp_from_doc(filename, registry)
+                elif registry['from'] == 'text':
+                    # TODO IMPLEMENT for example for html parsing
                 else:
                     raise ValueError('Invalid from argument: %s' % registry['from'])
 
@@ -116,39 +163,12 @@ class TimestampValidator:
         # Some filenames contain float seconds, some int microseconds
 
         filename = os.path.basename(full_filename)
-        if registry['format'] == 'seconds':
-            timestamp_pattern = '(\d{10}\.\d{4,10})'
-            match = re.search(timestamp_pattern, filename)
-            if match:
-                timestamp_string = match.groups()[-1]
-                timestamp = datetime.datetime.utcfromtimestamp(float(timestamp_string)).replace(tzinfo=pytz.UTC)
-            else:
-                raise ValueError('Could not find expected time string in %s' % filename)
+        format = registry['format']
+        regex = None
+        if 'regex' in registry:
+            regex = registry['regex']
 
-        elif registry['format'] == 'microseconds':
-            timestamp_pattern = '(\d{16})'
-            match = re.search(timestamp_pattern, filename)
-            if match:
-                timestamp_string = match.groups()[-1]
-                timestamp = datetime.datetime.utcfromtimestamp(1e-6 * int(timestamp_string)).replace(tzinfo=pytz.UTC)
-            else:
-                raise ValueError('Could not find expected time string in %s' % filename)
-        elif registry['format'] == 'dateparser':
-            if 'regex' in registry:
-                timestamp_pattern = registry['regex']
-                match = re.search(timestamp_pattern, filename)
-                if match:
-                    timestamp_string = match.groups()[-1]
-                    zoneless_timestamp = dateparser(timestamp_string)
-                    timestamp = pytz.utc.localize(zoneless_timestamp)
-                else:
-                    raise ValueError('Could not find expected time string in %s' % filename)
-            else:
-                raise ValueError('dateparser configuration requires regex: %s' % registry['name'])
-
-        else:
-            raise ValueError('invalid type for filename timestamp: %s' % registry['format'])
-
+        timestamp = get_timestamp_from_filename(filename, format, regex)
         self.timestamps.append(('%s: %s' % (registry['name'], filename), timestamp))
 
     def get_timestamps_from_csv(self, filename, registry):
