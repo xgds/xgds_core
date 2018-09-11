@@ -156,6 +156,7 @@ class TimestampValidator:
                     self.get_timestamp_from_doc(filename, registry)
                 elif registry['from'] == 'text':
                     # TODO IMPLEMENT for example for html parsing
+                    pass
                 else:
                     raise ValueError('Invalid from argument: %s' % registry['from'])
 
