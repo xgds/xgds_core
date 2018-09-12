@@ -115,7 +115,7 @@ def create_model_code(config, yaml_file, model_name):
     """
     Create the model code based on the config
     :param config: The config file we are using (loaded from yaml)
-    :return: The python code to inject in models.py
+    :return: The python code to inject in yamlModels.py
     """
 
     # add space
@@ -184,8 +184,23 @@ def create_model_code(config, yaml_file, model_name):
         result += '%sdef get_time_field_name(cls):\n' % INDENT
         result += "%s%sreturn '%s'\n" % (INDENT, INDENT, time_field)
 
+    # add the unicode
+    result += '\n'
+    result += '%sdef __unicode__(self):\n' % INDENT
+    strformat = '%s:'
+    strcontent = '(self.%s.isoformat()' % time_field
+
+    for key, value in channel_descriptions.iteritems():
+        strformat += ' %s'
+        strcontent += ', str(self.%s)' % key
+
+    strcontent += ')'
+
+    result += '%s%sreturn "%s" %% %s' % (INDENT, INDENT, strformat, strcontent)
+
     # add another space
     result += '\n'
+
     return result
 
 
@@ -240,8 +255,8 @@ def main():
         print model_code
 
         if not opts.test:
-            # write to models.py
-            model_file_name = './apps/%s/models.py' % app_name
+            # write to yamlModels.py
+            model_file_name = './apps/%s/yamlModels.py' % app_name
             model_file = open(model_file_name, 'a')
             model_file.write(model_code)
             model_file.close()
@@ -257,7 +272,7 @@ def main():
             # add to the set of apps needing migration
             apps_needing_migration.add(app_name)
 
-    # do the migrations; since we've modified models.py we have to run this in a new process.
+    # do the migrations; since we've modified yamlModels.py we have to run this in a new process.
     if not opts.test:
         if apps_needing_migration:
             if opts.migrate:

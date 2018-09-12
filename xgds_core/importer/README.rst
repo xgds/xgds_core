@@ -62,8 +62,8 @@ source sourceme.sh
 |Filename                      |Description                                |
 +==============================+===========================================+
 |``yamlModelBuilder.py``       |Running this will generate code from a     |
-|                              |yaml file and update the database.         |
-|                              |sample yaml files are in                   |
+|                              |yaml file into yamlModels.py and update    |
+|                              |the database.  Sample yaml files are in    |
 |                              |../../../docs/examples                     |
 +------------------------------+-------------------------------------------+
 
