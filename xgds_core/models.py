@@ -678,6 +678,7 @@ class AbstractFlight(UuidModel, HasVehicle):
     end_time = models.DateTimeField(null=True, blank=True, db_index=True)
     timezone = models.CharField(null=True, blank=False, max_length=128, default=settings.TIME_ZONE)
     notes = models.TextField(blank=True, null=True)
+    extras = ExtrasDotField(blank=True, null=True)
     group = 'set to DEFAULT_GROUP_FLIGHT_FIELD() or similar in derived classes'
 
     # if this was from a file import, include information about the source
@@ -885,6 +886,7 @@ class AbstractGroupFlight(models.Model):
 
     name = models.CharField(max_length=128, blank=True, unique=True,
                             help_text='Usually same as episode name. I.e. 201340925A', db_index=True)
+    extras = ExtrasDotField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
     def thumbnail_url(self):
