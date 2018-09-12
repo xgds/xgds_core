@@ -94,7 +94,7 @@ class ImportFinder:
                         order = 10
                     print 'Adding', basename
                     # unique match, add to the list of things to import
-                    heappush(self.files_to_process,(order,(filename,matches[0])))
+                    heappush(self.files_to_process, (order, (filename, matches[0])))
                 elif 0 == len(matches):
                     print 'Warning: file %s does not match any importer config' % filename
                     self.unmatched_files.append(filename)
@@ -109,21 +109,21 @@ class ImportFinder:
             order = item[0]
             filename = item[1][0]
             registry = item[1][1]
-            print '%s %s' % (order,filename)
+            print '%s %s' % (order, filename)
 
     def process_files(self, username=None, password=None):
-        while len(self.files_to_process)>0:
+        while len(self.files_to_process) > 0:
             order, pair = heappop(self.files_to_process)
             filename, registry = pair
             arguments = ''
             if 'arguments' in registry:
                 if '%(filename)s' in registry['arguments']:
                     arguments = registry['arguments']
-                    arguments = arguments % {'filename': filename}
+                    arguments = arguments % {'filename': '"%s"' % filename}
                 else:
-                    arguments = ' '.join([registry['arguments'], filename])
+                    arguments = ' '.join([registry['arguments'], '"%s"' % filename])
             else:
-                arguments = filename
+                arguments = '"%s"' % filename
 
             auth = False
             if 'auth' in registry:
