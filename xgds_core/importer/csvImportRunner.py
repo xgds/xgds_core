@@ -33,6 +33,8 @@ def main():
     parser.add_option("-p", '--replace', action="store_true", dest="replace", default=False,
                       help="replace existing data")
     parser.add_option('-z', '--timezone', help='timezone, defaults to UTC.  example: America/Los_Angeles')
+    parser.add_option('-s', '--skip_bad', action="store_true", dest="skip_bad", default=False,
+                      help='Skip bad rows, importing all other data')
 
     opts, args = parser.parse_args()
 
@@ -42,7 +44,7 @@ def main():
         parser.error('input is required')
 
     importer = csvImporter.CsvImporter(opts.config, opts.input, opts.vehicle, opts.flight, opts.timezone, opts.reload,
-                                       opts.replace)
+                                       force=opts.replace, skip_bad=opts.skip_bad)
     result = importer.load_csv()
     print 'loaded %d ' % len(result)
 
