@@ -1,0 +1,41 @@
+# This file defines how telemetry files are to be identified and
+# paired with a process that can import the file
+
+# Top-level directory to look for incoming files
+# no longer needed, this will be an arg to the timestamp validator
+# import_path: '/Users/JuliaChen/Desktop/xgds/v3_pass8_hercules'
+
+# Registry of regex patterns to look for and what to do when files match them
+registry:
+  - name: 'MAPS pose'
+    filepath_pattern: 'MAPS/localizations_xgds.txt'
+    from: 'csv'
+    column_number: 0
+    delimiter: ' '
+    format: 'iso8601'
+  - name: 'TILT'
+    filepath_pattern: 'TILT/[\d\-\.]+_TILT\.csv'
+    from: 'csv'
+    column_number: 0
+    format: 'microseconds'
+  - name: 'MAPS jpg'
+    filepath_pattern: 'MAPS/[\d\-\.]+_(pc|\d+)\.jpg$'
+    from: 'filename'
+    format: 'seconds'
+  - name: 'NRVS'
+    filepath_pattern: 'NRVS/[\d]*_NRVS_[LS]W.*\.csv'
+    from: 'csv'
+    column_name: 'Epoch Time'
+    format: 'seconds'
+  - name: 'Resource forks'
+    filepath_pattern: '/\._'
+    ignore: true
+  - name: 'Emacs backups'
+    filepath_pattern: '~$'
+    ignore: true
+  - name: 'DS Store'
+    filepath_pattern: '/\.?_?DS_Store'
+    ignore: true
+  - name: 'DSLR Raw file'
+    filepath_pattern: 'SLR./[\d\w]*\.(?i)(CR)2$'
+    ignore: true

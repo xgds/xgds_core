@@ -18,8 +18,10 @@
 Utilities for loading a csv file into the database per the yaml specification.
 see ../../docs/dataImportYml.rst
 """
+
 import math
 import yaml
+import re
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -132,8 +134,12 @@ class CsvImporter(object):
 
         self.config['timefields'] = []
         for key, value in self.config['fields'].iteritems():
-            if 'time' in value['type'] or 'iso8601' in value['type']:
-                self.config['timefields'].append(key)
+            skip = False
+            if 'skip' in value and value['skip']:
+                skip = True
+            if not skip:
+                if 'time' in value['type'] or 'iso8601' in value['type']:
+                    self.config['timefields'].append(key)
 
         if 'flight_required' not in self.config:
             self.config['flight_required'] = False
@@ -184,6 +190,9 @@ class CsvImporter(object):
         delimiter = ','
         if 'delimiter' in self.config:
             delimiter = self.config['delimiter']
+            if len(delimiter) > 1:
+                if 't' in delimiter:
+                    delimiter = '\t'
 
         quotechar = '"'
         if 'quotechar' in self.config:
@@ -200,20 +209,36 @@ class CsvImporter(object):
     def convert(self, row):
         """
         For any values in the row that have different storage units from units, look for a converter and invoke it
+        Also removes any values that are marked skip
+        Also processes any regex
         :param row: the row to process
         :return:
         """
         for field_name in self.config['fields']:
             try:
                 field_config = self.config['fields'][field_name]
-                storage_units = field_config['storage_units']
-                units = field_config['units']
-                if units in self.converters:
-                    converters = self.converters[units]
-                    if storage_units in converters:
-                        fcn = locate(field_config['type'])
-                        new_value = converters[storage_units](fcn(row[field_name]))
-                        row[field_name] = new_value
+                skip = False
+                if 'skip' in field_config and field_config['skip']:
+                    skip = True
+                if skip:
+                    del row[field_name]
+                else:
+                    if 'regex' in field_config:
+                        regex = field_config['regex']
+                        match = re.search(regex, row[field_name])
+                        if match:
+                            value = match.groups()[-1]
+                            the_type = locate(field_config['type'])
+                            row[field_name] = the_type(value)
+
+                    storage_units = field_config['storage_units']
+                    units = field_config['units']
+                    if units in self.converters:
+                        converters = self.converters[units]
+                        if storage_units in converters:
+                            fcn = locate(field_config['type'])
+                            new_value = converters[storage_units](fcn(row[field_name]))
+                            row[field_name] = new_value
             except:
                 pass
 

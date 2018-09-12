@@ -60,6 +60,7 @@ def create_field_code(field_name, field):
     :param field: the dictionary defining the field
     :return: Python code in a string
     """
+
     # Default parameters for all model fields
     params = {'blank': 'True',
               'null': 'True'}
@@ -137,7 +138,10 @@ def create_model_code(config, yaml_file, model_name):
 
     channel_descriptions = OrderedDict()
     for field_name, field_info in config['fields'].iteritems():
-        if not config['fields']['skip']:
+        skip = False
+        if 'skip' in field_info and field_info['skip']:
+            skip = True
+        if not skip:
             result += create_field_code(field_name, field_info)
             if field_name != time_field:
                 channel_descriptions[field_name] = create_channel_description(field_name, field_info)

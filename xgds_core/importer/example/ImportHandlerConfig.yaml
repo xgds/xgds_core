@@ -1,0 +1,50 @@
+# This file defines how telemetry files are to be identified and
+# paired with a process that can import the file
+
+# Top-level directory to look for incoming files
+import_path: '/home/irg/xgds_braille/data/incoming'
+
+# Registry of regex patterns to look for and what to do when files match them
+registry:
+  - name: 'Processed KRex Track'
+    filepath_pattern: 'MAPS/localizations_xgds.txt$'
+    importer: '/home/irg/xgds_braille/apps/geocamTrack/importer/trackImportRunner.py'
+    arguments: '-o 10T -i %(filename)s -c /home/irg/xgds_braille/apps/xgds_braille_app/importer/KRex2_PastPosition.yaml -v KRex2'
+    timeout: 300
+    order: 1
+    auth: false
+  - name: 'Instrument Platform Tilt'
+    filepath_pattern: 'TILT/[\d\-\.]+_TILT\.csv$'
+    importer: '/home/irg/xgds_braille/apps/xgds_core/importer/csvImportRunner.py'
+    arguments: '-i %(filename)s -c /home/irg/xgds_braille/apps/xgds_braille_app/importer/KRex2_Tilt.yaml -v KRex2'
+    timeout: 300
+    order: 2
+    auth: false
+  - name: 'Cave wall mosaic'
+    filepath_pattern: 'MAPS/ply_list_drg_side.png$'
+    importer: '/home/irg/xgds_braille/apps/xgds_image/importer/import_image.py'
+    arguments: '--camera WallCam %(filename)s'
+    timeout: 300
+    order: 3
+    auth: true
+  - name: 'NIRVSS Spectrometer'
+    filepath_pattern: 'NRVS/[\d]*_NRVS_[LS]W.*\.csv$'
+    importer: '/home/irg/xgds_braille/apps/xgds_braille_app/importer/importNirvssSpectra.py'
+    timeout: 600
+    order: 6
+    auth: false
+  - name: 'Resource forks'
+    filepath_pattern: '/\._'
+    ignore: true
+  - name: 'Emacs backups'
+    filepath_pattern: '~$'
+    ignore: true
+  - name: 'DS Store'
+    filepath_pattern: '/\.?_?DS_Store'
+    ignore: true
+  - name: 'DSLR Raw file'
+    filepath_pattern: 'SLR./[\d\w]*\.(?i)(CR)2$'
+    ignore: true
+
+
+
