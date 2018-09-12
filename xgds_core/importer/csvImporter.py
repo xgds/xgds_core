@@ -96,7 +96,7 @@ class CsvImporter(object):
     """
 
     def __init__(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, timezone_name='UTC',
-                 defaults=None, force=False, replace=False):
+                 defaults=None, force=False, replace=False, skip_bad=False):
         """
         Initialize with a path to a configuration yaml file and a path to a csv file
         :param yaml_file_path: The path to the yaml self.configuration file for import
@@ -107,6 +107,7 @@ class CsvImporter(object):
         :param defaults: Optional additional defaults to add to objects
         :param force: force load even if data already exists
         :param replace: replace rows instead of creating new ones, matches based on timestamp.
+        :param skip_bad: True to skip loading a row if it has bad/unparsable data
         :return: the imported items
         """
         self.csv_reader = None
@@ -118,6 +119,8 @@ class CsvImporter(object):
         self.first_row = None
         self.timezone = self.get_timezone(timezone_name)
         self.replace = replace
+        self.skip_bad = skip_bad
+
         # converters, from: to
         self.converters = {'radians': {'degrees': math.degrees},
                            'degrees': {'radians': math.radians}}
@@ -212,7 +215,7 @@ class CsvImporter(object):
         Also removes any values that are marked skip
         Also processes any regex
         :param row: the row to process
-        :return:
+        :return: the row, or None if it had to be skipped
         """
         for field_name in self.config['fields']:
             try:
@@ -229,7 +232,15 @@ class CsvImporter(object):
                         if match:
                             value = match.groups()[-1]
                             the_type = locate(field_config['type'])
-                            row[field_name] = the_type(value)
+                            try:
+                                row[field_name] = the_type(value)
+                            except Exception as err:
+                                if not self.skip_bad:
+                                    raise err
+                                else:
+                                    return None
+                        elif self.skip_bad:
+                            return None
 
                     storage_units = field_config['storage_units']
                     units = field_config['units']
@@ -241,6 +252,7 @@ class CsvImporter(object):
                             row[field_name] = new_value
             except:
                 pass
+        return row
 
     def update_row(self, row):
         """
@@ -252,7 +264,7 @@ class CsvImporter(object):
             row.update(self.config['defaults'])
             for field_name in self.config['timefields']:
                 row[field_name] = self.get_time(row, field_name)
-            self.convert(row)
+            row = self.convert(row)
         return row
 
     def update_flight_end(self, end):
@@ -291,9 +303,10 @@ class CsvImporter(object):
             self.reset_csv()
             for row in self.csv_reader:
                 row = self.update_row(row)
-                rows.append(row)
-                if not self.replace:
-                    new_models.append(the_model(**row))
+                if row:
+                    rows.append(row)
+                    if not self.replace:
+                        new_models.append(the_model(**row))
             self.update_flight_end(row['timestamp'])
             if not self.replace:
                 the_model.objects.bulk_create(new_models)
@@ -340,9 +353,11 @@ class CsvImporter(object):
         :return: True if it already exists, false otherwise
         """
         row = self.update_row(row)
-        the_model = getModelByName(self.config['class'])
-        result = the_model.objects.filter(**row)
-        return result.exists()
+        if row:
+            the_model = getModelByName(self.config['class'])
+            result = the_model.objects.filter(**row)
+            return result.exists()
+        return False
 
     def reset_csv(self):
         """
@@ -389,6 +404,7 @@ class CsvImporter(object):
         self.flight = lookup_flight(flight_name)
         self.load_config(yaml_file_path, defaults)
         self.open_csv(csv_file_path)
+
         first_row = self.get_first_row()
         if not force and not self.replace:
             exists = self.check_data_exists(first_row)
