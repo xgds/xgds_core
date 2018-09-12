@@ -206,8 +206,20 @@ def model_exists(app_name, model_name):
 
 
 def main():
+    import optparse
+    parser = optparse.OptionParser('usage: %prog')
+    parser.add_option('-t', '--test',
+                      action='store_true', default=False,
+                      help='Run in test mode: find files and report them but do not process them')
+    parser.add_option('-m', '--migrate',
+                      action='store_true', default=True,
+                      help='Migrate the database: set to False if you do not want to do this')
+
+    opts, args = parser.parse_args()
+
     # YAML files are specified on the command line
-    yaml_files = sys.argv[1:]
+    yaml_files = args
+    print args
 
     if not yaml_files:
         print 'yaml file must be in the argument'
@@ -221,35 +233,39 @@ def main():
         app_name = split_name[0]
         model_name = split_name[1]
 
-        if model_exists(app_name, model_name):
-            continue
+        if not opts.test:
+            if model_exists(app_name, model_name):
+                continue
         model_code = create_model_code(config, yaml_file, model_name)
         print model_code
 
-        # write to models.py
-        model_file_name = './apps/%s/models.py' % app_name
-        model_file = open(model_file_name, 'a')
-        model_file.write(model_code)
-        model_file.close()
-        print 'Updated %s' % model_file_name
+        if not opts.test:
+            # write to models.py
+            model_file_name = './apps/%s/models.py' % app_name
+            model_file = open(model_file_name, 'a')
+            model_file.write(model_code)
+            model_file.close()
+            print 'Updated %s' % model_file_name
 
-        # write to admin.py
-        admin_file_name = './apps/%s/admin.py' % app_name
-        admin_file = open(admin_file_name, 'a')
-        admin_file.write('admin.site.register(%s)\n' % model_name)
-        admin_file.close()
-        print 'Updated %s' % admin_file_name
+            # write to admin.py
+            admin_file_name = './apps/%s/admin.py' % app_name
+            admin_file = open(admin_file_name, 'a')
+            admin_file.write('admin.site.register(%s)\n' % model_name)
+            admin_file.close()
+            print 'Updated %s' % admin_file_name
 
-        # add to the set of apps needing migration
-        apps_needing_migration.add(app_name)
+            # add to the set of apps needing migration
+            apps_needing_migration.add(app_name)
 
     # do the migrations; since we've modified models.py we have to run this in a new process.
-    if apps_needing_migration:
-        for app_name in apps_needing_migration:
-            print 'Making migrations for %s (be patient)' % app_name
-            subprocess.call(['./manage.py', 'makemigrations', app_name])
-        print 'Migrating'
-        subprocess.call(['./manage.py', 'migrate'])
+    if not opts.test:
+        if apps_needing_migration:
+            if opts.migrate:
+                for app_name in apps_needing_migration:
+                    print 'Making migrations for %s (be patient)' % app_name
+                    subprocess.call(['./manage.py', 'makemigrations', app_name])
+                print 'Migrating'
+                subprocess.call(['./manage.py', 'migrate'])
 
 
 if __name__ == '__main__':
