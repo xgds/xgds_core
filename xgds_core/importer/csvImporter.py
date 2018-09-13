@@ -226,19 +226,29 @@ class CsvImporter(object):
                 if skip:
                     del row[field_name]
                 else:
+                    if field_config['type'] == 'key_value':
+                        # split the value into a dictionary
+                        string_value = row[field_name]
+                        colon_index = string_value.find(':')
+                        if colon_index > 0:
+                            row[field_name] = {string_value[0:colon_index]: string_value[colon_index +1:]}
+                            continue
                     if 'regex' in field_config:
                         regex = field_config['regex']
                         match = re.search(regex, row[field_name])
                         if match:
                             value = match.groups()[-1]
-                            the_type = locate(field_config['type'])
-                            try:
-                                row[field_name] = the_type(value)
-                            except Exception as err:
-                                if not self.skip_bad:
-                                    raise err
-                                else:
-                                    return None
+                            if field_config['type'] == 'string':
+                                row[field_name] = value
+                            else:
+                                the_type = locate(field_config['type'])
+                                try:
+                                    row[field_name] = the_type(value)
+                                except Exception as err:
+                                    if not self.skip_bad:
+                                        raise err
+                                    else:
+                                        return None
                         elif self.skip_bad:
                             return None
 
@@ -274,9 +284,7 @@ class CsvImporter(object):
         :return:
         """
         if self.flight:
-            if not self.flight.end_time or end > self.flight.end_time:
-                self.flight.end_time = end
-                self.flight.save()
+            self.flight.update_end_time(end)
 
     def update_flight_start(self, start):
         """
@@ -285,7 +293,7 @@ class CsvImporter(object):
         :return:
         """
         if self.flight:
-            update_flight_start(self.flight)
+            self.flight.update_start_time(start)
 
     def load_csv(self):
         """

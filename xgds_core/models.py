@@ -731,6 +731,15 @@ class AbstractFlight(UuidModel, HasVehicle):
             self.start_time = start
             self.save()
 
+    def update_end_time(self, end):
+        """
+        Update the end time and save
+        :param end: the end time
+        """
+        if not self.end_time or end > self.end_time:
+            self.end_time = end
+            self.save()
+
     def getTreeJsonChildren(self):
         children = []
         if hasattr(self, 'track'):

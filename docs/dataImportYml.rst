@@ -208,7 +208,7 @@ the Python model fields.
 |                    |                |iso8601                  |                                    |
 |                    |                |unixtime_float_second    |                                    |
 |                    |                |unixtime_int_microsecond |                                    |
-|                    |                |regex                    |                                    |
+|                    |                |key_value                | key_value: returns dictionary      |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``skip``            |boolean         |false                    |True if this columnar data does not |
 |                    |                |                         |map to a model field.               |
