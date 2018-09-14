@@ -38,9 +38,11 @@ from heapq import *
 
 
 class ImportFinder:
-    def __init__(self, config_yaml_path):
+    def __init__(self, config_yaml_path, import_path=None):
         # config comes from a YAML file
         self.config = yaml.load(open(config_yaml_path))
+        if import_path:
+            self.config['import_path'] = import_path
         self.registry = self.config['registry']
         # Local copy of processed files, which are also tracked in the database
         # in order to keep state when the import finder is restarted and for
@@ -211,13 +213,13 @@ if __name__ == '__main__':
                       help='Run in test mode: find files and report them but do not process them')
     parser.add_option('-u', '--username', default='irg', help='username for xgds auth')
     parser.add_option('-p', '--password', help='authtoken for xgds authentication.  Can get it from https://xgds_server_name/accounts/rest/genToken/<username>')
+    parser.add_option('-d', '--directory', help='import directory to override default set in ImportHandlerConfig.yaml', default=None)
 
     opts, args = parser.parse_args()
 
-
     start_time = datetime.datetime.now()
     end_time = None
-    finder = ImportFinder(args[0])
+    finder = ImportFinder(args[0], opts.directory)
     finder.get_new_files()
     if not opts.test:
         finder.process_files(username=opts.username, password=opts.password)
