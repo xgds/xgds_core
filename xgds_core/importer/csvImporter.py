@@ -143,6 +143,10 @@ class CsvImporter(object):
             if not skip:
                 if 'time' in value['type'] or 'iso8601' in value['type']:
                     self.config['timefields'].append(key)
+        if self.config['timefields']:
+            self.config['timefield_default'] = self.config['timefields'][0]
+        else:
+            self.config['timefield_default'] = 'timestamp'
 
         if 'flight_required' not in self.config:
             self.config['flight_required'] = False
@@ -157,13 +161,15 @@ class CsvImporter(object):
             return pytz.utc
         return pytz.timezone(timezone_name)
 
-    def get_time(self, row, field_name='timestamp'):
+    def get_time(self, row, field_name=None):
         """
         Read the timestamp from a row, or use the current time.
         The timezone must be configured first.
         :param row:
         :return: the timezone aware time in utc
         """
+        if not field_name:
+            field_name = self.config['timefield_default']
         if field_name in row:
             value = row[field_name]
             if not isinstance(value, datetime.datetime):
@@ -315,7 +321,7 @@ class CsvImporter(object):
                     rows.append(row)
                     if not self.replace:
                         new_models.append(the_model(**row))
-            self.update_flight_end(row['timestamp'])
+            self.update_flight_end(row[self.config['timefield_default']])
             if not self.replace:
                 the_model.objects.bulk_create(new_models)
             else:
@@ -333,18 +339,18 @@ class CsvImporter(object):
         :return:
         """
         for row in rows:
-            # TODO right now we use timestamp.
-            found = the_model.objects.filter(timestamp=row['timestamp'])
+            filter_dict = {self.config['timefield_default']: row[self.config['timefield_default']]}
             if self.flight:
-                found = found.filter(flight=self.flight)
-                if found.count() != 1:
-                    print "ERROR: DID NOT FIND MATCH FOR %s" % str(row['timestamp'])
-                else:
-                    item = found[0]
-                    for key, value in row.iteritems():
-                        setattr(item, key, value)
-                    print 'UPDATED: %s ' % str(item)
-                    item.save()
+                filter_dict['flight'] = self.flight
+            found = the_model.objects.filter(**filter_dict)
+            if found.count() != 1:
+                print "ERROR: DID NOT FIND MATCH FOR %s" % str(row[self.config['timefield_default']])
+            else:
+                item = found[0]
+                for key, value in row.iteritems():
+                    setattr(item, key, value)
+                print 'UPDATED: %s ' % str(item)
+                item.save()
 
     def handle_last_row(self, row):
         """
@@ -392,7 +398,7 @@ class CsvImporter(object):
         """
         if not self.start_time:
             row = self.get_first_row()
-            if row and 'timestamp' in row:
+            if row and self.config['timefield_default'] in row:
                 self.start_time = self.get_time(row)
         return self.start_time
 
