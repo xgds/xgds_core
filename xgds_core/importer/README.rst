@@ -30,7 +30,7 @@ It is called as follows:
 
 .. code-block:: bash
 
-./apps/xgds_braille_app/scripts/importHandler.py --username xgds --password ##pwhere## /home/xgds/xgds_braille/apps/xgds_braille_app/importer/ImportHandlerConfig.yaml
+./apps/xgds_core/importer/importHandler.py --username xgds --password ##pwhere## /home/xgds/xgds_braille/apps/xgds_braille_app/importer/ImportHandlerConfig.yaml
 
 The last argument is the configuration file for how it will process other data.  There are 2 such configuration files in this directory:
 
