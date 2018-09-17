@@ -56,6 +56,7 @@ class ImportFinder:
         self.unmatched_files = [] # matched no config rule
         self.imports_that_failed = [] # tried to import and failed
         self.imports_that_succeeded = [] # tried and succeeded
+        self.duration = None
 
     def get_new_files(self):
         for dirName, subdirList, fileList in os.walk(self.config['import_path']):
