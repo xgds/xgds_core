@@ -239,6 +239,9 @@ class CsvImporter(object):
                         if colon_index > 0:
                             row[field_name] = {string_value[0:colon_index]: string_value[colon_index +1:]}
                             continue
+                        else:
+                            if not self.skip_bad:
+                                raise 'KEY VALUE PAIR NOT FOUND %s: %s' % (field_name, str(row))
                     if 'regex' in field_config:
                         regex = field_config['regex']
                         match = re.search(regex, row[field_name])
