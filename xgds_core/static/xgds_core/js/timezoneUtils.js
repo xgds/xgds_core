@@ -49,7 +49,13 @@ getLocalTimeString = function(utctime, destTimeZone, format) {
 	if (utctime === undefined){
 		return '';
 	}
-	var localTime = getLocalTime(utctime, destTimeZone);
+	var localTime = undefined;
+	if (destTimeZone != undefined) {
+		localTime = getLocalTime(utctime, destTimeZone);
+	} else {
+		// use utc time
+		localTime = getLocalTime(utctime, 'Etc/UTC');
+	}
 	if (localTime != undefined && localTime != null){
 		return localTime.format(format);
 	} else {
