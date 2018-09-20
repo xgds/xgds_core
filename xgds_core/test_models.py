@@ -52,9 +52,9 @@ class xgds_testAllTheModels(TestCase):
         event.object_id = 1
         #event.content_object = None
         event.content_type_id = 1
-        event.acquisition_time = datetime.datetime.utcnow()
-        event.relay_start_time = datetime.datetime.utcnow()
-        event.relay_success_time = datetime.datetime.utcnow()
+        event.acquisition_time = datetime.datetime.now(pytz.utc)
+        event.relay_start_time = datetime.datetime.now(pytz.utc)
+        event.relay_success_time = datetime.datetime.now(pytz.utc)
         event.url = 'url://myurl'
         event.is_update = True
         event.hostname = 'host'
