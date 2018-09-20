@@ -25,6 +25,7 @@ from xgds_core.flightUtils import getFlight, getActiveFlight
 from xgds_core.flightUtils import getNextAlphabet
 from xgds_core.flightUtils import create_group_flight, get_next_available_group_flight_name
 from xgds_core.flightUtils import lookup_vehicle, lookup_flight
+from xgds_core.models import Vehicle
 
 class xgds_AllTheUtils(TestCase):
     """
@@ -93,7 +94,8 @@ class xgds_AllTheUtils(TestCase):
 
     def test_get_default_vehicle(self):
         vehicle = get_default_vehicle()
-        assert(vehicle.name=='Generic Vehicle')
+        shouldbe = Vehicle.objects.filter(id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)[0]
+        assert(vehicle.name==shouldbe.name)
 
     def test_create_group_flight(self):
         vehicle = get_default_vehicle()
