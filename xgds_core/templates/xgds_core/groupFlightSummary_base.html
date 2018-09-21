@@ -16,7 +16,7 @@
 <a href="{{ groupFlight.view_url }}" target="" class="font-weight-bold">View</a>
 {% endif %}
 {% with 'flight__group:'|add:group_pk as groupFlightFilter %}
-<a href="{% url 'search_xgds_notes_map_filter' groupFlightFilter %}" target="_blank" class="font-weight-bold">All Notes</a>
+<a href="{% url 'search_xgds_notes_map_filter' groupFlightFilter %}" target="_blank" class="font-weight-bold">All {{settings.XGDS_NOTES_MONIKER}}</a>
 {% endwith %}
 {% endblock groupFlightContents %}
 

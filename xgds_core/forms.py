@@ -185,6 +185,7 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
                 builtQuery = self.buildQueryForField(fieldname, field, value, minimum, maximum)
                 self.addQuery(builtQuery)
             except:
+                traceback.print_exc()
                 pass
         return self.queries
     
