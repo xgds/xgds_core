@@ -666,6 +666,12 @@ class IsFlightData(object):
         """
         return None
 
+    @property
+    def vehicle_name(self):
+        if self.flight:
+            return self.flight.vehicle.name
+        return ''
+
 
 class AbstractFlight(UuidModel, HasVehicle):
     objects = NameManager()
