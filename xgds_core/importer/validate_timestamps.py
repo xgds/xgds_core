@@ -68,7 +68,12 @@ def get_timestamp_from_filename(filename, time_format, regex=None):
             timestamp_pattern = regex
             match = re.search(timestamp_pattern, filename)
             if match:
-                timestamp_string = match.groups()[-1]
+
+                if regex.count('(') == 2:
+                    timestamp_string = match.group(1) + match.group(2)
+                else:
+                    timestamp_string = match.groups()[-1]
+
                 zoneless_timestamp = dateparser(timestamp_string)
                 result = pytz.utc.localize(zoneless_timestamp)
             else:
