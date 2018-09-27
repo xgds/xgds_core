@@ -59,7 +59,7 @@ class ImportFinder:
         self.duration = None
 
     def get_new_files(self):
-        for dirName, subdirList, fileList in os.walk(self.config['import_path']):
+        for dirName, subdirList, fileList in os.walk(self.config['import_path'],followlinks=True):
             #print('Found directory: %s' % dirName)
             for basename in fileList:
                 filename = os.path.join(dirName, basename)
@@ -118,13 +118,15 @@ class ImportFinder:
         while len(self.files_to_process) > 0:
             order, pair = heappop(self.files_to_process)
             filename, registry = pair
-            arguments = ''
             if 'arguments' in registry:
+                arguments = registry['arguments']
+                match = re.search(registry['filepath_pattern'], filename)
+                replacements = match.groupdict()
                 if '%(filename)s' in registry['arguments']:
-                    arguments = registry['arguments']
-                    arguments = arguments % {'filename': '"%s"' % filename}
+                    replacements['filename'] = filename
                 else:
                     arguments = ' '.join([registry['arguments'], '"%s"' % filename])
+                arguments = arguments % replacements
             else:
                 arguments = '"%s"' % filename
 
