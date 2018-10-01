@@ -488,11 +488,11 @@ class OrderListJson(BaseDatatableView):
         # for text search in note content for relevant notes
         found_object_ids = self.model.buildNoteQuery(words, model_class)
         if found_object_ids:
-            self.noteContentResults = Q(**{'id__in': found_object_ids})
+            self.noteContentResults = Q(**{'pk__in': found_object_ids})
 
         if model and model == settings.XGDS_IMAGE_IMAGE_SET_MONIKER:
             found_image_ids_from_text_annotation = self.model.buildTextAnnotationQuery(words)
-            self.textAnnotationResults = Q(**{'id__in': found_image_ids_from_text_annotation})
+            self.textAnnotationResults = Q(**{'pk__in': found_image_ids_from_text_annotation})
 
         return self.keywordQueries
 
@@ -617,13 +617,14 @@ def getDelay():
     except:
         return 0
 
+
 def fireRelay(event):
     queueRedisData(settings.XGDS_CORE_REDIS_RELAY_CHANNEL, event.toRelayJson())
     event.relay_start_time = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     event.save()
 
-def receiveRelay(request):
 
+def receiveRelay(request):
     object_id = request.POST.get('object_id')
     content_type_app_label = request.POST.get('content_type_app_label')
     content_type_model = request.POST.get('content_type_model')
