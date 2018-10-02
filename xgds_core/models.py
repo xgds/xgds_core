@@ -119,8 +119,14 @@ class SearchableModel(object):
                     obj = getattr(self, part)
                 text = obj
             except:
-                #TODO: look at datatables select.  We are doing this here to bypass the checkbox problem but it will swallow other errors
-                pass
+                try:
+                    # see if it is a position attribute
+                    pos = self.getPosition()
+                    if pos:
+                        text = getattr(pos, column)
+                except:
+                    #TODO: look at datatables select.  We are doing this here to bypass the checkbox problem but it will swallow other errors
+                    pass
         if text is None:
             text = ''
         return text
@@ -136,6 +142,19 @@ class SearchableModel(object):
         Return a reduced dictionary that will be turned to JSON for rendering in a map
         """
         columns = settings.XGDS_MAP_SERVER_JS_MAP[self.cls_type()]['columns']
+
+        # add the columns from the position class
+        try:
+            PAST_POSITION_MODEL = LazyGetModelByName(settings.GEOCAM_TRACK_PAST_POSITION_MODEL)
+            position_columns = PAST_POSITION_MODEL.get().getFlattenedFields()
+            if position_columns:
+                in_columns = set(columns)
+                in_position_columns = set(position_columns)
+                new_columns = in_position_columns - in_columns
+                position_columns = position_columns + new_columns
+        except:
+            pass
+
         if columns[0] == 'checkbox':
             columns = columns[1:]  # ignore the checkbox column
         values = self.toMapList(columns)
@@ -202,6 +221,50 @@ class SearchableModel(object):
         except:
             pass
         return None
+
+    # @property
+    # def depth(self):
+    #     """ depth """
+    #     try:
+    #         position = self.getPosition()
+    #         if position:
+    #             return position.depth
+    #     except:
+    #         pass
+    #     return None
+
+    # @property
+    # def yaw(self):
+    #     """ yaw """
+    #     try:
+    #         position = self.getPosition()
+    #         if position:
+    #             return position.yaw
+    #     except:
+    #         pass
+    #     return None
+    #
+    # @property
+    # def pitch(self):
+    #     """ pitch """
+    #     try:
+    #         position = self.getPosition()
+    #         if position:
+    #             return position.pitch
+    #     except:
+    #         pass
+    #     return None
+    #
+    # @property
+    # def roll(self):
+    #     """ roll """
+    #     try:
+    #         position = self.getPosition()
+    #         if position:
+    #             return position.roll
+    #     except:
+    #         pass
+    #     return None
 
     def getPosition(self):
         if self.position:
