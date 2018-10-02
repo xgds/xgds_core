@@ -318,13 +318,15 @@ class CsvImporter(object):
 
         try:
             self.reset_csv()
+            row = None
             for row in self.csv_reader:
                 row = self.update_row(row)
                 if row:
                     rows.append(row)
                     if not self.replace:
                         new_models.append(the_model(**row))
-            self.update_flight_end(row[self.config['timefield_default']])
+            if row:
+                self.update_flight_end(row[self.config['timefield_default']])
             if not self.replace:
                 the_model.objects.bulk_create(new_models)
             else:
@@ -390,8 +392,13 @@ class CsvImporter(object):
         :return: the first row
         """
         if not self.first_row:
-            self.first_row = list(self.csv_reader)[0]
-            self.reset_csv()
+            the_list = list(self.csv_reader)
+            if the_list:
+                self.first_row = the_list[0]
+                self.reset_csv()
+            else:
+                return None
+
         return self.first_row
 
     def get_start_time(self):
@@ -423,7 +430,7 @@ class CsvImporter(object):
         self.open_csv(csv_file_path)
 
         first_row = self.get_first_row()
-        if not force and not self.replace:
+        if not force and not self.replace and first_row:
             exists = self.check_data_exists(first_row)
             if exists:
                 print " ABORTING: MATCHING DATA FOUND"
