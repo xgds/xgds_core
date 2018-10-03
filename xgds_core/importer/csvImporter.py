@@ -37,12 +37,32 @@ from geocamUtil.loader import getModelByName
 from xgds_core.flightUtils import get_default_vehicle, getFlight, create_group_flight, \
     get_next_available_group_flight_name, lookup_vehicle, lookup_flight, get_or_create_flight
 from geocamUtil.loader import LazyGetModelByName
+from geocamTrack.utils import getClosestPosition
+
 from dateutil.parser import parse as dateparser
 
 from django.conf import settings
 
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
+
+
+def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None):
+    """ Utility method to help with looking up position"""
+    track = None
+    if row['flight']:
+        track = row['flight'].track
+    found_position = getClosestPosition(track=track,
+                                        timestamp=row[timestamp_key])
+
+    if found_position:
+        row[position_id_key] = found_position.id
+        if position_found_key:
+            row[position_found_key] = True
+    else:
+        if position_found_key:
+            row[position_found_key] = False
+    return row
 
 
 def ordered_load(stream, Loader=Loader, object_pairs_hook=OrderedDict):
