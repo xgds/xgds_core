@@ -222,50 +222,6 @@ class SearchableModel(object):
             pass
         return None
 
-    # @property
-    # def depth(self):
-    #     """ depth """
-    #     try:
-    #         position = self.getPosition()
-    #         if position:
-    #             return position.depth
-    #     except:
-    #         pass
-    #     return None
-
-    # @property
-    # def yaw(self):
-    #     """ yaw """
-    #     try:
-    #         position = self.getPosition()
-    #         if position:
-    #             return position.yaw
-    #     except:
-    #         pass
-    #     return None
-    #
-    # @property
-    # def pitch(self):
-    #     """ pitch """
-    #     try:
-    #         position = self.getPosition()
-    #         if position:
-    #             return position.pitch
-    #     except:
-    #         pass
-    #     return None
-    #
-    # @property
-    # def roll(self):
-    #     """ roll """
-    #     try:
-    #         position = self.getPosition()
-    #         if position:
-    #             return position.roll
-    #     except:
-    #         pass
-    #     return None
-
     def getPosition(self):
         if self.position:
             return self.position
