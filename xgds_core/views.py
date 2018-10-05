@@ -236,6 +236,34 @@ class OrderListJson(BaseDatatableView):
 
         return super(OrderListJson, self).dispatch(request, *args, **kwargs)
 
+    def render_column(self, row, column):
+        """ Renders a column on a row, looking at data from position if there is an attribute error via the render_column of the object
+        """
+        if hasattr(row, 'get_%s_display' % column):
+            # It's a choice field
+            text = getattr(row, 'get_%s_display' % column)()
+        else:
+            try:
+                text = getattr(row, column)
+            except AttributeError:
+                try:
+                    text = row.render_column(column)
+                except AttributeError:
+                    obj = row
+                    for part in column.split('.'):
+                        if obj is None:
+                            break
+                        obj = getattr(obj, part)
+
+                    text = obj
+        if text is None:
+            text = self.none_string
+
+        if text and hasattr(row, 'get_absolute_url'):
+            return '<a href="%s">%s</a>' % (row.get_absolute_url(), text)
+        else:
+            return text
+
     def addOrQuery(self, queries, query):
         """
         Or a query to a list of or'd queries.  Handles the case where queries or query are None.
@@ -1204,6 +1232,7 @@ def groupFlightTreeNodes(request, group_flight_id):
     json_data = json.dumps(result, indent=4)
     return HttpResponse(content=json_data,
                         content_type="application/json")
+
 
 def completedGroupFlightsTreeNodes(request):
     flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True)

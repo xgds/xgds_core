@@ -109,8 +109,9 @@ class SearchableModel(object):
     def DT_RowId(self):
         return self.pk
 
-    def renderColumn(self, column):
+    def render_column(self, column):
         text = None
+
         try:
             text = getattr(self, column)
         except AttributeError:
@@ -123,9 +124,13 @@ class SearchableModel(object):
                     # see if it is a position attribute
                     pos = self.getPosition()
                     if pos:
-                        text = getattr(pos, column)
+                        for part in column.split('.'):
+                            obj = getattr(pos, part)
+                        text = obj
                 except:
                     #TODO: look at datatables select.  We are doing this here to bypass the checkbox problem but it will swallow other errors
+                    # print 'ERROR WITH COLUMN %s' % column
+                    # traceback.print_exc()
                     pass
         if text is None:
             text = ''
@@ -135,7 +140,7 @@ class SearchableModel(object):
         """
         Return a list of the values for rendering in tables or on the map
         """
-        return [self.renderColumn(column) for column in columns]
+        return [self.render_column(column) for column in columns]
 
     def toMapDict(self):
         """
