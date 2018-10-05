@@ -765,7 +765,7 @@ class AbstractFlight(UuidModel, HasVehicle):
             self.end_time = end
             self.save()
 
-    def getTreeJsonChildren(self):
+    def get_tree_json_children(self):
         children = []
         if hasattr(self, 'track'):
             children.append({"title": settings.GEOCAM_TRACK_TRACK_MONIKER,
@@ -800,7 +800,7 @@ class AbstractFlight(UuidModel, HasVehicle):
 
         return children
 
-    def getTreeJson(self):
+    def get_tree_json(self):
         result = {"title": self.name,
                   "lazy": True,
                   "key": self.uuid,
@@ -811,7 +811,7 @@ class AbstractFlight(UuidModel, HasVehicle):
                            "href": '',  # TODO add url to the flight summary page when it exists
                            "childNodesUrl": reverse('xgds_core_flightTreeNodes', kwargs={'flight_id': self.id})
                            }
-                  # "children": self.getTreeJsonChildren()
+                  # "children": self.get_tree_json_children()
                   }
 
         return result
@@ -940,11 +940,25 @@ class AbstractGroupFlight(models.Model):
 
     @property
     def flights(self):
-        # TODO implement
-        return None
+        return self.flight_set.all()
 
     def natural_key(self):
-        return (self.name)
+        return self.name
+
+    def get_tree_json(self):
+        result = {"title": self.name,
+                  "lazy": True,
+                  "key": '%d_%s' % (self.pk, self.name),
+                  "tooltip": self.notes,
+                  "folder": True,
+                  "data": {"type": self.__class__.__name__,
+                           "href": '',  # TODO add url to the group flight summary page when it exists
+                           "childNodesUrl": reverse('xgds_core_groupFlightTreeNodes', kwargs={'group_flight_id': self.id})
+                           }
+                  # "children": self.get_tree_json_children()
+                  }
+
+        return result
 
     class Meta:
         abstract = True

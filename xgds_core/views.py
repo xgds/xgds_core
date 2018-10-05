@@ -1180,7 +1180,7 @@ def activeFlightsTreeNodes(request):
     activeFlights = getActiveFlights()
     result = []
     for aFlight in activeFlights:
-        result.append(aFlight.flight.getTreeJson())
+        result.append(aFlight.flight.get_tree_json())
     json_data = json.dumps(result, indent=4)
     return HttpResponse(content=json_data,
                         content_type="application/json")
@@ -1190,7 +1190,30 @@ def completedFlightsTreeNodes(request):
     flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True)
     result = []
     for f in flights:
-        result.append(f.getTreeJson())
+        result.append(f.get_tree_json())
+    json_data = json.dumps(result, indent=4)
+    return HttpResponse(content=json_data,
+                        content_type="application/json")
+
+
+def groupFlightTreeNodes(request, group_flight_id):
+    group_flight = GROUP_FLIGHT_MODEL.get().objects.get(id=group_flight_id)
+    result = []
+    for f in group_flight.flights:
+        result.append(f.get_tree_json())
+    json_data = json.dumps(result, indent=4)
+    return HttpResponse(content=json_data,
+                        content_type="application/json")
+
+def completedGroupFlightsTreeNodes(request):
+    flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True)
+    groups = []
+    for f in flights:
+        if f.group not in groups:
+            groups.append(f.group)
+    result = []
+    for g in groups:
+        result.append(g.get_tree_json())
     json_data = json.dumps(result, indent=4)
     return HttpResponse(content=json_data,
                         content_type="application/json")
@@ -1198,7 +1221,7 @@ def completedFlightsTreeNodes(request):
 
 def flightTreeNodes(request, flight_id):
     flight = FLIGHT_MODEL.get().objects.get(id=flight_id)
-    json_data = json.dumps(flight.getTreeJsonChildren(), indent=4)
+    json_data = json.dumps(flight.get_tree_json_children(), indent=4)
     return HttpResponse(content=json_data,
                         content_type="application/json")
 
