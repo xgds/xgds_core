@@ -799,7 +799,7 @@ class AbstractFlight(UuidModel, HasVehicle):
                                       }
                              })
 
-        for the_class in IsFlightChild.__subclasses__():
+        for the_class in get_all_subclasses(IsFlightChild):
             tree_jsons = the_class.get_tree_json(settings.XGDS_CORE_FLIGHT_MODEL, self.pk)
             if tree_jsons:
                 children.extend(tree_jsons)
