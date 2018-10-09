@@ -86,4 +86,25 @@ def insertIntoPath(original, insertion='rest'):
     return newString
 
 
+def get_all_subclasses(the_class, check_meta_abstract=True, top=True):
+    """
+    Returns all the subclasses of the given class
+    :param the_class: parent class
+    :param check_meta_abstract: False to not check the abstract setting on a django model
+    :param top: true if this is the 'top call', ie non recursive call
+    :return: set of all subclasses
+    """
+    kids = the_class.__subclasses__()
+
+    result = set(kids).union(
+            [s for c in kids for s in get_all_subclasses(c, check_meta_abstract, False)])
+
+    if top:
+        if check_meta_abstract:
+            non_abstract_result = []
+            for k in result:
+                if not k._meta.abstract:
+                    non_abstract_result.append(k)
+            result = non_abstract_result
+    return result
 

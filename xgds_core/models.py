@@ -13,6 +13,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
+
 import traceback
 import json
 from dateutil.parser import parse as dateparser
@@ -33,7 +34,7 @@ from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 from geocamUtil.models.UuidField import UuidModel
 
-from xgds_core.util import get100Years
+from xgds_core.util import get100Years, get_all_subclasses
 from xgds_core.redisUtil import callRemoteRebroadcast
 from fastkml import kml, styles
 from shapely.geometry import Point, LineString, Polygon
@@ -827,7 +828,7 @@ class AbstractFlight(UuidModel, HasVehicle):
         :return: a list of json blocks
         """
         result = []
-        for the_class in IsFlightData.__subclasses__():
+        for the_class in get_all_subclasses(IsFlightData):
             flight_data_json = the_class.get_info_json(self.pk)
             if flight_data_json:
                 result.append(flight_data_json)
