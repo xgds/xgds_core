@@ -31,7 +31,7 @@ class xgds_AllTheUtils(TransactionTestCase):
     """
     Tests for getFlight
     """
-    fixtures = ['initial_data.json','xgds_core_testing.json']
+    fixtures = ['xgds_core/initial_data.json','xgds_core_testing.json']
 
     def test_getFlight(self):
         flight = getFlight(datetime.datetime(2015,12,25,12,0,0,0,pytz.utc),1)
