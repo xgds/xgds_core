@@ -20,10 +20,10 @@ import json
 import pytz
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 
-class xgds_coreTest(TestCase):
+class xgds_coreTest(TransactionTestCase):
     """
     Tests for xgds_core
     """
@@ -31,7 +31,7 @@ class xgds_coreTest(TestCase):
         pass
 
 
-class xgds_coreConditionSetTest(TestCase):
+class xgds_coreConditionSetTest(TransactionTestCase):
     fixtures = ['xgds_core_testing.json']
     urls = "xgds_core.testing_urls"
     
@@ -69,7 +69,7 @@ class xgds_coreConditionSetTest(TestCase):
         self.assertEqual(condition_dict['source_id'], 'test_one')
         self.assertEqual(condition_dict['source'], 'xgds_test')
 
-class xgds_coreConditionUpdateTest(TestCase):
+class xgds_coreConditionUpdateTest(TransactionTestCase):
 
     def test_update_condition(self):
         url = reverse('xgds_core_set_condition')

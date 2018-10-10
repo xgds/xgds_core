@@ -18,7 +18,7 @@ import datetime
 import json
 import pytz
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from xgds_core.flightUtils import get_default_vehicle
 from xgds_core.flightUtils import getFlight, getActiveFlight
@@ -27,7 +27,7 @@ from xgds_core.flightUtils import create_group_flight, get_next_available_group_
 from xgds_core.flightUtils import lookup_vehicle, lookup_flight
 from xgds_core.models import Vehicle
 
-class xgds_AllTheUtils(TestCase):
+class xgds_AllTheUtils(TransactionTestCase):
     """
     Tests for getFlight
     """

@@ -18,11 +18,11 @@ import datetime
 import json
 import pytz
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from xgds_core.models import *
 
-class xgds_testAllTheModels(TestCase):
+class xgds_testAllTheModels(TransactionTestCase):
     """
     Tests for xgds_core models
     """
