@@ -31,7 +31,8 @@ class xgds_AllTheUtils(TransactionTestCase):
     """
     Tests for getFlight
     """
-    fixtures = ['xgds_core/initial_data.json','xgds_core_testing.json']
+    settings.XGDS_CORE_DEFAULT_VEHICLE_PK = 1
+    fixtures = ['xgds_core_initial_data.json', 'xgds_core_testing.json']
 
     def test_getFlight(self):
         flight = getFlight(datetime.datetime(2015,12,25,12,0,0,0,pytz.utc),1)
@@ -95,7 +96,7 @@ class xgds_AllTheUtils(TransactionTestCase):
     def test_get_default_vehicle(self):
         vehicle = get_default_vehicle()
         shouldbe = Vehicle.objects.filter(id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)[0]
-        assert(vehicle.name==shouldbe.name)
+        self.assertEqual(vehicle.name, shouldbe.name)
 
     def test_create_group_flight(self):
         vehicle = get_default_vehicle()
@@ -107,7 +108,7 @@ class xgds_AllTheUtils(TransactionTestCase):
     def test_lookup_vehicle(self):
         v1 = lookup_vehicle('Generic Vehicle')
         v2 = lookup_vehicle('Batmobile')
-        assert(v1 is not None)
+        self.assertIsNotNone(v1)
         # current behavior is looking up "Batmobile" results in
         # finding "Generic Vehicle", we should talk about that
         #assert(v2 is None)

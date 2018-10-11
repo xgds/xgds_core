@@ -101,7 +101,3 @@ class xgds_coreConditionUpdateTest(TransactionTestCase):
         self.assertEqual(condition_dict['source_id'], 'test_one')
         self.assertEqual(condition_dict['source'], 'xgds_test')
 
-
-
-        
-        
