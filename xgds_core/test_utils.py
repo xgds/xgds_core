@@ -31,8 +31,19 @@ class xgds_AllTheUtils(TransactionTestCase):
     """
     Tests for getFlight
     """
-    settings.XGDS_CORE_DEFAULT_VEHICLE_PK = 1
     fixtures = ['xgds_core_initial_data.json', 'xgds_core_testing.json']
+
+    @classmethod
+    def setUpClass(self):
+        # Keep track of the global default vehicle pk and set the global to
+        # what these tests need it to be
+        self.default_vehicle_pk = settings.XGDS_CORE_DEFAULT_VEHICLE_PK
+        settings.XGDS_CORE_DEFAULT_VEHICLE_PK = 1
+
+    @classmethod
+    def tearDownClass(self):
+        # Restore the global variable we changed during setup
+        settings.XGDS_CORE_DEFAULT_VEHICLE_PK = self.default_vehicle_pk
 
     def test_getFlight(self):
         flight = getFlight(datetime.datetime(2015,12,25,12,0,0,0,pytz.utc),1)
