@@ -446,7 +446,11 @@ class CsvImporter(object):
         """
         self.vehicle = lookup_vehicle(vehicle_name)
         self.flight = lookup_flight(flight_name)
+
         self.load_config(yaml_file_path, defaults)
+        if self.flight:
+            self.config['defaults']['flight_id'] = self.flight.id
+            
         self.open_csv(csv_file_path)
 
         first_row = self.get_first_row()
