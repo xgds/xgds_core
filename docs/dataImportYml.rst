@@ -144,46 +144,49 @@ Metadata has a ``type`` member that states which class it
 belongs to. The definition of that class specifies the name, type, and
 interpretation of other members.
 
-+------------------+----------------+-----------------+------------------------------------+
-|Member            |Type            |Values           |Meaning                             |
-+==================+================+=================+====================================+
-|``name``          |string          |required         |The name of the data importer       |
-+------------------+----------------+-----------------+------------------------------------+
-|``class``         |string          |required         |The fully qualified Python name of  |
-|                  |                |                 |the Django model that will be used  |
-|                  |                |                 |for data import described by this   |
-|                  |                |                 |Data Import YAML file.              |
-+------------------+----------------+-----------------+------------------------------------+
-|``superclass``    |string          |optional         |The superclass that generated code  |
-|                  |                |                 |will extend.                        |
-|                  |                |                 |xgds_timeseries.TimeSeriesModel     |
-|                  |                |                 |will let it behave as a timeseries. |
-|                  |                |                 |Nothing will default to             |
-|                  |                |                 |models.Model                        |
-+------------------+----------------+-----------------+------------------------------------+
-|``extension``     |string          |                 |File extension for import files.    |
-+------------------+----------------+-----------------+------------------------------------+
-|``delimiter``     |string          |optional         |Whatever character will be used     |
-|                  |                |                 |to separate data, , or `\t` usually |
-+------------------+----------------+-----------------+------------------------------------+
-|``quotechar``     |string          |optional         |Whatever character will be used     |
-|                  |                |                 |to quote data, usually  `"`         |
-+------------------+----------------+-----------------+------------------------------------+
-|``defaults``      |dictionary      |optional         |A dictionary of default values      |
-+------------------+----------------+-----------------+------------------------------------+
-|``time_field``    |string          |optional         |The name of the time field if it is |
-|                  |                |                 |not timestamp.                      |
-+------------------+----------------+-----------------+------------------------------------+
-|``fields``        |dictionary      |required         |A dictionary of field specs.  The   |
-|                  |                |                 |exact name of the Python model field|
-|                  |                |                 |is the key in the dictionary.       |
-+------------------+----------------+-----------------+------------------------------------+
-|``stateful``      |boolean         |optional         |Defaults to false; override with    |
-|                  |                |                 |true if this data is stateful.      |
-+------------------+----------------+-----------------+------------------------------------+
-|``children``      |list            |optional         |A list of child specifications;     |
-|                  |                |                 |these will be nested models.        |
-+------------------+----------------+-----------------+------------------------------------+
++--------------------+----------------+-----------------+------------------------------------+
+|Member              |Type            |Values           |Meaning                             |
++====================+================+=================+====================================+
+|``name``            |string          |required         |The name of the data importer       |
++--------------------+----------------+-----------------+------------------------------------+
+|``class``           |string          |required         |The fully qualified Python name of  |
+|                    |                |                 |the Django model that will be used  |
+|                    |                |                 |for data import described by this   |
+|                    |                |                 |Data Import YAML file.              |
++--------------------+----------------+-----------------+------------------------------------+
+|``superclass``      |string          |optional         |The superclass that generated code  |
+|                    |                |                 |will extend.                        |
+|                    |                |                 |xgds_timeseries.TimeSeriesModel     |
+|                    |                |                 |will let it behave as a timeseries. |
+|                    |                |                 |Nothing will default to             |
+|                    |                |                 |models.Model                        |
++--------------------+----------------+-----------------+------------------------------------+
+|``extension``       |string          |                 |File extension for import files.    |
++--------------------+----------------+-----------------+------------------------------------+
+|``delimiter``       |string          |optional         |Whatever character will be used     |
+|                    |                |                 |to separate data, , or `\t` usually |
++--------------------+----------------+-----------------+------------------------------------+
+|``quotechar``       |string          |optional         |Whatever character will be used     |
+|                    |                |                 |to quote data, usually  `"`         |
++--------------------+----------------+-----------------+------------------------------------+
+|``defaults``        |dictionary      |optional         |A dictionary of default values      |
++--------------------+----------------+-----------------+------------------------------------+
+|``time_field``      |string          |optional         |The name of the time field if it is |
+|                    |                |                 |not timestamp.                      |
++--------------------+----------------+-----------------+------------------------------------+
+|``flight_required`` |                |false            |True if flight is required; it can  |
+|                    |                |                 |be looked up or created.            |
++--------------------+----------------+-----------------+------------------------------------+
+|``fields``          |dictionary      |required         |A dictionary of field specs.  The   |
+|                    |                |                 |exact name of the Python model field|
+|                    |                |                 |is the key in the dictionary.       |
++--------------------+----------------+-----------------+------------------------------------+
+|``stateful``        |boolean         |optional         |Defaults to false; override with    |
+|                    |                |                 |true if this data is stateful.      |
++--------------------+----------------+-----------------+------------------------------------+
+|``children``        |list            |optional         |A list of child specifications;     |
+|                    |                |                 |these will be nested models.        |
++--------------------+----------------+-----------------+------------------------------------+
 
 
 .. _FieldSpecification:
@@ -214,9 +217,6 @@ the Python model fields.
 |                    |                |                         |map to a model field.               |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``default``         |                |optional                 |Default value                       |
-+--------------------+----------------+-------------------------+------------------------------------+
-|``flight_required`` |                |false                    |True if flight is required; it can  |
-|                    |                |                         |be looked up or created.            |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``label``           |                |optional                 |The label for plots etc             |
 +--------------------+----------------+-------------------------+------------------------------------+
