@@ -48,7 +48,7 @@ class xgds_coreConditionSetTest(TransactionTestCase):
                 'id': 'test_one',
                 'data': json.dumps(nested_data_dict)
                 }
-        response = requests.post(url, data=data)
+        response = requests.post(url, data=data, verify=False)
         json_response = response.json()
         self.assertEqual(json_response['status'], 'success')
         condition_history_json = json_response['data']
@@ -82,7 +82,7 @@ class xgds_coreConditionUpdateTest(TransactionTestCase):
                 'id': 'test_one',
                 'data': json.dumps(nested_data_dict)
                 }
-        response = requests.post(url, data=data)
+        response = requests.post(url, data=data, verify=False)
         json_response = response.json()
         self.assertEqual(json_response['status'], 'success')
         condition_history_json = json_response['data']
