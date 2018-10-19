@@ -216,6 +216,13 @@ the Python model fields.
 |``skip``            |boolean         |false                    |True if this columnar data does not |
 |                    |                |                         |map to a model field.               |
 +--------------------+----------------+-------------------------+------------------------------------+
+|``required``        |boolean         |true false               |If true then failures to interpret  |
+|                    |                |                         |the value will cause an error.      |
+|                    |                |                         |If false then errors are tolerated. |
+|                    |                |                         |E.g. if the value is supposed to    |
+|                    |                |                         |match a regex or contain a key      |
+|                    |                |                         |value pair and doesn't.             |
++--------------------+----------------+-------------------------+------------------------------------+
 |``default``         |                |optional                 |Default value                       |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``label``           |                |optional                 |The label for plots etc             |
