@@ -149,7 +149,7 @@ class CsvImporter(object):
     def load_config(self, yaml_file_path, defaults={}):
         """
         Loads the config file from the yaml path and stores it in self.config
-        :param yaml_file_path: the path to the file to load.  If running within django, the path can be /apps/myapp/path/to/yaml
+        :param yaml_file_path: the path to the file to load.  Within django, the path can be /apps/myapp/path/to/yaml
         :param defaults: default dictionary to append to self.config defaults
         """
         self.config = load_yaml(yaml_file_path, defaults)
@@ -157,11 +157,8 @@ class CsvImporter(object):
 
         self.config['timefields'] = []
         for key, value in self.config['fields'].iteritems():
-            skip = False
-            if 'skip' in value and value['skip']:
-                skip = True
-            if not skip:
-                if 'time' in value['type'] or 'iso8601' in value['type']:
+            if 'skip' not in value or not value['skip']:
+                if value['type'] == 'datetime':
                     self.config['timefields'].append(key)
         if self.config['timefields']:
             self.config['timefield_default'] = self.config['timefields'][0]
@@ -185,33 +182,36 @@ class CsvImporter(object):
         """
         Read the timestamp from a row, or use the current time.
         The timezone must be configured first.
-        :param row:
+        :param row: a row dict containing a time to be converted
+        :param field_name: key for the value in the row to convert to time
         :return: the timezone aware time in utc
         """
         if not field_name:
             field_name = self.config['timefield_default']
-        if field_name in row:
-            value = row[field_name]
-            if not isinstance(value, datetime.datetime):
-                time_type = self.config['fields'][field_name]['type']
-                if time_type == 'iso8601':
-                    # iso8601 format should include the timezone
-                    the_time = dateparser(row[field_name])
-                elif time_type == 'unixtime_float_second':
-                    # unix time is always UTC
-                    the_time = datetime.datetime.utcfromtimestamp(float(row[field_name])).replace(tzinfo=pytz.utc)
-                elif time_type == 'unixtime_int_microsecond':
-                    # unix time is always UTC and we should retain the fractional part
-                    the_time = datetime.datetime.utcfromtimestamp(int(row[field_name])/1000000.).replace(tzinfo=pytz.utc)
-                else:
-                    raise Exception('Unsupported time type %s for row %s' % (time_type, field_name))
-            else:
-                the_time = value
-            if not the_time.tzinfo or the_time.tzinfo.utcoffset(the_time) is None:
-                the_time = self.timezone.localize(the_time)
-            the_time = the_time.astimezone(pytz.utc)
-        else:
+        if field_name not in row:
             raise Exception('Row is missing a time' + str(row))
+
+        value = row[field_name]
+        if not isinstance(value, datetime.datetime):
+            time_format = self.config['fields'][field_name]['format']
+            if time_format == 'iso8601':
+                # iso8601 format should include the timezone
+                the_time = dateparser(row[field_name])
+            elif time_format == 'unixtime_float_second':
+                # unix time is always UTC
+                the_time = datetime.datetime.utcfromtimestamp(float(row[field_name])).replace(tzinfo=pytz.utc)
+            elif time_format == 'unixtime_int_microsecond':
+                # unix time is always UTC and we should retain the fractional part
+                the_time = datetime.datetime.utcfromtimestamp(int(row[field_name])/1000000.).replace(tzinfo=pytz.utc)
+            else:
+                # TODO: Should we support general strptime() format strings?
+                raise Exception('Unsupported time format %s for row %s' % (time_type, field_name))
+        else:
+            the_time = value
+        if not the_time.tzinfo or the_time.tzinfo.utcoffset(the_time) is None:
+            the_time = self.timezone.localize(the_time)
+        the_time = the_time.astimezone(pytz.utc)
+
         return the_time
 
     def open_csv(self, csv_file_path):
@@ -235,7 +235,83 @@ class CsvImporter(object):
             self.csv_file.close()
             raise e
 
-    def convert(self, row):
+    def update_defaults(self, row):
+        if 'defaults' in self.config:
+            row.update(self.config['defaults'])
+        return row
+
+    def delete_skip_fields(self, row):
+        for field_name in self.config['fields']:
+            field_config = self.config['fields'][field_name]
+            if 'skip' in field_config and field_config['skip']:
+                del row[field_name]
+        return row
+
+    def parse_regex(self, row):
+        for field_name in self.config['fields']:
+            field_config = self.config['fields'][field_name]
+            # Extract desired value using defined regex
+            if 'regex' in field_config:
+                match = re.search(field_config['regex'], row[field_name])
+                if match:
+                    row[field_name] = match.groups()[-1]
+                else:
+                    raise ValueError('No match for regex %s' % field_config['regex'])
+        return row
+
+    def convert_type(self, row):
+        for field_name in self.config['fields']:
+            field_config = self.config['fields'][field_name]
+            # If the type is not specified, leave it alone
+            if 'type' not in field_config:
+                continue
+            elif field_config['type'] == 'string' or field_config['type'] == 'text':
+                continue
+            elif field_config['type'] == 'datetime':
+                row[field_name] = self.get_time(row, field_name)
+            elif field_config['type'] == 'date':
+                row[field_name] = self.get_time(row, field_name)
+            elif field_config['type'] == 'time':
+                row[field_name] = self.get_time(row, field_name)
+            elif field_config['type'] == 'integer':
+                row[field_name] = int(row['field_name'])
+            elif field_config['type'] == 'float':
+                row[field_name] = float(row['field_name'])
+            elif field_config['type'] == 'boolean':
+                if row[field_name].lower() == 'true':
+                    row[field_name] = True
+                elif row[field_name].lower() == 'false':
+                    row[field_name] = False
+                else:
+                    row[field_name] = int(row['field_name'])
+            elif field_config['type'] == 'nullboolean':
+                if row[field_name].lower() == 'true':
+                    row[field_name] = True
+                elif row[field_name].lower() == 'false':
+                    row[field_name] = False
+                elif row[field_name].lower() == 'null' or row[field_name].lower() == 'none':
+                    row[field_name] = None
+                else:
+                    row[field_name] = int(row['field_name'])
+            elif field_config['type'] == 'key_value':
+                if row[field_name] is None:
+                    if 'required' in field_config and field_config['required']:
+                        raise ValueError(errstr)
+                    else:
+                        continue
+                # split the value into a dictionary
+                parts = row[field_name].split(':')
+                if len(parts) > 1:
+                    row[field_name] = {parts[0]: ':'.join(parts[1:])}
+                else:
+                    errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
+                    if 'required' in field_config and field_config['required']:
+                        raise ValueError(errstr)
+            else:
+                raise ValueError('%s is not a valid type identifier' % field_config['type'])
+        return row
+
+    def convert_units(self, row):
         """
         For any values in the row that have different storage units from units, look for a converter and invoke it
         Also removes any values that are marked skip
@@ -244,53 +320,17 @@ class CsvImporter(object):
         :return: the row, or None if it had to be skipped
         """
         for field_name in self.config['fields']:
-            try:
-                field_config = self.config['fields'][field_name]
-                skip = False
-                if 'skip' in field_config and field_config['skip']:
-                    skip = True
-                if skip:
-                    del row[field_name]
-                else:
-                    if field_config['type'] == 'key_value':
-                        # split the value into a dictionary
-                        string_value = row[field_name]
-                        colon_index = string_value.find(':')
-                        if colon_index > 0:
-                            row[field_name] = {string_value[0:colon_index]: string_value[colon_index +1:]}
-                            continue
-                        else:
-                            if not self.skip_bad:
-                                raise 'KEY VALUE PAIR NOT FOUND %s: %s' % (field_name, str(row))
-                    if 'regex' in field_config:
-                        regex = field_config['regex']
-                        match = re.search(regex, row[field_name])
-                        if match:
-                            value = match.groups()[-1]
-                            if field_config['type'] == 'string':
-                                row[field_name] = value
-                            else:
-                                the_type = locate(field_config['type'])
-                                try:
-                                    row[field_name] = the_type(value)
-                                except Exception as err:
-                                    if not self.skip_bad:
-                                        raise err
-                                    else:
-                                        return None
-                        elif self.skip_bad:
-                            return None
-
-                    storage_units = field_config['storage_units']
-                    units = field_config['units']
-                    if units in self.converters:
-                        converters = self.converters[units]
-                        if storage_units in converters:
-                            fcn = locate(field_config['type'])
-                            new_value = converters[storage_units](fcn(row[field_name]))
-                            row[field_name] = new_value
-            except:
-                pass
+            field_config = self.config['fields'][field_name]
+            # If storage units are different from provided units, convert values
+            if 'storage_units' in field_config and 'units' in field_config:
+                storage_units = field_config['storage_units']
+                units = field_config['units']
+                if units in self.converters:
+                    converters = self.converters[units]
+                    if storage_units in converters:
+                        fcn = locate(field_config['type'])
+                        new_value = converters[storage_units](fcn(row[field_name]))
+                        row[field_name] = new_value
         return row
 
     def update_row(self, row):
@@ -300,10 +340,17 @@ class CsvImporter(object):
         :return: the updated row, with timestamps and defaults
         """
         if self.config:
-            row.update(self.config['defaults'])
-            for field_name in self.config['timefields']:
-                row[field_name] = self.get_time(row, field_name)
-            row = self.convert(row)
+            # Replace missing fields with default values
+            # TODO: resolve what happens or should happen if a value and default are both given
+            row = self.update_defaults(row)
+            # Delete fields marked skip=True
+            row = self.delete_skip_fields(row)
+            # Parse any regexes
+            row = self.parse_regex(row)
+            # Cast strings to the specified types
+            row = self.convert_type(row)
+            # Convert between provided and desired units
+            row = self.convert_units(row)
         return row
 
     def update_flight_end(self, end):
@@ -331,30 +378,44 @@ class CsvImporter(object):
         Warning: the model's save method will not be called as we are using bulk_create.
         :return: the newly created models, which may be an empty list
         """
-
         the_model = getModelByName(self.config['class'])
         new_models = []
-        rows = []
 
+        rows = self.load_to_list()
         try:
-            self.reset_csv()
-            row = None
-            for row in self.csv_reader:
-                row = self.update_row(row)
-                if row:
-                    rows.append(row)
-                    if not self.replace:
-                        new_models.append(the_model(**row))
+            for row in rows:
+                if not self.replace:
+                    new_models.append(the_model(**row))
             if row:
                 self.update_flight_end(row[self.config['timefield_default']])
             if not self.replace:
                 the_model.objects.bulk_create(new_models)
+                print 'created %d records' % len(new_models)
             else:
                 self.update_stored_data(the_model, rows)
+                print 'updated %d records' % len(new_models)
             self.handle_last_row(row)
+        except Exception as e:
+            print e
+
+        return new_models
+
+    def load_to_list(self):
+        """
+        Load the CSV file according to the self.configuration, and store the values in a list of dicts
+        :return: a list containing the rows as updated dicts, which may be an empty list
+        """
+
+        rows = []
+        try:
+            self.reset_csv()
+            for row in self.csv_reader:
+                row = self.update_row(row)
+                if row is not None:
+                    rows.append(row)
         finally:
             self.csv_file.close()
-        return new_models
+        return rows
 
     def update_stored_data(self, the_model, rows):
         """
@@ -434,8 +495,8 @@ class CsvImporter(object):
 
     def configure(self, yaml_file_path, csv_file_path, vehicle_name=None, flight_name=None, defaults=None, force=False):
         """
-        self.configure flight, vehicle, the yanl self.configuration file.  Create a flight if necessary based on the first time.
-        :param yaml_file_path: The path to the yaml self.configuration file for import
+        self.configure flight, vehicle, yaml configuration file.  Create a flight if necessary based on the first time.
+        :param yaml_file_path: The path to the yaml configuration file for import
         :param csv_file_path: The path to the csv file to import
         :param vehicle_name: The name of the vehicle
         :param flight_name: The name of the flight
@@ -472,5 +533,3 @@ class CsvImporter(object):
                 print first_row
                 raise Exception('No flight found but flight required', first_row)
         return self.config
-
-

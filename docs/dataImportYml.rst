@@ -46,7 +46,8 @@ KRex2_PastPosition.yaml::
      default: KRex2
      type: string
    - name: timestamp
-     type: iso8601
+     type: datetime
+     format: iso8601
    - name: longitude
      type: float
      min: -180.0
@@ -93,7 +94,8 @@ Hercules_TempProbe.yaml::
        type: string
        skip: true
      timestamp:
-       type: iso8601
+       type: datetime
+       format: iso8601
      instrument_name:
        type: string
        default: TEMPPROBE
@@ -202,19 +204,24 @@ the Python model fields.
 +====================+================+=========================+====================================+
 |``type``            | string         |string                   |The type                            |
 |                    |                |text                     |                                    |
-|                    |                |integer                  |                                    |
-|                    |                |float                    |                                    |
-|                    |                |nullboolean              |                                    |
-|                    |                |boolean                  |                                    |
+|                    |                |datetime                 |                                    |
 |                    |                |date                     |                                    |
 |                    |                |time                     |                                    |
-|                    |                |iso8601                  |                                    |
-|                    |                |unixtime_float_second    |                                    |
-|                    |                |unixtime_int_microsecond |                                    |
+|                    |                |integer                  |                                    |
+|                    |                |float                    |                                    |
+|                    |                |boolean                  |                                    |
+|                    |                |nullboolean              |                                    |
 |                    |                |key_value                | key_value: returns dictionary      |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``skip``            |boolean         |false                    |True if this columnar data does not |
 |                    |                |                         |map to a model field.               |
++--------------------+----------------+-------------------------+------------------------------------+
+|``required``        |boolean         |true false               |If true then failures to interpret  |
+|                    |                |                         |the value will cause an error.      |
+|                    |                |                         |If false then errors are tolerated. |
+|                    |                |                         |E.g. if the value is supposed to    |
+|                    |                |                         |match a regex or contain a key      |
+|                    |                |                         |value pair and doesn't.             |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``default``         |                |optional                 |Default value                       |
 +--------------------+----------------+-------------------------+------------------------------------+
@@ -233,6 +240,11 @@ the Python model fields.
 +--------------------+----------------+-------------------------+------------------------------------+
 |``interval``        |float           |optional                 |The interval of received data in    |
 |                    |                |                         |the model.  No value = unknown      |
++--------------------+----------------+-------------------------+------------------------------------+
+|``format``          |string          |iso8601                  |Format to use to interpret values,  |
+|                    |                |unixtime_float_second    |for example, datetimes might be in  |
+|                    |                |unixtime_int_microsecond |iso8601, unix seconds, or           |
+|                    |                |                         |microseconds format.                |
 +--------------------+----------------+-------------------------+------------------------------------+
 |``regex``           |regex string    |optional                 |Regex to use to parse the value.    |
 +--------------------+----------------+-------------------------+------------------------------------+
