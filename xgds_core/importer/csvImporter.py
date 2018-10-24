@@ -256,27 +256,42 @@ class CsvImporter(object):
                 if match:
                     row[field_name] = match.groups()[-1]
                 else:
-                    raise ValueError('No match for regex %s' % field_config['regex'])
+                    if field_config['required']:
+                        raise ValueError('No match for regex %s' % field_config['regex'])
+                    else:
+                        row[field_name] = None
         return row
 
     def convert_type(self, row):
         for field_name in self.config['fields']:
+            if not row[field_name]:
+                continue
             field_config = self.config['fields'][field_name]
             # If the type is not specified, leave it alone
             if 'type' not in field_config:
                 continue
             elif field_config['type'] == 'string' or field_config['type'] == 'text':
                 continue
-            elif field_config['type'] == 'datetime':
-                row[field_name] = self.get_time(row, field_name)
-            elif field_config['type'] == 'date':
-                row[field_name] = self.get_time(row, field_name)
-            elif field_config['type'] == 'time':
-                row[field_name] = self.get_time(row, field_name)
+            elif field_config['type'] == 'datetime' or \
+                    field_config['type'] == 'date' or \
+                    field_config['type'] == 'time':
+                try:
+                    row[field_name] = self.get_time(row, field_name)
+                except ValueError as e:
+                    if 'required' in field_config and field_config['required']:
+                        raise e
             elif field_config['type'] == 'integer':
-                row[field_name] = int(row['field_name'])
+                try:
+                    row[field_name] = int(row[field_name])
+                except ValueError as e:
+                    if 'required' in field_config and field_config['required']:
+                        raise e
             elif field_config['type'] == 'float':
-                row[field_name] = float(row['field_name'])
+                try:
+                    row[field_name] = float(row[field_name])
+                except ValueError as e:
+                    if 'required' in field_config and field_config['required']:
+                        raise e
             elif field_config['type'] == 'boolean':
                 if row[field_name].lower() == 'true':
                     row[field_name] = True
@@ -320,6 +335,8 @@ class CsvImporter(object):
         :return: the row, or None if it had to be skipped
         """
         for field_name in self.config['fields']:
+            if not row[field_name]:
+                continue
             field_config = self.config['fields'][field_name]
             # If storage units are different from provided units, convert values
             if 'storage_units' in field_config and 'units' in field_config:
