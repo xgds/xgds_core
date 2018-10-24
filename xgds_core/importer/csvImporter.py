@@ -244,12 +244,15 @@ class CsvImporter(object):
         for field_name in self.config['fields']:
             field_config = self.config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
+                # delete entry from row dictionary
                 del row[field_name]
         return row
 
     def parse_regex(self, row):
         for field_name in self.config['fields']:
             field_config = self.config['fields'][field_name]
+            if 'skip' in field_config and field_config['skip']:
+                continue
             # Extract desired value using defined regex
             if 'regex' in field_config:
                 match = re.search(field_config['regex'], row[field_name])
@@ -264,9 +267,11 @@ class CsvImporter(object):
 
     def convert_type(self, row):
         for field_name in self.config['fields']:
-            if not row[field_name]:
+            if field_name not in row or not row[field_name]:
                 continue
             field_config = self.config['fields'][field_name]
+            if 'skip' in field_config and field_config['skip']:
+                continue
             # If the type is not specified, leave it alone
             if 'type' not in field_config:
                 continue
@@ -335,9 +340,11 @@ class CsvImporter(object):
         :return: the row, or None if it had to be skipped
         """
         for field_name in self.config['fields']:
-            if not row[field_name]:
+            if field_name not in row or not row[field_name]:
                 continue
             field_config = self.config['fields'][field_name]
+            if 'skip' in field_config and field_config['skip']:
+                continue
             # If storage units are different from provided units, convert values
             if 'storage_units' in field_config and 'units' in field_config:
                 storage_units = field_config['storage_units']
