@@ -29,6 +29,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.core.serializers import serialize
 
+from geocamUtil.models.AbstractEnum import AbstractEnumModel
 from geocamUtil.models.ExtrasDotField import ExtrasDotField
 from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
@@ -41,6 +42,39 @@ from shapely.geometry import Point, LineString, Polygon
 
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
+
+DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', related_name='%(app_label)s_%(class)s_related',
+                                                 verbose_name=settings.XGDS_CORE_FLIGHT_MONIKER, blank=True, null=True)
+
+class HasFlight(object):
+    """ Mixin to support models that have flights """
+    flight = "TODO SET TO DEFAULT_FLIGHT_FIELD or similar"
+
+    @property
+    def vehicle(self):
+        if self.flight:
+            return self.flight.vehicle
+        return None
+
+    @property
+    def vehicle_name(self):
+        vehicle = self.vehicle
+        if vehicle:
+            return vehicle.name
+        return ''
+
+    @property
+    def flight_name(self):
+        if self.flight:
+            return self.flight.name
+        return ''
+
+    @property
+    def flight_group_name(self):
+        if self.flight:
+            return self.flight.group.name
+        else:
+            return None
 
 
 class Constant(models.Model):
@@ -280,9 +314,9 @@ class SearchableModel(object):
                 else:
                     join_type = search_keywords[counter]
                     if join_type == 'and':
-                        keyword_query &= last_query
+                        keyword_query = keyword_query & last_query
                     else:
-                        keyword_query |= last_query
+                        keyword_query = keyword_query | last_query
             counter += 1
         if not keyword_query:
             keyword_query = last_query
@@ -291,7 +325,6 @@ class SearchableModel(object):
         object_ids = result.values_list('object_id', flat=True)
 
         return list(object_ids)
-
 
     def to_kml(self, id, name, description, lat, lon):
         alt = 0.0
@@ -357,7 +390,11 @@ class RelayFile(models.Model):
 CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTORY_MODEL)
 
 
-class AbstractCondition(models.Model):
+class ConditionStatus(AbstractEnumModel):
+    pass
+
+
+class AbstractCondition(models.Model, HasFlight):
     source = models.CharField(null=False, blank=False, max_length=64,
                               db_index=True)  # where did this condition originate
     source_id = models.CharField(null=True, blank=True, max_length=64,
@@ -371,6 +408,8 @@ class AbstractCondition(models.Model):
     end_time = models.DateTimeField(editable=False, null=True, blank=True,
                                     db_index=True)  # if the condition has a duration, what is its end time
     name = models.CharField(null=True, blank=True, max_length=64)  # name which probably came from the source
+
+    flight = DEFAULT_FLIGHT_FIELD()
 
     class Meta:
         abstract = True
@@ -456,8 +495,7 @@ class AbstractConditionHistory(models.Model):
                                        default=timezone.now)  # actual source time of the condition
     creation_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True,
                                          default=timezone.now)  # when was this modified in xGDS
-    status = models.CharField(null=True, blank=True,
-                              max_length=128)  # id on the xGDS side in case we want to map this condition to something
+    status = models.ForeignKey(ConditionStatus, null=True, blank=True)
     jsonData = ExtrasDotField(null=True, blank=True)  # dot dictionary to hold the raw data and any extra data
 
     def toJson(self):
@@ -866,37 +904,6 @@ class Flight(AbstractFlight):
     group = DEFAULT_GROUP_FLIGHT_FIELD()
     vehicle = DEFAULT_VEHICLE_FIELD()
     summary = models.CharField(max_length=1024, blank=True, null=True)
-
-
-class HasFlight(object):
-    """ Mixin to support models that have flights """
-    flight = "TODO SET TO DEFAULT_FLIGHT_FIELD or similar"
-
-    @property
-    def vehicle(self):
-        if self.flight:
-            return self.flight.vehicle
-        return None
-
-    @property
-    def vehicle_name(self):
-        vehicle = self.vehicle
-        if vehicle:
-            return vehicle.name
-        return ''
-
-    @property
-    def flight_name(self):
-        if self.flight:
-            return self.flight.name
-        return ''
-
-    @property
-    def flight_group_name(self):
-        if self.flight:
-            return self.flight.group.name
-        else:
-            return None
 
 
 DEFAULT_ONE_TO_ONE_FLIGHT_FIELD = lambda: models.OneToOneField(Flight, related_name="active", null=True, blank=True)

@@ -14,6 +14,7 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+import pydevd
 import traceback
 import os
 import pytz
@@ -274,32 +275,32 @@ class OrderListJson(BaseDatatableView):
         if not query:
             return queries
         if queries:
-            queries |= query
+            queries = queries | query
         else:
             queries = query
         return queries
 
-    def andToFormQueries(self, query):  #TODO we discovered &= does not work for some reason
+    def andToFormQueries(self, query):
         if self.formQueries:
-            self.formQueries &= query
+            self.formQueries = self.formQueries & query
         else:
             self.formQueries = query
 
     # Adds keyword queries together based on the connecting words between them (and/or)
     def addKeywordQuery(self, query, type):
         if self.keywordQueries and query and type == "and":
-            self.keywordQueries &= query
+            self.keywordQueries = self.keywordQueries & query
         elif self.keywordQueries and query and type == "or":
-            self.keywordQueries |= query
+            self.keywordQueries = self.keywordQueries | query
         else:
             self.keywordQueries = query
 
     # Adds tag queries together based on the connecting words between them (and/or)
     def addTagQuery(self, query, type):
         if self.tagQueries and query and type == "and":
-            self.tagQueries &= query
+            self.tagQueries = self.tagQueries & query
         elif self.tagQueries and query and type == "or":
-            self.tagQueries |= query
+            self.tagQueries = self.tagQueries | query
         else:
             self.tagQueries = query
 
@@ -368,13 +369,13 @@ class OrderListJson(BaseDatatableView):
         elif self.filterDict:
             qs = qs.filter(**self.filterDict)
         
-        defaultToday = u'true' if settings.GEOCAM_UTIL_LIVE_MODE else  u'false'
+        defaultToday = u'true' if settings.GEOCAM_UTIL_LIVE_MODE else u'false'
         todayOnly = self.request.POST.get(u'today', defaultToday)
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
             if timesearchField != None:
                 today = timezone.localtime(timezone.now()).date()
-                filterDict = { timesearchField + '__gt': today}
+                filterDict = {timesearchField + '__gt': today}
                 qs = qs.filter(**filterDict)
             
         # TODO handle search with sphinx
@@ -468,6 +469,7 @@ class OrderListJson(BaseDatatableView):
 
     # Creates the keyword queries to be used on the queryset
     def filter_keyword_search(self, qs, search):
+        # pydevd.settrace('192.168.0.105', port=9999)
         model = self.request.POST.get(u'modelName', None)
         model_class = None
         if model:
@@ -494,8 +496,8 @@ class OrderListJson(BaseDatatableView):
         # note we don't support parens yet
         # we are building arrays where it is [Q, 'and', Q, 'or' ...]
         while counter < len(words):
+            word = str(words[counter])
             if counter % 2 == 0:
-                word = str(words[counter])
                 keywords.append(word)
                 fieldsQuery = self.buildSearchableFieldsQuery(word)
                 keywordQueriesArray.append(fieldsQuery)
