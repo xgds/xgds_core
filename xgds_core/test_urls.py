@@ -40,7 +40,7 @@ class xgds_coreConditionSetTest(TransactionTestCase):
         nowtime = datetime.datetime.now(pytz.utc)
         isonow = nowtime.isoformat()
         nested_data_dict = {'start_time': isonow,
-                            'status': 'Started',
+                            'status': 'started',
                             'timezone': settings.TIME_ZONE,
                             'name': 'test_set_condition',
                             'extra': 'Start time should be set',
@@ -69,15 +69,13 @@ class xgds_coreConditionSetTest(TransactionTestCase):
         self.assertEqual(condition_dict['source_id'], 'test_one')
         self.assertEqual(condition_dict['source'], 'xgds_test')
 
-class xgds_coreConditionUpdateTest(TransactionTestCase):
-
     def test_update_condition(self):
         url = reverse('xgds_core_set_condition')
         nowtime = datetime.datetime.now(pytz.utc)
         isonow = nowtime.isoformat()
         nested_data_dict = {'end_time': isonow,
                             'name': 'test_update_condition',
-                            'status': 'Completed',
+                            'status': 'completed',
                             'extra': 'End time should be set',
                             }
         data = {'time': isonow,
@@ -87,6 +85,7 @@ class xgds_coreConditionUpdateTest(TransactionTestCase):
                 }
         response = self.client.post(url, data=data)
         json_response = json.loads(response.json())
+
         self.assertEqual(json_response['status'], 'success')
         condition_history_json = json_response['data']
         result_list = json.loads(condition_history_json)

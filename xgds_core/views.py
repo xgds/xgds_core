@@ -704,8 +704,11 @@ CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTOR
 
     
 def setCondition(request):
-    ''' read information from request.POST and use it to set or update a stored condition
-    '''
+    """
+    read information from request.POST and use it to set or update a stored condition
+    :param request:
+    :return:
+    """
     try:
         raw_source_time = request.POST.get('time')
         source_time = dateparser(raw_source_time)
@@ -724,7 +727,7 @@ def setCondition(request):
         condition_history = condition.populate(source_time, condition_data)
         result = condition_history.broadcast()
 
-        return JsonResponse(result,status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder, safe=False)
+        return JsonResponse(result, status=httplib.ACCEPTED, encoder=DatetimeJsonEncoder, safe=False)
     
     except Exception as e:
         traceback.print_exc()

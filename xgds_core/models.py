@@ -46,6 +46,7 @@ if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
 DEFAULT_FLIGHT_FIELD = lambda: models.ForeignKey('xgds_core.Flight', related_name='%(app_label)s_%(class)s_related',
                                                  verbose_name=settings.XGDS_CORE_FLIGHT_MONIKER, blank=True, null=True)
 
+
 class HasFlight(object):
     """ Mixin to support models that have flights """
     flight = "TODO SET TO DEFAULT_FLIGHT_FIELD or similar"
@@ -391,7 +392,9 @@ CONDITION_HISTORY_MODEL = LazyGetModelByName(settings.XGDS_CORE_CONDITION_HISTOR
 
 
 class ConditionStatus(AbstractEnumModel):
-    pass
+
+    def natural_key(self):
+        return self.display_name
 
 
 class AbstractCondition(models.Model, HasFlight):
@@ -440,14 +443,21 @@ class AbstractCondition(models.Model, HasFlight):
                 self.end_time = dateparser(condition_data_dict['end_time'])
             except:
                 pass
-
         self.save()
 
         # create relevant condition history
+        status = None
+        if 'status_id' in condition_data_dict:
+            try:
+                status = ConditionStatus.objects.get(pk=condition_data_dict['status_id'])
+            except:
+                print 'COULD NOT FIND CONDITION STATUS FOR PK %s' % str(condition_data_dict['status_id'])
         if 'status' in condition_data_dict:
-            status = condition_data_dict['status']
-        else:
-            status = None
+            try:
+                status = ConditionStatus.objects.get(value=condition_data_dict['status'])
+            except:
+                print 'COULD NOT FIND CONDITION STATUS FOR VALUE %s' % str(condition_data_dict['status'])
+
         condition_history = CONDITION_HISTORY_MODEL.get()(condition=self,
                                                           source_time=source_time,
                                                           status=status,
@@ -478,8 +488,7 @@ class AbstractCondition(models.Model, HasFlight):
         return None
 
     def getHistory(self):
-        history_name = settings.XGDS_CORE_CONDITION_HISTORY_MODEL.replace('.', '_')
-        return getattr(self, history_name)
+        return self.conditionhistory_set.all()
 
 
 class Condition(AbstractCondition):

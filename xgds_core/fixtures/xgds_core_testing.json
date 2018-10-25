@@ -1,80 +1,120 @@
 [
-	{
-        "pk": 1,
-        "model": "xgds_core.vehicle",
-        "fields": {
-            "name": "Generic Vehicle",
-            "type": "GenericVehicle",
-            "primary": true
-        }
-    },
-    {
-    	"pk": 43,
-    	"model": "xgds_core.Constant",
-    	"fields": {
-    		"name":"delay",
-    		"units":"seconds",
-    		"notes":"Local to remote delay time",
-    		"dataType":"integer",
-    		"value":"0"
-    	}
-    },
-    {
-    	"pk": 44,
-    	"model": "xgds_core.Constant",
-    	"fields": {
-    		"name":"remoteDelay",
-    		"units":"seconds",
-    		"notes":"Delay settings on remote server",
-    		"dataType":"integer",
-    		"value":"0"
-    	}
-    },
-    {
-    	"pk": 1,
-    	"model": "xgds_core.Condition",
-    	"fields": {
-	    "source":"xgds_test",
-	    "source_id":"test_one",
-	    "xgds_id":"my xgds id",
-	    "timezone":"UTC",
-	    "start_time":"2015-12-25 01:23:45.6Z",
-	    "end_time":"2015-12-26 12:34:56.7Z",
-	    "name":"test condition"
-    	}
-    },
-    {
-    	"pk": 1,
-    	"model": "xgds_core.Flight",
-    	"fields": {
-	    "id":1,
-	    "uuid":"abc123",
-	    "name":"Christmas in a Generic Vehicle",
-	    "locked":true,
-	    "start_time":"2015-12-25 00:00:00.0Z",
-	    "end_time":"2015-12-25 23:59:59.9Z",
-	    "timezone":"UTC",
-	    "notes":"ho ho ho",
-	    "summary":"no summary",
-	    "group_id":1,
-	    "vehicle_id":1
-    	}
-    },
-    {
-    	"pk": 1,
-    	"model": "xgds_core.ActiveFlight",
-    	"fields": {
-	    "id":1,
-	    "flight_id":1
-    	}
-    },
-    {
-	"pk": 1,
-	"model": "xgds_core.GroupFlight",
-	"fields": {
-	    "id":1,
-	    "name":"test-A",
-	    "notes":"the interesting thing about a group flight is..."
-	}
+  {
+    "pk": 1,
+    "model": "xgds_core.vehicle",
+    "fields": {
+      "name": "Generic Vehicle",
+      "type": "GenericVehicle",
+      "primary": true
     }
+  },
+  {
+    "pk": 43,
+    "model": "xgds_core.Constant",
+    "fields": {
+      "name": "delay",
+      "units": "seconds",
+      "notes": "Local to remote delay time",
+      "dataType": "integer",
+      "value": "0"
+    }
+  },
+  {
+    "pk": 44,
+    "model": "xgds_core.Constant",
+    "fields": {
+      "name": "remoteDelay",
+      "units": "seconds",
+      "notes": "Delay settings on remote server",
+      "dataType": "integer",
+      "value": "0"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "xgds_core.Condition",
+    "fields": {
+      "source": "xgds_test",
+      "source_id": "test_one",
+      "xgds_id": "my xgds id",
+      "timezone": "UTC",
+      "start_time": "2015-12-25 01:23:45.6Z",
+      "end_time": "2015-12-26 12:34:56.7Z",
+      "name": "test condition"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "xgds_core.Flight",
+    "fields": {
+      "id": 1,
+      "uuid": "abc123",
+      "name": "Christmas in a Generic Vehicle",
+      "locked": true,
+      "start_time": "2015-12-25 00:00:00.0Z",
+      "end_time": "2015-12-25 23:59:59.9Z",
+      "timezone": "UTC",
+      "notes": "ho ho ho",
+      "summary": "no summary",
+      "group_id": 1,
+      "vehicle_id": 1
+    }
+  },
+  {
+    "pk": 1,
+    "model": "xgds_core.ActiveFlight",
+    "fields": {
+      "id": 1,
+      "flight_id": 1
+    }
+  },
+  {
+    "pk": 1,
+    "model": "xgds_core.GroupFlight",
+    "fields": {
+      "id": 1,
+      "name": "test-A",
+      "notes": "the interesting thing about a group flight is..."
+    }
+  },
+  {
+    "pk": 1,
+    "model": "xgds_core.ConditionStatus",
+    "fields": {
+      "value": "started",
+      "display_name": "Started"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "xgds_core.ConditionStatus",
+    "fields": {
+      "value": "in_progress",
+      "display_name": "In Progress"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "xgds_core.ConditionStatus",
+    "fields": {
+      "value": "scheduled",
+      "display_name": "Scheduled"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "xgds_core.ConditionStatus",
+    "fields": {
+      "value": "completed",
+      "display_name": "Completed"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "xgds_core.ConditionStatus",
+    "fields": {
+      "value": "aborted",
+      "display_name": "Aborted"
+    }
+  }
 ]
