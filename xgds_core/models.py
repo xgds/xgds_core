@@ -34,6 +34,8 @@ from geocamUtil.models.ExtrasDotField import ExtrasDotField
 from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 from geocamUtil.models.UuidField import UuidModel
+from geocamUtil.modelJson import modelToDict
+
 
 from xgds_core.util import get100Years, get_all_subclasses
 from xgds_core.redisUtil import callRemoteRebroadcast
@@ -904,6 +906,14 @@ class AbstractFlight(UuidModel, HasVehicle):
         # TODO define
         pass
 
+    def toDict(self):
+        result = modelToDict(self)
+        return result
+
+    def toJson(self):
+        the_dict = self.toDict()
+        return json.dumps(the_dict, cls=DatetimeJsonEncoder)
+
     class Meta:
         abstract = True
         ordering = ['-name']
@@ -981,6 +991,18 @@ class AbstractGroupFlight(models.Model):
                   }
 
         return result
+
+    def toDict(self):
+        result = modelToDict(self)
+        flights = []
+        for flight in self.flights:
+            flights.append(flight.toDict())
+        result['flights'] = flights
+        return result
+
+    def toJson(self):
+        the_dict = self.toDict()
+        return json.dumps(the_dict, cls=DatetimeJsonEncoder)
 
     class Meta:
         abstract = True
