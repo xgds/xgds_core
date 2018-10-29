@@ -16,6 +16,7 @@
 
 import traceback
 import json
+from datetime import timedelta
 from dateutil.parser import parse as dateparser
 
 from django.utils import timezone
@@ -971,6 +972,14 @@ class AbstractGroupFlight(models.Model):
         return reverse('xgds_core_group_flight_summary', kwargs={'groupFlightName': self.name})
 
     @property
+    def timezone(self):
+        flights = self.flights
+        if flights:
+            return self.flights.first().timezone
+        else:
+            return settings.TIME_ZONE
+
+    @property
     def flights(self):
         return self.flight_set.all()
 
@@ -1003,6 +1012,26 @@ class AbstractGroupFlight(models.Model):
     def toJson(self):
         the_dict = self.toDict()
         return json.dumps(the_dict, cls=DatetimeJsonEncoder)
+
+    @property
+    def start_time(self):
+        if not self.flights:
+            return None
+        min_start_time = timezone.now() + timedelta(days=1)
+        for f in self.flights:
+            if f.start_time < min_start_time:
+                min_start_time = f.start_time
+        return min_start_time
+
+    @property
+    def end_time(self):
+        if not self.flights:
+            return None
+        max_end_time = timezone.now() - timedelta(days=36500)
+        for f in self.flights:
+            if f.start_time > max_end_time:
+                max_end_time = f.start_time
+        return max_end_time
 
     class Meta:
         abstract = True

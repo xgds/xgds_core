@@ -10,7 +10,7 @@
 
 {% if groupFlight %}
 {% with groupFlight.pk|stringformat:"s" as group_pk %}
-<h5>{{ settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}: {{ groupFlight.name }}</h5>
+    <h5>{{ settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}: <a href="{% url 'map_replay_group_flight' groupFlight.name %}">{{ groupFlight.name }}</a></h5>
 {% block groupFlightContents %}
 {% if groupFlight.view_url %}
 <a href="{{ groupFlight.view_url }}" target="" class="font-weight-bold">View</a>
