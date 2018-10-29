@@ -493,6 +493,24 @@ class AbstractCondition(models.Model, HasFlight):
     def getHistory(self):
         return self.conditionhistory_set.all()
 
+    @property
+    def history(self):
+        return self.conditionhistory_set.all()
+
+    def toDict(self):
+        result = modelToDict(self)
+        result['start_time'] = self.start_time
+        result['end_time'] = self.end_time
+        return result
+
+    def toJson(self):
+        result = self.toDict()
+        history = []
+        for h in self.history:
+            history.append(h.toDict())
+        result['history'] = history
+        return json.dumps(result, cls=DatetimeJsonEncoder)
+
 
 class Condition(AbstractCondition):
     pass
@@ -510,8 +528,15 @@ class AbstractConditionHistory(models.Model):
     status = models.ForeignKey(ConditionStatus, null=True, blank=True)
     jsonData = ExtrasDotField(null=True, blank=True)  # dot dictionary to hold the raw data and any extra data
 
+    def toDict(self):
+        result = modelToDict(self)
+        result['source_time'] = self.source_time
+        result['creation_time'] = self.creation_time
+        result['status'] = self.status.display_name
+        return result
+
     def toJson(self):
-        return serialize('json', [self.condition, self], use_natural_foreign_keys=True)
+        return serialize('json', [self.condition, self], use_natural_foreign_keys=True, cls=DatetimeJsonEncoder)
 
     def populate(self, condition_data_dict, save=True):
         if save:
@@ -915,6 +940,10 @@ class AbstractFlight(UuidModel, HasVehicle):
         the_dict = self.toDict()
         return json.dumps(the_dict, cls=DatetimeJsonEncoder)
 
+    @property
+    def conditions(self):
+        return self.xgds_core_condition_related.all()
+
     class Meta:
         abstract = True
         ordering = ['-name']
@@ -1032,6 +1061,17 @@ class AbstractGroupFlight(models.Model):
             if f.start_time > max_end_time:
                 max_end_time = f.start_time
         return max_end_time
+
+    @property
+    def conditions(self):
+        if not self.flights:
+            return None
+        result = []
+        for f in self.flights:
+            f_conditions = f.conditions
+            if f_conditions:
+                result = result + list(f_conditions)
+        return result
 
     class Meta:
         abstract = True
