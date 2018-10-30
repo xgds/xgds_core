@@ -30,6 +30,8 @@ class xgds_coreTest(TransactionTestCase):
     def test_xgds_core(self):
         pass
 
+def my_timestring(t):
+    return '%s.%06d+00:00' % (t.strftime('%Y-%m-%dT%H:%M:%S'), t.microsecond)
 
 class xgds_coreConditionSetTest(TransactionTestCase):
     fixtures = ['xgds_core_testing.json']
@@ -57,7 +59,7 @@ class xgds_coreConditionSetTest(TransactionTestCase):
         result_list = json.loads(condition_history_json)
         condition_dict = result_list[0]['fields']
         condition_history_dict = result_list[1]['fields']
-        timestring = '%s.%03dZ' % (nowtime.strftime('%Y-%m-%dT%H:%M:%S'), nowtime.microsecond/1000)
+        timestring = my_timestring(nowtime)
         condition_history_jsonData = json.loads(condition_history_dict['jsonData'])
         self.assertEqual(condition_history_dict['status'], 'Started')
         self.assertEqual(condition_dict['name'], 'test_set_condition')
@@ -91,7 +93,7 @@ class xgds_coreConditionSetTest(TransactionTestCase):
         result_list = json.loads(condition_history_json)
         condition_dict = result_list[0]['fields']
         condition_history_dict = result_list[1]['fields']
-        timestring = '%s.%03dZ' % (nowtime.strftime('%Y-%m-%dT%H:%M:%S'), nowtime.microsecond/1000)
+        timestring = my_timestring(nowtime)
         
         condition_history_jsonData = json.loads(condition_history_dict['jsonData'])
         self.assertEqual(condition_history_dict['status'], 'Completed')

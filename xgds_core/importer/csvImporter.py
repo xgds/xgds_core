@@ -272,6 +272,10 @@ class CsvImporter(object):
             field_config = self.config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 continue
+            # Independent of type, if the value is the string 'None' convert to a python None
+            if row[field_name] == 'None':
+                row[field_name] = None
+                continue
             # If the type is not specified, leave it alone
             if 'type' not in field_config:
                 continue
@@ -534,7 +538,10 @@ class CsvImporter(object):
 
         self.load_config(yaml_file_path, defaults)
         if self.flight:
-            self.config['defaults']['flight_id'] = self.flight.id
+            # Only set this default value if the model has this attribute
+            the_model = getModelByName(self.config['class'])
+            if hasattr(the_model,'flight_id'):
+                self.config['defaults']['flight_id'] = self.flight.id
             
         self.open_csv(csv_file_path)
 
