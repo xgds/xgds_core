@@ -1032,6 +1032,8 @@ class AbstractGroupFlight(models.Model):
 
     def toDict(self):
         result = modelToDict(self)
+        result['start_time'] = self.start_time
+        result['end_time'] = self.end_time
         flights = []
         for flight in self.flights:
             flights.append(flight.toDict())
@@ -1059,7 +1061,7 @@ class AbstractGroupFlight(models.Model):
         max_end_time = timezone.now() - timedelta(days=36500)
         for f in self.flights:
             if f.start_time > max_end_time:
-                max_end_time = f.start_time
+                max_end_time = f.end_time
         return max_end_time
 
     @property
