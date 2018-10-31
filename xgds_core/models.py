@@ -944,6 +944,14 @@ class AbstractFlight(UuidModel, HasVehicle):
     def conditions(self):
         return self.xgds_core_condition_related.all()
 
+    def getLinks(self):
+        """
+        The links tab wil be populated with the name, value contents of this dictionary as links,
+        name is the string displayed and link is what will be opened
+        """
+        result = {}
+        return result
+
     class Meta:
         abstract = True
         ordering = ['-name']
@@ -984,6 +992,7 @@ class AbstractGroupFlight(models.Model):
                             help_text='Usually same as episode name. I.e. 201340925A', db_index=True)
     extras = ExtrasDotField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    links = GenericRelation('NamedURL', related_name='group_flight_links_set')
 
     def thumbnail_url(self):
         return ''
@@ -1073,6 +1082,14 @@ class AbstractGroupFlight(models.Model):
             f_conditions = f.conditions
             if f_conditions:
                 result = result + list(f_conditions)
+        return result
+
+    def getLinks(self):
+        """
+        The links tab wil be populated with the name, value contents of this dictionary as links,
+        name is the string displayed and link is what will be opened
+        """
+        result = {}
         return result
 
     class Meta:
