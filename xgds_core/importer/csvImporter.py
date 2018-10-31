@@ -598,14 +598,9 @@ class CsvSetImporter:
         :return: the imported items
         """
 
-        # YAML config for telemetry files
-        self.yaml_file_path = yaml_file_path
         # ordered list of files
         self.files = csv_file_list
         self.file_index = 0
-        # telemetry entries to be loaded from files
-        self.telemetry = None
-        self.telemetry_index = 0
         # Initialize csv importer and load the first file
         self.csv_importer = CsvImporter(yaml_file_path, csv_file_list[0],
                                         vehicle_name=vehicle_name, flight_name=flight_name, timezone_name=timezone_name,
@@ -616,12 +611,10 @@ class CsvSetImporter:
         if self.file_index >= len(self.files):
             raise StopIteration
         self.csv_importer.open_csv(self.files[self.file_index])
-        #self.telemetry = self.csv_importer.load_to_list()
         self.file_index += 1
 
     def __iter__(self):
         self.file_index = 0
-        #self.telemetry_index = 0
         self.open_next_csv_file()
         return self
 
