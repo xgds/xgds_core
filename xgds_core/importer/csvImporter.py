@@ -428,21 +428,29 @@ class CsvImporter(object):
 
         return new_models
 
+    def __iter__(self):
+        self.reset_csv()
+        return self
+
+    def next(self):
+        """
+        Loads CSV file entries one at a time
+        :return: the next entry as an updated dict
+        """
+        try:
+            row = next(self.csv_reader)
+            row = self.update_row(row)
+            return row
+        except StopIteration:
+            self.csv_file.close()
+            raise StopIteration
+
     def load_to_list(self):
         """
         Load the CSV file according to the self.configuration, and store the values in a list of dicts
         :return: a list containing the rows as updated dicts, which may be an empty list
         """
-
-        rows = []
-        try:
-            self.reset_csv()
-            for row in self.csv_reader:
-                row = self.update_row(row)
-                if row is not None:
-                    rows.append(row)
-        finally:
-            self.csv_file.close()
+        rows = [r for r in iter(self)]
         return rows
 
     def update_stored_data(self, the_model, rows):
@@ -564,3 +572,64 @@ class CsvImporter(object):
                 print first_row
                 raise Exception('No flight found but flight required', first_row)
         return self.config
+
+
+class CsvSetImporter:
+    """
+    This class manages collections of CSV files using the CsvImporter to handle them as a collection
+
+    It assumes that telemetry files are in lexicographic and chronological order, so that opening files
+    in lex order keeps them in chron order, and that when one file runs out the first line of the next
+    file is the next telemetry value
+    """
+    def __init__(self, yaml_file_path, csv_file_list, vehicle_name=None, flight_name=None, timezone_name='UTC',
+                 defaults=None, force=False, replace=False, skip_bad=False):
+        """
+        Initialize with a path to a configuration yaml file and a list of csv files
+        :param yaml_file_path: The path to the yaml self.configuration file for import
+        :param csv_file_path: The path to the csv file to import
+        :param vehicle_name: The name of the vehicle
+        :param flight_name: The name of the flight
+        :param timezone_name: The name of the time zone, defaults to UTC
+        :param defaults: Optional additional defaults to add to objects
+        :param force: force load even if data already exists
+        :param replace: replace rows instead of creating new ones, matches based on timestamp.
+        :param skip_bad: True to skip loading a row if it has bad/unparsable data
+        :return: the imported items
+        """
+
+        # YAML config for telemetry files
+        self.yaml_file_path = yaml_file_path
+        # ordered list of files
+        self.files = csv_file_list
+        self.file_index = 0
+        # telemetry entries to be loaded from files
+        self.telemetry = None
+        self.telemetry_index = 0
+        # Initialize csv importer and load the first file
+        self.csv_importer = CsvImporter(yaml_file_path, csv_file_list[0],
+                                        vehicle_name=vehicle_name, flight_name=flight_name, timezone_name=timezone_name,
+                                        defaults=defaults, force=force, replace=replace, skip_bad=skip_bad)
+        self.open_next_csv_file()
+
+    def open_next_csv_file(self):
+        if self.file_index >= len(self.files):
+            raise StopIteration
+        self.csv_importer.open_csv(self.files[self.file_index])
+        #self.telemetry = self.csv_importer.load_to_list()
+        self.file_index += 1
+
+    def __iter__(self):
+        self.file_index = 0
+        #self.telemetry_index = 0
+        self.open_next_csv_file()
+        return self
+
+    def next(self):
+        try:
+            val = next(self.csv_importer)
+            return val
+        except StopIteration:
+            self.open_next_csv_file()
+            val = next(self.csv_importer)
+            return val
