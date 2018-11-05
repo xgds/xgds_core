@@ -14,6 +14,7 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+import os
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
@@ -108,3 +109,15 @@ def get_all_subclasses(the_class, check_meta_abstract=True, top=True):
             result = non_abstract_result
     return result
 
+
+def build_relative_path(full_path, prefix='/', split_on='/data/'):
+    """
+    Given a full file path on the hard drive return a relative path to the data directory
+    ie /full/path/to/data/my/file
+    :param full_path:  The original full path to a file
+    :param prefix: The prefix of the result
+    :param split_on: The string in the path to split on, included in the result.
+    :return: the relative path, ie '/data/my/file
+    """
+    splits = full_path.split(split_on)
+    return os.path.join(prefix, split_on, splits[-1])
