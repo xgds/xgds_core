@@ -29,6 +29,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.core.serializers import serialize
+from django.db.models import ExpressionWrapper, IntegerField
+from django.db.models.functions import ExtractSecond, ExtractMinute
+
 
 from geocamUtil.models.AbstractEnum import AbstractEnumModel
 from geocamUtil.models.ExtrasDotField import ExtrasDotField
@@ -36,7 +39,7 @@ from geocamUtil.loader import LazyGetModelByName
 from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
 from geocamUtil.models.UuidField import UuidModel
 from geocamUtil.modelJson import modelToDict
-
+from geocamUtil import TimeUtil
 
 from xgds_core.util import get100Years, get_all_subclasses
 from xgds_core.redisUtil import callRemoteRebroadcast
@@ -854,7 +857,7 @@ class AbstractFlight(UuidModel, HasVehicle):
                              "tooltip": "Tracks for " + self.name,
                              "key": self.uuid + "_tracks",
                              "data": {
-                                 "json": reverse('geocamTrack_mapJsonTrack', kwargs={'uuid': str(self.track.uuid)}),
+                                 "json": reverse('geocamTrack_mapJsonTrack_downsample', kwargs={'uuid': str(self.track.uuid)}),
                                  "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
                                  "sseUrl": "",
                                  "type": 'MapLink',
@@ -1127,3 +1130,33 @@ class ImportedTelemetryFile(models.Model):
         if self.returncode <> 0:
             status = 'failed'
         return '%s @ %s (%s)' % (self.filename, self.timestamp, status)
+
+
+def downsample_queryset(queryset, downsample_seconds=0, timestamp_field_name='timestamp'):
+    """
+    Downsample a queryset by the number of seconds
+    :param queryset: the original queryset
+    :param downsample_seconds:  The number of seconds by which to downsample (# seconds to skip)
+    :param timestamp_field_name: the name of the field which contains the timestamp
+    :return: the downsampled queryset
+    """
+    print '*** DOWNSAMPLE QUERYSET %d **' % downsample_seconds
+    result = queryset
+
+    assert queryset is not None
+
+    if downsample_seconds == 0:
+        return result
+
+    # reduce by modding by the number of seconds set in settings.
+    skip_minutes, skip_seconds = TimeUtil.seconds_to_minutes_seconds(
+        downsample_seconds, True)
+    print 'SKIPPING %d minutes and %d seconds' % (skip_minutes, skip_seconds)
+    if skip_seconds:
+        result = queryset.annotate(sec_mod=ExpressionWrapper(ExtractSecond(timestamp_field_name) % skip_seconds,
+                                                             output_field=IntegerField())).filter(sec_mod=0)
+    elif skip_minutes:
+        result = queryset.annotate(min_mod=ExpressionWrapper(ExtractMinute(timestamp_field_name) % skip_minutes,
+                                                             output_field=IntegerField())).filter(min_mod=0)
+
+    return result
