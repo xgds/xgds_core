@@ -28,6 +28,7 @@ urlpatterns = [url(r'^update_session', views.update_session, {}, 'update_session
                url(r'^help/(?P<help_content_path>[\s\S]+)/(?P<help_title>[\s\S]+)$', views.helpPopup, {}, 'help_popup'),
                ## uploading data
                url(r'^import/$', TemplateView.as_view(template_name='xgds_core/importData.html'), name='xgds_core_import'),
+               url(r'^settings/$', TemplateView.as_view(template_name='xgds_core/settings.html'), name='xgds_core_settings'),
 
                # flight management
                url(r'^updateToday/$', views.updateTodaySession, {}, "xgds_core_updateToday"),

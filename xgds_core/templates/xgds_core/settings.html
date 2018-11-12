@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <p>
+    <table >
+        <tr>
+            <td style="text-align:right"><strong><a href="{% url 'xgds_notes_edit_tags' %}">Tags</a></strong></td>
+            <td>View, manage and edit tags.</td>
+        </tr>
+        <tr>
+            <td style="text-align:right"><strong><a href="{% url 'xgds_notes_edit_user_session' %}">Role & Location</a></strong></td>
+            <td>Edit your role & location for recording {{ settings.XGDS_NOTES_NOTE_MONIKER }}</td>
+        </tr>
+    </table>
+    </p>
+
+{% endblock content %}
+
