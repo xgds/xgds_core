@@ -1140,7 +1140,6 @@ def downsample_queryset(queryset, downsample_seconds=0, timestamp_field_name='ti
     :param timestamp_field_name: the name of the field which contains the timestamp
     :return: the downsampled queryset
     """
-    print '*** DOWNSAMPLE QUERYSET %d **' % downsample_seconds
     result = queryset
 
     assert queryset is not None
@@ -1151,7 +1150,7 @@ def downsample_queryset(queryset, downsample_seconds=0, timestamp_field_name='ti
     # reduce by modding by the number of seconds set in settings.
     skip_minutes, skip_seconds = TimeUtil.seconds_to_minutes_seconds(
         downsample_seconds, True)
-    print 'SKIPPING %d minutes and %d seconds' % (skip_minutes, skip_seconds)
+
     if skip_seconds:
         result = queryset.annotate(sec_mod=ExpressionWrapper(ExtractSecond(timestamp_field_name) % skip_seconds,
                                                              output_field=IntegerField())).filter(sec_mod=0)
