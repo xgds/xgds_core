@@ -42,6 +42,9 @@ def getFlight(event_time, vehicle=None):
                 return found_active_flight;
         return None
     else:
+        filtered_flights = found_flights.filter(vehicle_id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
+        if filtered_flights:
+            return filtered_flights[0]
         return found_flights[0]
     
     
