@@ -1,1 +1,12 @@
-[{"model": "xgds_core.flight", "pk": 10, "fields": {"uuid": "e4e0b8d2-a911-4a98-8562-f0c1cc7266d6", "name": "H1708_Hercules", "locked": false, "start_time": "2018-09-02T09:54:37.206Z", "end_time": "2018-09-03T04:07:12.116Z", "timezone": "Etc/UTC", "notes": null, "extras": "{}", "source_root": null, "group": 4, "vehicle": 2, "summary": null}}]
+[{"model": "xgds_core.flight", "pk": 10,
+  "fields": {"uuid": "e4e0b8d2-a911-4a98-8562-f0c1cc7266d6",
+    "name": "H1708_Hercules",
+    "locked": false,
+    "start_time": "2018-09-02T09:54:37.206Z",
+    "end_time": "2018-09-03T04:07:12.116Z",
+    "timezone": "Etc/UTC",
+    "notes": null,
+    "extras": "{}",
+    "source_root": null,
+    "vehicle": 1,
+    "summary": null}}]
