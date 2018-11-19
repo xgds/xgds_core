@@ -151,10 +151,13 @@ interpretation of other members.
 +====================+================+=================+====================================+
 |``name``            |string          |required         |The name of the data importer       |
 +--------------------+----------------+-----------------+------------------------------------+
-|``class``           |string          |required         |The fully qualified Python name of  |
+|``class``           |string          |optional         |The fully qualified Python name of  |
 |                    |                |                 |the Django model that will be used  |
 |                    |                |                 |for data import described by this   |
-|                    |                |                 |Data Import YAML file.              |
+|                    |                |                 |Data Import YAML file. If you are   |
+|                    |                |                 |importing data into a model & db    |
+|                    |                |                 |you need the class.  To import into |
+|                    |                |                 |memory you do not.                  |
 +--------------------+----------------+-----------------+------------------------------------+
 |``superclass``      |string          |optional         |The superclass that generated code  |
 |                    |                |                 |will extend.                        |

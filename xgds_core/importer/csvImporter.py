@@ -205,7 +205,7 @@ class CsvImporter(object):
                 the_time = datetime.datetime.utcfromtimestamp(int(row[field_name])/1000000.).replace(tzinfo=pytz.utc)
             else:
                 # TODO: Should we support general strptime() format strings?
-                raise Exception('Unsupported time format %s for row %s' % (time_type, field_name))
+                raise Exception('Unsupported time format %s for row %s' % (time_format, field_name))
         else:
             the_time = value
         if not the_time.tzinfo or the_time.tzinfo.utcoffset(the_time) is None:
