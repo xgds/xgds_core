@@ -26,7 +26,7 @@ from django.http import JsonResponse
 
 if settings.XGDS_CORE_REDIS:
     import redis
-    rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
+    rs = redis.Redis(host=settings.XGDS_CORE_REDIS_HOST, port=settings.XGDS_CORE_REDIS_PORT)
 
     def queueRedisData(channel, jsonString):
         rs.lpush(channel, jsonString)

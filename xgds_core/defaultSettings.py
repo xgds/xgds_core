@@ -44,6 +44,7 @@ XGDS_CORE_LIVE_INDEX_URL = '/'
 #support for data relay via REDIS
 XGDS_CORE_RELAY = False  # IMPORTANT: set to true if you need relay
 XGDS_CORE_RELAY_SUBDIRECTORY = 'relay/'
+XGDS_CORE_REDIS_HOST = 'localhost'
 XGDS_CORE_REDIS_PORT = 6379
 XGDS_CORE_REDIS = False
 XGDS_CORE_REDIS_RELAY_CHANNEL = 'dataRelayQueue'
