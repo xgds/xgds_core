@@ -14,7 +14,6 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
-#import pydevd
 import traceback
 import os
 import pytz
@@ -469,7 +468,6 @@ class OrderListJson(BaseDatatableView):
 
     # Creates the keyword queries to be used on the queryset
     def filter_keyword_search(self, qs, search):
-        # pydevd.settrace('192.168.0.105', port=9999)
         model = self.request.POST.get(u'modelName', None)
         model_class = None
         if model:
