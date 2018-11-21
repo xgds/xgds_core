@@ -121,3 +121,16 @@ def build_relative_path(full_path, prefix='/', split_on='/data/'):
     """
     splits = full_path.split(split_on)
     return os.path.join(prefix, split_on, splits[-1])
+
+
+def get_file_size(input_file):
+    """
+    Return the file size in bytes from an open file
+    :param input_file:
+    :return:
+    """
+    old_file_position = input_file.tell()
+    input_file.seek(0, os.SEEK_END)
+    size = input_file.tell()
+    input_file.seek(old_file_position, os.SEEK_SET)
+    return size

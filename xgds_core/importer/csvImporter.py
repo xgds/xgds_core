@@ -259,7 +259,7 @@ class CsvImporter(object):
                 if match:
                     row[field_name] = match.groups()[-1]
                 else:
-                    if field_config['required']:
+                    if 'required' in field_config and field_config['required']:
                         raise ValueError('No match for regex %s' % field_config['regex'])
                     else:
                         row[field_name] = None

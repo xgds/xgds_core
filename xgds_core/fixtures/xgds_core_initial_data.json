@@ -1,5 +1,13 @@
 [
   {
+    "model": "sites.site",
+    "pk": 1,
+    "fields": {
+      "domain": "localhost",
+      "name": "localhost"
+    }
+  },
+  {
     "pk": 1,
     "model": "xgds_core.vehicle",
     "fields": {
