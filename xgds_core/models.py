@@ -188,7 +188,7 @@ class SearchableModel(object):
         """
         Return a reduced dictionary that will be turned to JSON for rendering in a map
         """
-        columns = settings.XGDS_MAP_SERVER_JS_MAP[settings.XGDS_IMAGE_IMAGE_MODEL_NAME]['columns']
+        columns = settings.XGDS_MAP_SERVER_JS_MAP[self.cls_type()]['columns']
 
         # add the columns from the position class
         try:
