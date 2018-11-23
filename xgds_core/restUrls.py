@@ -48,6 +48,8 @@ urlpatterns = [url(r'^view/(?P<modelName>\w+)/$', views.OrderListJson.as_view(),
                    'xgds_core_completedGroupFlightsTreeNodes'),
                url(r'flightTreeNodes/(?P<flight_id>\d+)$', views.flightTreeNodes, {}, 'xgds_core_flightTreeNodes'),
                url(r'groupFlightTreeNodes/(?P<group_flight_id>\d+)$', views.groupFlightTreeNodes, {}, 'xgds_core_groupFlightTreeNodes'),
+               url(r'groupFlightSummaries/$', views.get_group_flight_summaries_json_response, {}, 'xgds_core_group_flight_summaries'),
+               url(r'groupFlightSummaris/dt/$', views.GroupFlightListJson.as_view(), name='group_flight_dt_list_json'),
 
                #                url(r'^condition/list/(?P<state>\w+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_state'),
 #                url(r'^condition/range/(?P<range>[\d]+)/$',views.listConditions, {}, 'xgds_core_list_conditions_by_range'),

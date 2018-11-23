@@ -14,6 +14,7 @@
 # specific language governing permissions and limitations under the License.
 # __END_LICENSE__
 
+from collections import OrderedDict
 import traceback
 import json
 from datetime import timedelta
@@ -1042,6 +1043,43 @@ class AbstractGroupFlight(models.Model):
 
         return result
 
+    def get_summary_dict(self, skip_example=True):
+        """
+        Build a json dictionary of the group flight, including the columns defined in
+        settings.XGDS_CORE_GROUP_FLIGHT_SUMMARY_COLUMNS.
+        Note that all the columns must refer to properties of the summary
+        Also includes the pk, and total numbers for all the searchable models that are children of this group flight.
+        :return: json
+        """
+        result = OrderedDict({'pk': self.pk})
+        for item in settings.XGDS_CORE_GROUP_FLIGHT_SUMMARY_COLUMNS:
+            result[item[0]] = getattr(self, item[1])
+
+        for the_class in get_all_subclasses(SearchableModel):
+            if skip_example and 'xample' in the_class.__name__:  # skip example classes
+                continue
+            try:
+                quantity = the_class.objects.filter(flight__group=self).count()
+                result[the_class.cls_type() + 's'] = quantity
+            except:
+                # some of them are not first-class searchable models
+                pass
+
+        return result
+
+    @classmethod
+    def get_summary_columns(cls):
+        """
+        Get the summary columns for the group flight datatables.
+        This requires at least one group flight
+        :return:
+        """
+        gf = cls.objects.first()
+        if gf:
+            summary_dict = gf.get_summary_dict()
+            return summary_dict.keys()
+        return []
+
     def toDict(self):
         result = modelToDict(self)
         result['start_time'] = self.start_time
@@ -1075,6 +1113,20 @@ class AbstractGroupFlight(models.Model):
             if f.start_time > max_end_time:
                 max_end_time = f.end_time
         return max_end_time
+
+    @property
+    def duration(self):
+        """
+        :return: duration in seconds, or 0 if no start or end time
+        """
+        end_time = self.end_time
+        if not end_time:
+            return 0
+        start_time = self.start_time
+        if start_time:
+            delta = end_time - start_time
+            return delta.seconds
+        return 0
 
     @property
     def conditions(self):

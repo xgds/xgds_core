@@ -43,6 +43,7 @@ urlpatterns = [url(r'^update_session', views.update_session, {}, 'update_session
                url(r'^summary/(?P<groupFlightName>\w+)$', views.getGroupFlightSummary,
                    name="xgds_core_group_flight_summary"),
                url(r'^summary/f/(?P<flightName>\w+)$', views.getFlightSummary, name="xgds_core_flight_summary"),
+               url(r'^listGroupFlights/$', views.get_group_flight_list_page, {}, 'group_flight_list'),
 
                # Including these in this order ensures that reverse will return the non-rest urls for use in our server
                url(r'^rest/', include('xgds_core.restUrls')),

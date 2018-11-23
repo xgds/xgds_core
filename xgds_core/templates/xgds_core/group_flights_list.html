@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load nav %}
+{% load tz %}
+{% load static %}
+
+{% block siteSection %} Manage {{ settings.XGDS_CORE_FLIGHT_MONIKER }} {% endblock %}
+
+{% block nav %}
+    {% nav "planner2.manageFlight" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block cssExtras %}
+{{ block.super }}
+<style type="text/css" title="currentStyle">
+	@import "{{ EXTERNAL_URL }}jquery-ui-dist/jquery-ui.min.css";
+</style>
+{% endblock cssExtras %}
+
+{% block sitemenu-content-secondary %}
+    {% include "xgds_planner2/planner2_subnav.html" %}
+{% endblock %}
+
+{% block contents %}
+	{% if errorString %}
+	<span class="error">{{ errorString }}</span>
+	{% endif %}
+	<div class="d-flex justify-content-between" style="width: 100%;">
+		<form name='TodayForm' id="todayForm" action="{% url 'xgds_core_updateToday' %}" method="post">
+			<label for="id_today" style="display:inline"><input type="checkbox" class="mr-1" name="today" id="id_today" {% if request.session.today %} checked="checked" {%endif %} ></input>Today</label>
+		</form>
+		<div class="btn-group" role="group">
+            {% if settings.XGDS_CORE_ADD_GROUP_FLIGHT %}
+			<a class="btn btn-primary" role="button" href="{% url 'xgds_core_addGroupFlight' %}" >Create {{ settings.XGDS_CORE_FLIGHT_MONIKER}}s</a>
+            {% endif %}
+            {% if settings.XGDS_CORE_SHOW_FLIGHT_MANAGEMENT %}
+			<a class="btn btn-primary" role="button" href="{% url 'xgds_core_manage' %}" >Manage {{ settings.XGDS_CORE_FLIGHT_MONIKER}}s</a>
+            {% endif %}
+		</div>
+	</div>
+
+	<table id="dataTable" class="planIndex table-striped">
+    <thead>
+    <tr>
+        {% for h in column_headers %}
+            {#  if h != 'DT_RowId' #}
+        <th>{{ h }}</th>
+            {# endif #}
+        {% endfor %}
+    </tr>
+    </thead>
+
+	</table>
+
+{% endblock contents %}
+
+{% block scripts %}
+  {{ block.super }}
+    {% include "xgds_core/timeJS.html" %}
+  	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}jquery-ui-dist/jquery-ui.min.js"></script>
+  	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}datatables/media/js/jquery.dataTables.min.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'xgds_core/js/datatablesUtils.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}jquery-ui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}datatables.net-plugins/sorting/datetime-moment.js"></script>
+<script type="text/javascript">
+
+
+$('#id_today').change(function(e){
+    var ischecked = $('#id_today').is(":checked");
+    $.ajax({
+        type: "POST",
+        url: "{% url 'xgds_core_updateToday' %}",
+        data: { today: ischecked}
+    }).done(function (response) {
+        location.reload(true);
+    })
+});
+
+
+$(document).ready( function () {
+    $.fn.dataTable.moment( "MM/DD/YY HH:mm:ss zz");
+    defaultOptions['language'] = {
+        "lengthMenu": "Display _MENU_ {{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}s"
+      };
+    defaultOptions['processing'] = true;
+    defaultOptions['serverSide'] = true;
+    defaultOptions['ajax'] = "{% url 'group_flight_dt_list_json' %}";
+    {#defaultOptions['rowCallback']= function (row, data, index){#}
+    {#            	$(row).attr('id', data[data.length - 1]);#}
+    {#            };#}
+	var dataTable = $('#dataTable').dataTable(defaultOptions);
+    $(window).resize(function(){
+        $('div.dataTables_scrollBody').css('height',calcDataTableHeight());
+        dataTable.fnAdjustColumnSizing();
+    });
+} );
+ </script>
+{% endblock scripts %}

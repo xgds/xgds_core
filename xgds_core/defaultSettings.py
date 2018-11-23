@@ -108,6 +108,12 @@ XGDS_CORE_SHOW_FLIGHT_MANAGEMENT = True
 XGDS_CORE_ADD_GROUP_FLIGHT = True
 
 
+XGDS_CORE_GROUP_FLIGHT_SUMMARY_COLUMNS = [('Name', 'name'),
+                                          ('Started', 'start_time'),
+                                          ('Ended', 'end_time'),
+                                          ('Duration', 'duration')]
+
+
 # to be used by forms
 XGDS_CORE_DATE_FORMATS = [
     '%m-%d-%y %H:%M:%S',

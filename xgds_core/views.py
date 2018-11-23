@@ -924,8 +924,34 @@ def processNameToDate(flight):
 
 
 def getGroupFlights():
-    return GROUP_FLIGHT_MODEL.get().objects.exclude(name="").order_by('name')
+    """
+    Get all the group flights
+    :return:
+    """
+    order_by = name
+    if settings.GEOCAM_UTIL_LIVE_MODE:
+        order_by = '-name'
+    return GROUP_FLIGHT_MODEL.get().objects.exclude(name="").order_by(order_by)
 
+
+def get_group_flight_summaries():
+    """
+    Get a list of high level summaries for all the group flights
+    :return:
+    """
+    result = []
+    for gf in getGroupFlights():
+        result.append(gf.get_summary_dict())
+    return result
+
+
+def get_group_flight_summaries_json_response(request):
+    """
+    Get a json response of all the high level summaries for all the group flights
+    :param request:
+    :return:
+    """
+    return JsonResponse(get_group_flight_summaries(), encoder=DatetimeJsonEncoder)
 
 def getAllFlights(today=False, reverseOrder=False):
     orderby = 'name'
@@ -1292,3 +1318,51 @@ def updateTodaySession(request):
     todayValue = todayChecked == unicode('true')
     request.session['today'] = todayValue
     return HttpResponse('ok')
+
+
+def get_group_flight_list_page(request):
+    return render(request,
+                  'xgds_core/group_flights_list.html',
+                  {'column_headers': GROUP_FLIGHT_MODEL.get().get_summary_columns()}
+                  )
+
+
+class GroupFlightListJson(BaseDatatableView):
+    model = None
+
+    # define the columns that will be returned
+    #columns = GROUP_FLIGHT_MODEL.get().get_summary_columns()
+
+    # define column names that will be used in sorting
+    # order is important and should be same as order of columns
+    # displayed by datatables. For non sortable columns use empty
+    # value like ''
+    #order_columns = columns
+
+    # set max limit of records returned, this is used to protect our site if someone tries to attack our site
+    # and make it return huge amount of data
+    max_display_length = 500
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.model:
+            self.lookup_model()
+        return super(GroupFlightListJson, self).dispatch(request, *args, **kwargs)
+
+    def lookup_model(self):
+        self.model = GROUP_FLIGHT_MODEL.get()
+        self.columns = GROUP_FLIGHT_MODEL.get().get_summary_columns()
+        self.order_columns = self.columns
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(name__icontains=search)
+        return qs
+
+    def prepare_results(self, qs):
+        # prepare list with output column data
+        # queryset is already paginated here
+        json_data = []
+        for item in qs:
+            json_data.append(item.get_summary_dict().values())
+        return json_data
