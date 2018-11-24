@@ -22,7 +22,10 @@
 {% endblock %}
 
 {% block contents %}
-	{% if errorString %}
+    <p>
+    <strong>Click on the name of the {{ settings.XGDS_CORE_GROUP_FLIGHT_MONIKER }} to interact with collected data.</strong>
+    </p>
+    {% if errorString %}
 	<span class="error">{{ errorString }}</span>
 	{% endif %}
 	<div class="d-flex justify-content-between" style="width: 100%;">
@@ -84,9 +87,9 @@ $(document).ready( function () {
 			} else if (heading == 'Name') {
 			        var name_index = i;
 				result.push({render: function(data, type, row){
-                    result = '<a href="/xgds_map_server/greplay/' + row[name_index] + '" target="_blank">';
+                    result = '<strong><a href="/xgds_map_server/greplay/' + row[name_index] + '">';
                     result += row[name_index];
-                    result += '</a>';
+                    result += '</a></strong>';
                     return result;
 				},
 				targets: i

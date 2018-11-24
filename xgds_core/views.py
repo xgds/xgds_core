@@ -923,14 +923,11 @@ def processNameToDate(flight):
     return result
 
 
-def getGroupFlights():
+def getGroupFlights(order_by='name'):
     """
     Get all the group flights
     :return:
     """
-    order_by = name
-    if settings.GEOCAM_UTIL_LIVE_MODE:
-        order_by = '-name'
     return GROUP_FLIGHT_MODEL.get().objects.exclude(name="").order_by(order_by)
 
 
@@ -940,7 +937,12 @@ def get_group_flight_summaries():
     :return:
     """
     result = []
-    for gf in getGroupFlights():
+    if settings.GEOCAM_UTIL_LIVE_MODE:
+        order_by = '-name'
+    else:
+        order_by = 'name'
+
+    for gf in getGroupFlights(order_by):
         result.append(gf.get_summary_dict())
     return result
 
