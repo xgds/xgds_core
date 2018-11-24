@@ -804,11 +804,11 @@ class AbstractFlight(UuidModel, HasVehicle):
         return 'Flight'
 
     def hasStarted(self):
-        return (self.start_time != None)
+        return self.start_time is not None
 
     def hasEnded(self):
         if self.hasStarted():
-            return (self.end_time != None)
+            return self.end_time is not None
         return False
 
     def startFlightExtras(self, request):
@@ -1051,7 +1051,7 @@ class AbstractGroupFlight(models.Model):
         Also includes the pk, and total numbers for all the searchable models that are children of this group flight.
         :return: json
         """
-        result = OrderedDict({'pk': self.pk})
+        result = OrderedDict({'id': self.pk})
         for item in settings.XGDS_CORE_GROUP_FLIGHT_SUMMARY_COLUMNS:
             result[item[0]] = getattr(self, item[1])
 

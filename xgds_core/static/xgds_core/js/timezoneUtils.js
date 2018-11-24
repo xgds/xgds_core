@@ -70,3 +70,10 @@ getUTCTime = function(localtime, localTimeZone){
 	var theMoment = moment.tz(localtime, "MM/DD/YY hh:mm:ss", localTimeZone);
 	return theMoment.utc();
 }
+
+
+secondsToHMS = function(seconds) {
+	// given a time in seconds return the HH:mm:ss
+	var duration = moment.duration(seconds, "seconds");
+	return duration.format("HH:mm:ss", { trim: false });
+}

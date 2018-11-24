@@ -3,7 +3,7 @@
 {% load tz %}
 {% load static %}
 
-{% block siteSection %} Manage {{ settings.XGDS_CORE_FLIGHT_MONIKER }} {% endblock %}
+{% block siteSection %} {{ settings.XGDS_CORE_FLIGHT_MONIKER }} List {% endblock %}
 
 {% block nav %}
     {% nav "planner2.manageFlight" %}
@@ -26,9 +26,6 @@
 	<span class="error">{{ errorString }}</span>
 	{% endif %}
 	<div class="d-flex justify-content-between" style="width: 100%;">
-		<form name='TodayForm' id="todayForm" action="{% url 'xgds_core_updateToday' %}" method="post">
-			<label for="id_today" style="display:inline"><input type="checkbox" class="mr-1" name="today" id="id_today" {% if request.session.today %} checked="checked" {%endif %} ></input>Today</label>
-		</form>
 		<div class="btn-group" role="group">
             {% if settings.XGDS_CORE_ADD_GROUP_FLIGHT %}
 			<a class="btn btn-primary" role="button" href="{% url 'xgds_core_addGroupFlight' %}" >Create {{ settings.XGDS_CORE_FLIGHT_MONIKER}}s</a>
@@ -43,9 +40,7 @@
     <thead>
     <tr>
         {% for h in column_headers %}
-            {#  if h != 'DT_RowId' #}
         <th>{{ h }}</th>
-            {# endif #}
         {% endfor %}
     </tr>
     </thead>
@@ -65,19 +60,43 @@
 <script type="text/javascript">
 
 
-$('#id_today').change(function(e){
-    var ischecked = $('#id_today').is(":checked");
-    $.ajax({
-        type: "POST",
-        url: "{% url 'xgds_core_updateToday' %}",
-        data: { today: ischecked}
-    }).done(function (response) {
-        location.reload(true);
-    })
-});
-
-
 $(document).ready( function () {
+
+    var column_headers = {{ column_headers | safe }};
+    var getColumnDefs = function(headers) {
+		result = [];
+		for (var i=0; i<headers.length; i++){
+			var heading = headers[i];
+			if  (heading == 'Started' || heading == 'Ended'){
+			    var index = i;
+				result.push({ render: function ( data, type, row ) {
+					return getLocalTimeString(data, row[index], "MM/DD/YY HH:mm:ss z");
+				},
+				targets: i
+				});
+			} else if  (heading == 'Duration'){
+			        var duration_index = i;
+				result.push({ render: function ( data, type, row ) {
+				    return secondsToHMS(row[duration_index]);
+				},
+				targets: i
+				});
+			} else if (heading == 'Name') {
+			        var name_index = i;
+				result.push({render: function(data, type, row){
+                    result = '<a href="/xgds_map_server/greplay/' + row[name_index] + '" target="_blank">';
+                    result += row[name_index];
+                    result += '</a>';
+                    return result;
+				},
+				targets: i
+				})
+			}
+		}
+
+		return result;
+	};
+
     $.fn.dataTable.moment( "MM/DD/YY HH:mm:ss zz");
     defaultOptions['language'] = {
         "lengthMenu": "Display _MENU_ {{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}s"
@@ -85,9 +104,11 @@ $(document).ready( function () {
     defaultOptions['processing'] = true;
     defaultOptions['serverSide'] = true;
     defaultOptions['ajax'] = "{% url 'group_flight_dt_list_json' %}";
-    {#defaultOptions['rowCallback']= function (row, data, index){#}
-    {#            	$(row).attr('id', data[data.length - 1]);#}
-    {#            };#}
+    //defaultOptions['rowCallback']= function (row, data, index){
+    //            	$(row).attr('id', data[0]);
+    //            };
+
+    defaultOptions['columnDefs'] = getColumnDefs(column_headers);
 	var dataTable = $('#dataTable').dataTable(defaultOptions);
     $(window).resize(function(){
         $('div.dataTables_scrollBody').css('height',calcDataTableHeight());
