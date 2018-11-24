@@ -1049,6 +1049,7 @@ class AbstractGroupFlight(models.Model):
         settings.XGDS_CORE_GROUP_FLIGHT_SUMMARY_COLUMNS.
         Note that all the columns must refer to properties of the summary
         Also includes the pk, and total numbers for all the searchable models that are children of this group flight.
+        TODO need to deal with timezones for display of start and end
         :return: json
         """
         result = OrderedDict({'id': self.pk})
