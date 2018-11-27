@@ -29,14 +29,30 @@ class Command(createsuperuser.Command):
             '--password', dest='password', default=None,
             help='Specifies the password for the superuser.',
         )
+        parser.add_argument(
+            '--skip', dest='skip', default=False,
+            help='Skip creation if the user exists.', action='store_true'
+        )
+        # parser.set_defaults(skip=False)
 
     def handle(self, *args, **options):
         password = options.get('password')
+        skip = options.get('skip')
+
         username = options.get('username')
         database = options.get('database')
 
         if password and not username:
             raise CommandError("--username is required if specifying --password")
+
+        if skip:
+            try:
+                found_user = self.UserModel._default_manager.db_manager(database).get(username=username)
+                if found_user:
+                    print 'User %s already exists; skipping.' % username
+                    return
+            except:
+                pass
 
         super(Command, self).handle(*args, **options)
 
