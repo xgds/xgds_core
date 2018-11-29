@@ -106,6 +106,23 @@
     {% endblock pretemplate %}
 
 <script type="x-template/underscore" id="application_contents">
+
+    {% block layers %}
+        <div id="layers_modal" class="modal hide fade">
+            <div class="modal-dialog" role="dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Control Map Layers</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body mt-0 pt-0">
+                        <div id="layers" ></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock layers %}
+
 	<div id="gridstack_buttonrow" class="d-flex justify-content-between mb-1">
 		<div class="d-flex justify-content-start">
 			{% block buttonrowLeft %}
@@ -118,10 +135,12 @@
 				<button id="gridstack_toggleAll" class='btn btn-primary fa fa-lock my-1' role='button' style="color:white; max-height:1.8rem; margin-left: 10px;" onclick="xgds_gridstack.handleToggleAllClick();"></button>
         </div>
 	</div>
+
 	{% block preDashboard %}
 	{% endblock preDashboard %}
+
 	{% block dashboard %}
-	<div id="container" class="grid-stack grid-stack-6"> 
+	<div id="container" class="grid-stack {% block gridstackWidth %}grid-stack-6 {% endblock gridstackWidth %}">
 		
 		{% block preMap %}
 		{% endblock preMap %}
@@ -130,20 +149,21 @@
 		{% block map %}
 		<div id="map-gridstack-item" class="grid-stack-item" 
 		data-gs-x="3" data-gs-y="0"
-        data-gs-width="2" data-gs-height="2" >
+        data-gs-width="3" data-gs-height="2" >
 			<div class="grid-stack-item-content" id="map-gridstack-item-content" >
-				{% siteframe_form %}
 				<ul class="nav justify-content-end">
-                    <button id="layers_button" role="button" class="btn btn-primary ml-2 mt-1 mr-1" >Layers</button>
-					<i class="fa fa-lock pinDiv gray-light"></i>
+                	<i class="fa fa-lock pinDiv gray-light"></i>
 				</ul>
+                <div id="overmap" class="mb-1 mt-negative-1rem">
+                    {% if mapLayerDict.jsonFeatures|length == 0 %}{% siteframe_form %}{% endif %}
+                    <button id="layers_button" type="button" class="btn btn-primary" data-backdrop=false data-toggle="modal" data-target="#layers_modal">
+                        Layers
+                    </button>
+                </div>
 				<div id="map"></div>
 			</div>
 		</div>
 		{% endblock map %}
-
-        {% block layers %}
-        {% endblock layers %}
 
 		{% block postMap %}
 		{% endblock postMap %}
@@ -152,22 +172,6 @@
 	</div> <!--  gridstack container -->
 	{% endblock dashboard %}
 </script>
-
-        {% block layersmodal %}
-            <div id="layers_modal" class="modal hide fade">
-                <div class="modal-dialog" role="dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Control Map Layers</h5>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body mt-0 pt-0">
-                            <div id="layers" class=""></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-		{% endblock layersmodal %}
 
 {% block preApplication %}
 {% endblock preApplication %}
