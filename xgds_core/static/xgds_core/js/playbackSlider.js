@@ -49,7 +49,8 @@ $.extend(playback, {
 	 */
 	uponSliderStopCallback : function(event, ui) {
 		var currTime = playback.masterSlider.slider('value'); //in seconds
-		playback.setCurrentTime(moment(new Date(currTime * 1000)));
+		var currMoment = moment(new Date(currTime * 1000));
+		playback.setCurrentTime(currMoment);
 		playback.movingSlider = false;
 		if (!playback.playFlag){
 			if (playback.wasPlaying){
@@ -57,6 +58,7 @@ $.extend(playback, {
 				playback.wasPlaying = false;
 			}
 		}
+		playback.callStopListeners(currMoment);
 	},
 	
 	setSliderStartTime: function(startTime){

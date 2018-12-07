@@ -16,6 +16,7 @@
 
 $.extend(playback, {
 	listeners: [],
+	stopListeners: [],
 	playbackSpeed: 1,
 	endTime: undefined,
 	displayTZ : 'Etc/UTC',
@@ -70,7 +71,20 @@ $.extend(playback, {
 		}
 
 	},
-	
+	addStopListener: function(stopListener) {
+		playback.stopListeners.push(stopListener);
+		if (!playback.playFlag) {
+			stopListener(playback.currentTime);
+		}
+	},
+	removeStopListener: function(stopListener) {
+		playback.stopListeners = _.without(playback.stopListeners, stopListener);
+	},
+	callStopListeners: function(currentTime){
+		_.each(this.stopListeners, function(sl) {
+			sl(currentTime);
+		});
+	},
 	addListener: function(listener) {
 		playback.listeners.push(listener);
 		listener.initialize();
@@ -175,6 +189,7 @@ $.extend(playback, {
 		playback.timerWorker.postMessage(['setPaused', true]);
 		playback.playFlag = false;
 		playback.pauseListeners();
+		playback.callStopListeners(playback.currentTime);
 	},
 	
 	doPlay: function() {
