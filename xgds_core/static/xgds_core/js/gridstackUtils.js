@@ -161,7 +161,7 @@ $.extend(xgds_gridstack,{
 
 	loadGrid: function(location) {
 	    // this.THE_GRIDSTACK.removeAll();
-		if (this.getGrid != null){
+		if ((this.getGrid != null) && (this.THE_GRIDSTACK != null)) {
 			var serializedData = this.getGrid(location);
 			var items = GridStackUI.Utils.sort(serializedData);
 			_.each(items, function (node) {
