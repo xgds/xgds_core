@@ -29,4 +29,4 @@ admin.site.register(Flight)
 admin.site.register(GroupFlight)
 admin.site.register(Vehicle)
 admin.site.register(ImportedTelemetryFile)
-
+admin.site.register(RemoteRestService)

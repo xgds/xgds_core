@@ -1161,6 +1161,27 @@ class GroupFlight(AbstractGroupFlight):
         return self.flight_set.all()
 
 
+class RemoteRestService(models.Model):
+    # Remote services that are called over HTTP for (e.g.) plan analysis.
+    # It is up to the implmenting module to call the service URL with appropriate parameters.
+    # TODO: should we add username and password fields?
+
+    # Short internal identifier, no spaces.
+    name = models.CharField(max_length=128, blank=False, null=False, db_index=True)
+    # Pretty name for menus, etc.
+    display_name = models.CharField(max_length=128, blank=False, null=False)
+    description = models.CharField(max_length=512, blank=False, null=False)
+    # module that uses the service, e.g. xgds_planner2
+    module = models.CharField(max_length=255, blank=False, null=False, db_index=True)
+    serviceUrl = models.CharField(max_length=512, blank=False, null=False)
+
+    class Meta:
+        ordering = ['module', 'name']
+
+    def __unicode__(self):
+        return '%s: %s (%s)' % (self.module, self.name, self.description)
+
+
 class ImportedTelemetryFile(models.Model):
     # The name of the file imported
     filename = models.CharField(max_length=256,blank=False,null=False,db_index=True)
