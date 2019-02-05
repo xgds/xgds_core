@@ -30,8 +30,7 @@ import pytz
 import json
 
 HTTP_PREFIX = 'https'
-from django.contrib.sites.models import Site
-URL_PREFIX = Site.objects.get_current().domain
+URL_PREFIX = settings.XGDS_CORE_IMPORT_URL_PREFIX
 URL_TAIL = '/genericFileUploadUrlDoesntExist/'
 
 def fixTimezone(the_time):

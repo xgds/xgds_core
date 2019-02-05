@@ -32,7 +32,7 @@ django.setup()
 from django.conf import settings
 from xgds_core.models import RelayEvent, RelayFile
 
-rs = redis.Redis(host='localhost', port=settings.XGDS_CORE_REDIS_PORT)
+rs = redis.Redis(host=settings.XGDS_CORE_REDIS_HOST, port=settings.XGDS_CORE_REDIS_PORT)
 nicknames = []
 hostlist = None
 auth = {}

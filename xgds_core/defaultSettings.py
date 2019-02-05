@@ -89,6 +89,7 @@ XGDS_DATA_IMPORTS = {}
 
 # Add mappings to the importer for csv importers defined by yaml files
 XGDS_CORE_CSV_IMPORTER = {}
+XGDS_CORE_IMPORT_URL_PREFIX = 'localhost'
 
 # Override this to provide a function that will return a dictionary of current state information.
 # This will be appended to items as they are imported.
