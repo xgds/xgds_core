@@ -80,7 +80,7 @@ $.extend(playback, {
 				max : playback.endTime.unix(),
 				stop : playback.uponSliderStopCallback,
 				slide : playback.uponSliderMoveCallback,
-				range : 'min'
+				range : false //'min'
 			});
 		}
 		playback.addListener(playback.sliderListener);
