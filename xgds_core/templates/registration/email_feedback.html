@@ -7,7 +7,6 @@
         Thank you for your feedback.  It has been emailed to the site administrators.
     </p>
 {% else %}
-	<div class="feedback_link"><a target="_blank" href="https://docs.google.com/spreadsheets/d/1NaIBV1gzsxPAo6VLgkoewVro2TLC6R3h4-sQKSuqB1s/edit?usp=sharing"> Open Feedback Spreadsheet </a></div>
     <form id="feedback_form" action="{% url 'email_feedback' %}" method="post">
     <table>
         {{form.as_table}}
