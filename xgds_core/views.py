@@ -1325,7 +1325,10 @@ def updateTodaySession(request):
 def get_group_flight_list_page(request):
     return render(request,
                   'xgds_core/group_flights_list.html',
-                  {'column_headers': GROUP_FLIGHT_MODEL.get().get_summary_columns()}
+                  {'column_headers': GROUP_FLIGHT_MODEL.get().get_summary_columns(),
+                   'title': settings.XGDS_CORE_FLIGHT_MONIKER,
+                   'help_content_path': 'xgds_core/help/listGroupFlights.rst'
+                   }
                   )
 
 
