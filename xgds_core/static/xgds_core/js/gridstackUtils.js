@@ -17,7 +17,7 @@
 var xgds_gridstack = xgds_gridstack || {};
 $.extend(xgds_gridstack,{
 	DEFAULT_GRIDSTACK_OPTIONS : {
-	        cellHeight: 200,
+	        cellHeight: 150,
 	        verticalMargin: 20,
 	        width: 6,
 	        float: false
