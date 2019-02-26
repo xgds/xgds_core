@@ -46,7 +46,10 @@ function addDateTimePickers(){
      	   		    'showTimezone': false,
      	   		    'format': 'd/m/Y H:M zzz'
     			};
-	$( ".datetimepicker" ).datetimepicker(options);
+	var datetime_fields = $( ".datetimepicker" );
+	if (datetime_fields.length > 0) {
+		$(".datetimepicker").datetimepicker(options);
+	}
 }
 
 /*

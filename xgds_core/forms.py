@@ -168,7 +168,7 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
             return None
     
     def getQueries(self):
-        #iterate through all of your non-empty fields and build query for them
+        # iterate through all of your non-empty fields and build query for them
         # and them together
         self.queries = None
 
@@ -185,7 +185,7 @@ class SearchForm(ModelForm, AbstractFlightVehicleForm):
                 builtQuery = self.buildQueryForField(fieldname, field, value, minimum, maximum)
                 self.addQuery(builtQuery)
             except:
-                traceback.print_exc()
+                # traceback.print_exc()
                 pass
         return self.queries
     
