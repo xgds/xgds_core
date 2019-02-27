@@ -19,6 +19,7 @@
 
 {% block jsInit %}
 
+    current_user_pk = {{ user.id }};
  	{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE %}
  		var preloadImageList = {{ settings.GEOCAM_TRACK_PRELOAD_TRACK_IMAGES|safe }}; 
     		trackSse.preloadedIcons = $.preloadImages(preloadImageList);
