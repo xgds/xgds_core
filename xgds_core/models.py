@@ -1075,11 +1075,16 @@ class AbstractGroupFlight(models.Model):
         This requires at least one group flight
         :return:
         """
+        result = []
         gf = cls.objects.first()
         if gf:
             summary_dict = gf.get_summary_dict()
-            return summary_dict.keys()
-        return []
+            result.extend(summary_dict.keys())
+
+        if 'xgds_video' in settings.INSTALLED_APPS:
+            if result:
+                result.append('Video')
+        return result
 
     def toDict(self):
         result = modelToDict(self)

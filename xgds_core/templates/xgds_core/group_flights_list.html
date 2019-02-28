@@ -68,6 +68,7 @@ $(document).ready( function () {
     var column_headers = {{ column_headers | safe }};
     var getColumnDefs = function(headers) {
 		result = [];
+		var name_index = undefined;
 		for (var i=0; i<headers.length; i++){
 			var heading = headers[i];
 			if  (heading == 'Started' || heading == 'Ended'){
@@ -85,9 +86,18 @@ $(document).ready( function () {
 				targets: i
 				});
 			} else if (heading == 'Name') {
-			        var name_index = i;
+                name_index = i;
 				result.push({render: function(data, type, row){
                     result = '<strong><a href="/xgds_map_server/greplay/' + row[name_index] + '">';
+                    result += row[name_index];
+                    result += '</a></strong>';
+                    return result;
+				},
+				targets: i
+				})
+			} else if (heading == 'Video') {
+				result.push({render: function(data, type, row){
+                    result = '<strong><a href="/xgds_video/recorded/' + row[name_index] + '">';
                     result += row[name_index];
                     result += '</a></strong>';
                     return result;
