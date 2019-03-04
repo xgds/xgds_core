@@ -20,10 +20,10 @@ from django.conf import settings
 
 from xgds_core import register
 
-logout_redirect = settings.SCRIPT_NAME
+# logout_redirect = settings.SCRIPT_NAME
 
 urlpatterns = [url(r'^login/$', auth.views.login, {}, 'user-login'),
-               url(r'^logout/$', auth.views.logout, {'next_page': logout_redirect}, 'user-logout'),
+               url(r'^logout/$', auth.views.logout, {}, 'user-logout'),
                url(r'^register/$', register.registerUser, {}, 'user-registration'),
                url(r'^activate/(.*)$', register.activateUser, {}, 'user-activate'),
                url(r'^reset-password/$', auth.views.password_reset, {}, 'reset-password'),
