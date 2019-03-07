@@ -155,6 +155,13 @@ class CsvImporter(object):
         self.config = load_yaml(yaml_file_path, defaults)
         self.config['fieldnames'] = self.config['fields'].keys()
 
+        # If the delimiter in the YAML config is '\t' then it will
+        # parse as a two character string, not tab, fix that:
+        if 'delimiter' in self.config and \
+                len(self.config['delimiter'])>1 and \
+                't' in self.config['delimiter']:
+            self.config['delimiter'] = '\t'
+
         self.config['timefields'] = []
         for key, value in self.config['fields'].iteritems():
             if 'skip' not in value or not value['skip']:
@@ -219,9 +226,6 @@ class CsvImporter(object):
         delimiter = ','
         if 'delimiter' in self.config:
             delimiter = self.config['delimiter']
-            if len(delimiter) > 1:
-                if 't' in delimiter:
-                    delimiter = '\t'
 
         quotechar = '"'
         if 'quotechar' in self.config:
@@ -551,9 +555,10 @@ class CsvImporter(object):
             if hasattr(the_model,'flight_id'):
                 self.config['defaults']['flight_id'] = self.flight.id
             
-        self.open_csv(csv_file_path)
-
-        first_row = self.get_first_row()
+        first_row = None
+        if csv_file_path is not None:
+            self.open_csv(csv_file_path)
+            first_row = self.get_first_row()
         if not force and not self.replace and first_row:
             exists = self.check_data_exists(first_row)
             if exists:
