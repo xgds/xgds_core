@@ -27,22 +27,28 @@ $.extend(playback, {
 			alert("Browser will not support playback.  Please use Chrome.");
 			$('#controller_div').hide();
 			return;
-		} 
+		}
+
+		if (!_.isUndefined(options.time_control_path)){
+			playback.time_control_path = options.time_control_path;
+		} else {
+			playback.time_control_path = '/static/xgds_core/js/playbackTimeControl.js';
+		}
 		
-		if (options.displayTZ){
+		if (!_.isUndefined(options.displayTZ)){
 			playback.displayTZ = options.displayTZ;
 		}
 
 		// register start and end time functions
-		if (options.getStartTime){
+		if (!_.isUndefined(options.getStartTime)){
 			playback.getStartTime = options.getStartTime;
 		}
 		playback.startTime = moment(playback.getStartTime()).tz(playback.displayTZ);
-		if (options.getEndTime){
+		if (!_.isUndefined(options.getEndTime)){
 			playback.getEndTime = options.getEndTime;
 		}
 		var endTime = playback.getEndTime();
-		if (endTime){
+		if (!_.isUndefined(endTime)){
 			playback.endTime = moment(endTime).tz(playback.displayTZ);
 		}
 		playback.currentTime = moment(playback.startTime);
@@ -54,10 +60,10 @@ $.extend(playback, {
 			playback.setupSlider();
 		}
 		
-		if (options.playbackSpeed){
+		if (!_.isUndefined(options.playbackSpeed)){
 			playback.playbackSpeed = options.playbackSpeed;
 		}
-		
+
 		playback.setupTimer();
 		playback.setTimeLabel(playback.currentTime);
 		playback.setupSpeedInput();
@@ -101,7 +107,7 @@ $.extend(playback, {
 	},
 	
 	setupTimer: function(){
-		playback.timerWorker = new Worker('/static/xgds_core/js/playbackTimeControl.js');
+		playback.timerWorker = new Worker(playback.time_control_path);
 		playback.timerWorker.addEventListener("message", function (event) {
 			playback.currentTime = moment(event.data).tz(playback.displayTZ);
 			// check if we are at the end

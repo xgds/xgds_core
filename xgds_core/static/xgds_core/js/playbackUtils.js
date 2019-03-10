@@ -99,19 +99,39 @@ $.extend(playback, {
 	setTimeLabel : function(datetime) {
 		$('#sliderTimeLabel').text(getLocalTimeString(datetime, playback.displayTZ, DEFAULT_TIME_FORMAT));
 	},
-	
+
 	setupSpeedInput: function() {
 		try {
 			var speedInput = $("#playbackSpeed");
 			speedInput.on('input', function(e) {
 				var newSpeed = parseFloat(e.currentTarget.value);
 				if (!isNaN(newSpeed)){
+					if (!_.isUndefined(playback.min_speed)) {
+						if (newSpeed < playback.min_speed) {
+							newSpeed = playback.min_speed;
+							$('#playbackSpeed').val(playback.min_speed);
+						}
+					}
+					if (!_.isUndefined(playback.max_speed)) {
+						if (newSpeed > playback.max_speed) {
+							newSpeed = playback.max_speed;
+							$('#playbackSpeed').val(playback.max_speed);
+						}
+					}
 					playback.setPlaybackSpeed(newSpeed);
+					_.each(playback.speed_listeners, function(listener) {
+						listener(newSpeed);
+					})
 				}
 			});
 		} catch (e){
 			// pass, may not have the input
 		}
+	},
+
+	speed_listeners: [],
+	addSpeedListener: function(listener) {
+		playback.speed_listeners.push(listener);
 	},
 	
 	setupSeekButton: function() {
