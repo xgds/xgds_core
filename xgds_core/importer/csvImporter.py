@@ -155,6 +155,13 @@ class CsvImporter(object):
         self.config = load_yaml(yaml_file_path, defaults)
         self.config['fieldnames'] = self.config['fields'].keys()
 
+        # If the delimiter in the YAML config is '\t' then it will
+        # parse as a two character string, not tab, fix that:
+        if 'delimiter' in self.config and \
+                len(self.config['delimiter'])>1 and \
+                't' in self.config['delimiter']:
+            self.config['delimiter'] = '\t'
+
         self.config['timefields'] = []
         for key, value in self.config['fields'].iteritems():
             if 'skip' not in value or not value['skip']:
@@ -219,9 +226,6 @@ class CsvImporter(object):
         delimiter = ','
         if 'delimiter' in self.config:
             delimiter = self.config['delimiter']
-            if len(delimiter) > 1:
-                if 't' in delimiter:
-                    delimiter = '\t'
 
         quotechar = '"'
         if 'quotechar' in self.config:
@@ -551,9 +555,10 @@ class CsvImporter(object):
             if hasattr(the_model,'flight_id'):
                 self.config['defaults']['flight_id'] = self.flight.id
             
-        self.open_csv(csv_file_path)
-
-        first_row = self.get_first_row()
+        first_row = None
+        if csv_file_path is not None:
+            self.open_csv(csv_file_path)
+            first_row = self.get_first_row()
         if not force and not self.replace and first_row:
             exists = self.check_data_exists(first_row)
             if exists:
@@ -598,14 +603,9 @@ class CsvSetImporter:
         :return: the imported items
         """
 
-        # YAML config for telemetry files
-        self.yaml_file_path = yaml_file_path
         # ordered list of files
         self.files = csv_file_list
         self.file_index = 0
-        # telemetry entries to be loaded from files
-        self.telemetry = None
-        self.telemetry_index = 0
         # Initialize csv importer and load the first file
         self.csv_importer = CsvImporter(yaml_file_path, csv_file_list[0],
                                         vehicle_name=vehicle_name, flight_name=flight_name, timezone_name=timezone_name,
@@ -616,12 +616,10 @@ class CsvSetImporter:
         if self.file_index >= len(self.files):
             raise StopIteration
         self.csv_importer.open_csv(self.files[self.file_index])
-        #self.telemetry = self.csv_importer.load_to_list()
         self.file_index += 1
 
     def __iter__(self):
         self.file_index = 0
-        #self.telemetry_index = 0
         self.open_next_csv_file()
         return self
 
