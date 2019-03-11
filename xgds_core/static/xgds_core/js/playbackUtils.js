@@ -76,9 +76,9 @@ $.extend(playback, {
 		var parsedMoment = moment(input,'MM/DD/YY HH:mm:ss');
 		if (!parsedMoment.isValid()){
 			parsedMoment = moment(input,'HH:mm:ss');
-		} else {
-			return parsedMoment;
 		}
+		return parsedMoment;
+
 	},
 
 	padNum : function(num, size) {

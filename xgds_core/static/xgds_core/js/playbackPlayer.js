@@ -174,6 +174,7 @@ $.extend(playback, {
 			return;
 		}
 		playback.seekHelper(seekTimeStr);
+		app.vent.trigger('seekTime', seekTimeStr);
 	},
 
 	playButtonCallback : function() {
