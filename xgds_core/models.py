@@ -334,7 +334,12 @@ class SearchableModel(object):
 
         return list(object_ids)
 
-    def to_kml(self, id, name, description, lat, lon):
+    def get_description(self):
+        if hasattr(self, 'description'):
+            return self.description
+        return ""
+
+    def to_kml(self): #, id, name, description, lat, lon):
         alt = 0.0
         ns = '{http://www.opengis.net/kml/2.2}'
         # kmlStyles = []
@@ -342,8 +347,8 @@ class SearchableModel(object):
         # iconStyle = styles.Style(ns=ns, id="blueIcon", styles=[innerIconStyle])
         # kmlStyles.append(iconStyle)
 
-        placemark = kml.Placemark(ns, id, name, description)
-        placemark.geometry = Point([(lon, lat, alt)])
+        placemark = kml.Placemark(ns, str(self.id), str(self.name), self.get_description())
+        placemark.geometry = Point([(self.lon, self.lat, self.alt)])
 
         return placemark
 
