@@ -107,7 +107,7 @@ def get_all_subclasses(the_class, check_meta_abstract=True, top=True):
                 if not k._meta.abstract:
                     non_abstract_result.append(k)
             result = non_abstract_result
-    return result
+    return sorted(result)
 
 
 def build_relative_path(full_path, prefix='/', split_on='/data/'):

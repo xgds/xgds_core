@@ -1065,8 +1065,9 @@ class AbstractGroupFlight(models.Model):
             if skip_example and 'xample' in the_class.__name__:  # skip example classes
                 continue
             try:
-                quantity = the_class.objects.filter(flight__group=self).count()
-                result[the_class.cls_type() + 's'] = quantity
+                if the_class.cls_type() in settings.XGDS_MAP_SERVER_SEARCH_MODELS.keys():
+                    quantity = the_class.objects.filter(flight__group=self).count()
+                    result[the_class.cls_type() + 's'] = quantity
             except:
                 # some of them are not first-class searchable models
                 pass
