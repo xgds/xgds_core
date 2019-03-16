@@ -1,0 +1,38 @@
+name: csv
+class: xgds_core.State
+delimiter: \t
+flight_required: true
+fields:
+  timestamp:
+    type: datetime
+    format: iso8601
+  myfieldname:
+    type: string
+    skip: true
+  truth:
+    type: boolean
+  velocity:
+    type: delimited
+    delimiter: ','
+    fields:
+      heading:
+        type: float
+      speed:
+        type: float
+        units: m/s
+      extra:
+        type: float
+        skip: true
+  morestuff:
+    type: delimited
+    fields:
+      temperature:
+        type: float
+        regex: ([-\d\.]*)C
+        units: Celsius
+      feelslike:
+        type: float
+        regex: (-?\d+\.\d*)F
+        units: Fahrenheit
+      description:
+        type: string
