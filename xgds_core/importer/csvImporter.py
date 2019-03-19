@@ -22,6 +22,7 @@ see ../../docs/dataImportYml.rst
 import math
 import yaml
 import re
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -158,7 +159,7 @@ class CsvImporter(object):
         # If the delimiter in the YAML config is '\t' then it will
         # parse as a two character string, not tab, fix that:
         if 'delimiter' in self.config and \
-                len(self.config['delimiter'])>1 and \
+                len(self.config['delimiter']) > 1 and \
                 't' in self.config['delimiter']:
             self.config['delimiter'] = '\t'
 
@@ -209,7 +210,7 @@ class CsvImporter(object):
                 the_time = datetime.datetime.utcfromtimestamp(float(row[field_name])).replace(tzinfo=pytz.utc)
             elif time_format == 'unixtime_int_microsecond':
                 # unix time is always UTC and we should retain the fractional part
-                the_time = datetime.datetime.utcfromtimestamp(int(row[field_name])/1000000.).replace(tzinfo=pytz.utc)
+                the_time = datetime.datetime.utcfromtimestamp(int(row[field_name]) / 1000000.).replace(tzinfo=pytz.utc)
             else:
                 # TODO: Should we support general strptime() format strings?
                 raise Exception('Unsupported time format %s for row %s' % (time_format, field_name))
@@ -350,11 +351,11 @@ class CsvImporter(object):
                     parts = row[field_name].split(field_config['delimiter'])
                 else:
                     parts = row[field_name].split()
-                partsdict = {k:v for k, v in zip(field_config['fields'], parts)}
+                partsdict = {k: v for k, v in zip(field_config['fields'], parts)}
                 # delete the formerly lumped together delimited string
                 del row[field_name]
                 # call update_row on the parts dict using the config for this field
-                self.update_row(partsdict,field_config)
+                self.update_row(partsdict, field_config)
                 # merge the separated and labeled values into the row dict
                 row.update(partsdict)
             else:
@@ -400,15 +401,15 @@ class CsvImporter(object):
         if config:
             # Replace missing fields with default values
             # TODO: resolve what happens or should happen if a value and default are both given
-            row = self.update_defaults(row,config)
+            row = self.update_defaults(row, config)
             # Parse any regexes
-            row = self.parse_regex(row,config)
+            row = self.parse_regex(row, config)
             # Cast strings to the specified types
-            row = self.convert_type(row,config)
+            row = self.convert_type(row, config)
             # Convert between provided and desired units
-            row = self.convert_units(row,config)
+            row = self.convert_units(row, config)
             # Delete fields marked skip=True
-            row = self.delete_skip_fields(row,config)
+            row = self.delete_skip_fields(row, config)
         return row
 
     def update_flight_end(self, end):
@@ -578,9 +579,9 @@ class CsvImporter(object):
         if self.flight:
             # Only set this default value if the model has this attribute
             the_model = getModelByName(self.config['class'])
-            if hasattr(the_model,'flight_id'):
+            if hasattr(the_model, 'flight_id'):
                 self.config['defaults']['flight_id'] = self.flight.id
-            
+
         first_row = None
         if csv_file_path is not None:
             self.open_csv(csv_file_path)
@@ -613,6 +614,7 @@ class CsvSetImporter:
     in lex order keeps them in chron order, and that when one file runs out the first line of the next
     file is the next telemetry value
     """
+
     def __init__(self, yaml_file_path, csv_file_list, vehicle_name=None, flight_name=None, timezone_name='UTC',
                  defaults=None, force=False, replace=False, skip_bad=False):
         """
