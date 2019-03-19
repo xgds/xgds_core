@@ -72,10 +72,18 @@ $(document).ready( function () {
 		for (var i=0; i<headers.length; i++){
 			var heading = headers[i];
 			console.log(heading);
-			if  (heading == 'Started' || heading == 'Ended'){
-			    var index = i;
+			if  (heading == 'Started') {
+                var index = i;
+                result.push({
+                    render: function (data, type, row) {
+                        return getLocalTimeString(row[index]);
+                    },
+                    targets: i
+                });
+            } else if  (heading == 'Ended') {
+			    var ended_index = i;
 				result.push({ render: function ( data, type, row ) {
-					return getLocalTimeString(row[index]);
+					return getLocalTimeString(row[ended_index]);
 				},
 				targets: i
 				});
