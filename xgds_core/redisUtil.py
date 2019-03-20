@@ -45,20 +45,24 @@ if settings.XGDS_CORE_REDIS:
     def getSseActiveChannels(request):
         # Look up the active channels we are using for SSE
         return JsonResponse(settings.XGDS_SSE_CHANNELS, safe=False)
-    
 
 
 def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=None):
+    """ Rebroadcast this information on the remote machines that are registered in settings.py
+     for a delayed sse event """
+
+    if not settings.XGDS_CORE_SSE_REBROADCAST_SITES:
+        return
+
     if not eventTime:
         eventTime = datetime.datetime.utcnow()
 
-    ''' Rebroadcast this information on the remote machines that are registered in settings.py for a delayed sse event'''
     data = {"channel":channel,
             "sseType":sseType,
             "jsonString": jsonString,
             "eventTime": eventTime.isoformat()}
     
-    urlSuffix = '/xgds_core/rest/rebroadcast/sse/'
+    url_suffix = '/xgds_core/rest/rebroadcast/sse/'
     username = settings.XGDS_CORE_SSE_REMOTE_USERNAME
     password = settings.XGDS_CORE_SSE_REMOTE_TOKEN
     config = {'username': username,
@@ -67,6 +71,6 @@ def callRemoteRebroadcast(channel, sseType, jsonString, eventTime=None):
               'data': data}
 
     for remoteSite in settings.XGDS_CORE_SSE_REBROADCAST_SITES:
-        config['url'] = remoteSite + urlSuffix
+        config['url'] = remoteSite + url_suffix
         queueRedisData(settings.XGDS_CORE_REDIS_SESSION_MANAGER, json.dumps(config, cls=DatetimeJsonEncoder))
-  
+
