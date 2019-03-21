@@ -599,11 +599,27 @@ class CsvImporter(object):
             if self.flight:
                 self.config['defaults']['flight_id'] = self.flight.id
             else:
-                print " ABORTING: NO FLIGHT FOUND"
-                # TODO for subsea we will have new rows in existing files so we have to check each row
-                print first_row
-                raise Exception('No flight found but flight required', first_row)
+                # see if we can find the flight from a subsequent row
+                self.flight = self.get_flight_any_row()
+                if not self.flight:
+                    print " ABORTING: NO FLIGHT FOUND"
+                    print first_row
+                    raise Exception('No flight found but flight required', first_row)
         return self.config
+
+    def get_flight_any_row(self):
+        """ Loop through any and all rows and look for a matching flight
+        You must already have opened the csv_reader
+        """
+        flight = None
+        for row in self.csv_reader:
+            row_time = self.get_time(row)
+            if row_time:
+                flight = getFlight(row_time, self.vehicle)
+                if flight:
+                    break
+        self.reset_csv()
+        return flight
 
 
 class CsvSetImporter:
