@@ -71,7 +71,7 @@ class ImportFinder:
                 # having successfully imported previously
                 previous = ImportedTelemetryFile.objects.filter(filename=filename, returncode=0)
                 if previous:
-                    print '%s is in the database as having been imported' % filename
+#                    print '%s is in the database as having been imported' % filename
                     # Add it to the previously imported files for statistics
                     self.previously_imported_files.append(filename)
                     # Add it to the locally cached copy of processed files
@@ -88,7 +88,7 @@ class ImportFinder:
                 if 1 == len(matches):
                     if 'ignore' in matches[0] and matches[0]['ignore']:
                         # matched an explicit ignore rule
-                        print 'Ignoring', basename
+#                        print 'Ignoring', basename
                         self.ignored_files.append(filename)
                         continue
                     if 'order' in matches[0].keys():
@@ -99,7 +99,7 @@ class ImportFinder:
                     # unique match, add to the list of things to import
                     heappush(self.files_to_process, (order, (filename, matches[0])))
                 elif 0 == len(matches):
-                    print 'Warning: file %s does not match any importer config' % filename
+                    #print 'Warning: file %s does not match any importer config' % filename
                     self.unmatched_files.append(filename)
                 else:
                     print 'Warning: file %s matches more than one importer config' % filename
