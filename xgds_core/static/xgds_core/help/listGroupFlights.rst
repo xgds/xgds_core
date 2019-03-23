@@ -1,15 +1,14 @@
 
-**List Group Flights** lets you add TODO.
+**List {{ settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}s** lets you view summary information about {{ settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}} and navigate to replay pages.
 
-Part A:
----------------------
+{{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}} table:
+--------------------------------------------------
 
-TODO write help
+The table shows {{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}s with start time, end time, duration and quantities of data in each {{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}.
 
-Part B:
------------------
+ * To replay a {{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}}, click on its name.
+ * To search, type the name of the {{settings.XGDS_CORE_GROUP_FLIGHT_MONIKER}} in the search box at the top of the table.
 
-TODO write more help
 
 
 
