@@ -670,6 +670,8 @@ class AbstractVehicle(models.Model):
     objects = NameManager()
 
     name = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
+    shortName = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
+
     notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=16, db_index=True)
     extras = ExtrasDotField(default='')
