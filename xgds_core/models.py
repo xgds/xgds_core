@@ -33,7 +33,6 @@ from django.core.serializers import serialize
 from django.db.models import ExpressionWrapper, IntegerField
 from django.db.models.functions import ExtractSecond, ExtractMinute
 
-
 from geocamUtil.models.AbstractEnum import AbstractEnumModel
 from geocamUtil.models.ExtrasDotField import ExtrasDotField
 from geocamUtil.loader import LazyGetModelByName
@@ -171,7 +170,7 @@ class SearchableModel(object):
                             obj = getattr(pos, part)
                         text = obj
                 except:
-                    #TODO: look at datatables select.  We are doing this here to bypass the checkbox problem but it will swallow other errors
+                    # TODO: look at datatables select.  We are doing this here to bypass the checkbox problem but it will swallow other errors
                     # print 'ERROR WITH COLUMN %s' % column
                     # traceback.print_exc()
                     pass
@@ -305,8 +304,9 @@ class SearchableModel(object):
         """
 
         if model_class:
-            master_query = LazyGetModelByName(settings.XGDS_NOTES_NOTE_MODEL).get().objects.filter(content_type__app_label=model_class._meta.app_label,
-                                                                                                   content_type__model=model_class._meta.model_name)
+            master_query = LazyGetModelByName(settings.XGDS_NOTES_NOTE_MODEL).get().objects.filter(
+                content_type__app_label=model_class._meta.app_label,
+                content_type__model=model_class._meta.model_name)
         else:
             master_query = LazyGetModelByName(settings.XGDS_NOTES_NOTE_MODEL).get().objects.all()
 
@@ -339,7 +339,7 @@ class SearchableModel(object):
             return self.description
         return ""
 
-    def to_kml(self): #, id, name, description, lat, lon):
+    def to_kml(self):  # , id, name, description, lat, lon):
         alt = 0.0
         ns = '{http://www.opengis.net/kml/2.2}'
         # kmlStyles = []
@@ -631,7 +631,8 @@ class BroadcastMixin(object):
         return self.__class__.cls_type().lower()
 
     def broadcast(self):
-        # By the time you call this you know that this instance has been newly inserted into the database and needs to broadcast itself
+        # By the time you call this you know that this instance has been newly inserted into the database
+        # and needs to broadcast itself
         try:
             result = self.toMapDict()
             json_string = json.dumps(result, cls=DatetimeJsonEncoder)
@@ -669,6 +670,8 @@ class AbstractVehicle(models.Model):
     objects = NameManager()
 
     name = models.CharField(max_length=64, blank=True, db_index=True, unique=True)
+    shortName = models.CharField(max_length=64, blank=True) # should be unique and dbindex ...
+
     notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=16, db_index=True)
     extras = ExtrasDotField(default='')
@@ -686,7 +689,7 @@ class AbstractVehicle(models.Model):
 
     def natural_key(self):
         return (self.name)
-    
+
     @classmethod
     def get_vehicles_for_dropdown(cls, primary=False):
         """ Exclude DefaultVehicle if it is not the only one"""
@@ -863,7 +866,8 @@ class AbstractFlight(UuidModel, HasVehicle):
                              "tooltip": "Tracks for " + self.name,
                              "key": self.uuid + "_tracks",
                              "data": {
-                                 "json": reverse('geocamTrack_mapJsonTrack_downsample', kwargs={'uuid': str(self.track.uuid)}),
+                                 "json": reverse('geocamTrack_mapJsonTrack_downsample',
+                                                 kwargs={'uuid': str(self.track.uuid)}),
                                  "kmlFile": reverse('geocamTrack_trackKml', kwargs={'trackName': self.track.name}),
                                  "sseUrl": "",
                                  "type": 'MapLink',
@@ -1041,7 +1045,8 @@ class AbstractGroupFlight(models.Model):
                   "folder": True,
                   "data": {"type": self.__class__.__name__,
                            "href": '',  # TODO add url to the group flight summary page when it exists
-                           "childNodesUrl": reverse('xgds_core_groupFlightTreeNodes', kwargs={'group_flight_id': self.id})
+                           "childNodesUrl": reverse('xgds_core_groupFlightTreeNodes',
+                                                    kwargs={'group_flight_id': self.id})
                            }
                   # "children": self.get_tree_json_children()
                   }
@@ -1065,8 +1070,9 @@ class AbstractGroupFlight(models.Model):
             if skip_example and 'xample' in the_class.__name__:  # skip example classes
                 continue
             try:
-                quantity = the_class.objects.filter(flight__group=self).count()
-                result[the_class.cls_type() + 's'] = quantity
+                if the_class.cls_type() in settings.XGDS_MAP_SERVER_SEARCH_MODELS.keys():
+                    quantity = the_class.objects.filter(flight__group=self).count()
+                    result[the_class.cls_type() + 's'] = quantity
             except:
                 # some of them are not first-class searchable models
                 pass
@@ -1194,15 +1200,15 @@ class RemoteRestService(models.Model):
 
 class ImportedTelemetryFile(models.Model):
     # The name of the file imported
-    filename = models.CharField(max_length=256,blank=False,null=False,db_index=True)
+    filename = models.CharField(max_length=256, blank=False, null=False, db_index=True)
     # Command line used to import
-    commandline = models.CharField(max_length=512,blank=False,null=False)
+    commandline = models.CharField(max_length=512, blank=False, null=False)
     # When it was imported
-    timestamp = models.DateTimeField(blank=False,null=False)
+    timestamp = models.DateTimeField(blank=False, null=False)
     # How long it took to import
-    duration = models.IntegerField(blank=False,null=False,default=0)
+    duration = models.IntegerField(blank=False, null=False, default=0)
     # The return code from running the importer
-    returncode = models.IntegerField(blank=False,null=False)
+    returncode = models.IntegerField(blank=False, null=False)
     # The output of the script that imported the file
     runlog = models.TextField()
     errlog = models.TextField()

@@ -1,4 +1,4 @@
-#__BEGIN_LICENSE__
+# __BEGIN_LICENSE__
 # Copyright (c) 2015, United States Government, as represented by the
 # Administrator of the National Aeronautics and Space Administration.
 # All rights reserved.
@@ -12,7 +12,7 @@
 # under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-#__END_LICENSE__
+# __END_LICENSE__
 # pylint: disable=W0702
 
 import pytz
@@ -20,7 +20,6 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from geocamUtil.loader import LazyGetModelByName
-
 
 ACTIVE_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
@@ -31,9 +30,12 @@ VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 def getFlight(event_time, vehicle=None):
     """ Returns the flight that contains that event_time """
     if vehicle:
-        found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(vehicle=vehicle, start_time__lte=event_time, end_time__gte=event_time)
+        found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(vehicle=vehicle,
+                                                                                         start_time__lte=event_time,
+                                                                                         end_time__gte=event_time)
     else:
-        found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(start_time__lte=event_time, end_time__gte=event_time)
+        found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(start_time__lte=event_time,
+                                                                                         end_time__gte=event_time)
 
     if found_flights.count() == 0:
         found_active_flight = getActiveFlight(vehicle)
@@ -47,8 +49,8 @@ def getFlight(event_time, vehicle=None):
             if filtered_flights:
                 return filtered_flights[0]
         return found_flights[0]
-    
-    
+
+
 def getNextAlphabet(character):
     """
     For getting the next letter of the alphabet for prefix.
@@ -70,13 +72,13 @@ def get_next_available_group_flight_name(prefix):
         except:
             return prefix + character
 
-    
+
 def getActiveFlight(vehicle):
     if vehicle:
-        foundFlights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle = vehicle)
+        foundFlights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
     else:
         foundFlights = ACTIVE_FLIGHT_MODEL.get().objects.filter()
-        
+
     if foundFlights:
         return foundFlights.last().flight
     return None
@@ -88,6 +90,17 @@ def get_default_vehicle():
     :return:
     """
     return VEHICLE_MODEL.get().objects.get(pk=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
+
+
+def get_vehicle(vehicle_name=None):
+    """
+    Gets the vehicle.
+    :param vehicle_name: the name of the vehicle
+    :return:
+    """
+    if not vehicle_name:
+        return get_default_vehicle()
+    return VEHICLE_MODEL.get().objects.get(name=vehicle_name)
 
 
 def create_group_flight(group_flight_name, notes=None, vehicles=None):

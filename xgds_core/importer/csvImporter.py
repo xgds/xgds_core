@@ -22,6 +22,7 @@ see ../../docs/dataImportYml.rst
 import math
 import yaml
 import re
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -158,7 +159,7 @@ class CsvImporter(object):
         # If the delimiter in the YAML config is '\t' then it will
         # parse as a two character string, not tab, fix that:
         if 'delimiter' in self.config and \
-                len(self.config['delimiter'])>1 and \
+                len(self.config['delimiter']) > 1 and \
                 't' in self.config['delimiter']:
             self.config['delimiter'] = '\t'
 
@@ -209,7 +210,7 @@ class CsvImporter(object):
                 the_time = datetime.datetime.utcfromtimestamp(float(row[field_name])).replace(tzinfo=pytz.utc)
             elif time_format == 'unixtime_int_microsecond':
                 # unix time is always UTC and we should retain the fractional part
-                the_time = datetime.datetime.utcfromtimestamp(int(row[field_name])/1000000.).replace(tzinfo=pytz.utc)
+                the_time = datetime.datetime.utcfromtimestamp(int(row[field_name]) / 1000000.).replace(tzinfo=pytz.utc)
             else:
                 # TODO: Should we support general strptime() format strings?
                 raise Exception('Unsupported time format %s for row %s' % (time_format, field_name))
@@ -239,22 +240,28 @@ class CsvImporter(object):
             self.csv_file.close()
             raise e
 
-    def update_defaults(self, row):
-        if 'defaults' in self.config:
-            row.update(self.config['defaults'])
+    def update_defaults(self, row, config=None):
+        if config is None:
+            config = self.config
+        if 'defaults' in config:
+            row.update(config['defaults'])
         return row
 
-    def delete_skip_fields(self, row):
-        for field_name in self.config['fields']:
-            field_config = self.config['fields'][field_name]
+    def delete_skip_fields(self, row, config=None):
+        if config is None:
+            config = self.config
+        for field_name in config['fields']:
+            field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 # delete entry from row dictionary
                 del row[field_name]
         return row
 
-    def parse_regex(self, row):
-        for field_name in self.config['fields']:
-            field_config = self.config['fields'][field_name]
+    def parse_regex(self, row, config=None):
+        if config is None:
+            config = self.config
+        for field_name in config['fields']:
+            field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 continue
             # Extract desired value using defined regex
@@ -269,11 +276,13 @@ class CsvImporter(object):
                         row[field_name] = None
         return row
 
-    def convert_type(self, row):
-        for field_name in self.config['fields']:
+    def convert_type(self, row, config=None):
+        if config is None:
+            config = self.config
+        for field_name in config['fields']:
             if field_name not in row or not row[field_name]:
                 continue
-            field_config = self.config['fields'][field_name]
+            field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 continue
             # Independent of type, if the value is the string 'None' convert to a python None
@@ -335,11 +344,25 @@ class CsvImporter(object):
                     errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
                     if 'required' in field_config and field_config['required']:
                         raise ValueError(errstr)
+            elif field_config['type'] == 'delimited':
+                # This is for the case where for example the full row is tab delimited, and one entry
+                # is a comma separated list.
+                if 'delimiter' in field_config:
+                    parts = row[field_name].split(field_config['delimiter'])
+                else:
+                    parts = row[field_name].split()
+                partsdict = {k: v for k, v in zip(field_config['fields'], parts)}
+                # delete the formerly lumped together delimited string
+                del row[field_name]
+                # call update_row on the parts dict using the config for this field
+                self.update_row(partsdict, field_config)
+                # merge the separated and labeled values into the row dict
+                row.update(partsdict)
             else:
                 raise ValueError('%s is not a valid type identifier' % field_config['type'])
         return row
 
-    def convert_units(self, row):
+    def convert_units(self, row, config=None):
         """
         For any values in the row that have different storage units from units, look for a converter and invoke it
         Also removes any values that are marked skip
@@ -347,10 +370,12 @@ class CsvImporter(object):
         :param row: the row to process
         :return: the row, or None if it had to be skipped
         """
-        for field_name in self.config['fields']:
+        if config is None:
+            config = self.config
+        for field_name in config['fields']:
             if field_name not in row or not row[field_name]:
                 continue
-            field_config = self.config['fields'][field_name]
+            field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 continue
             # If storage units are different from provided units, convert values
@@ -365,24 +390,26 @@ class CsvImporter(object):
                         row[field_name] = new_value
         return row
 
-    def update_row(self, row):
+    def update_row(self, row, config=None):
         """
         Update the row from the self.config
         :param row: the loaded row
         :return: the updated row, with timestamps and defaults
         """
-        if self.config:
+        if config is None:
+            config = self.config
+        if config:
             # Replace missing fields with default values
             # TODO: resolve what happens or should happen if a value and default are both given
-            row = self.update_defaults(row)
-            # Delete fields marked skip=True
-            row = self.delete_skip_fields(row)
+            row = self.update_defaults(row, config)
             # Parse any regexes
-            row = self.parse_regex(row)
+            row = self.parse_regex(row, config)
             # Cast strings to the specified types
-            row = self.convert_type(row)
+            row = self.convert_type(row, config)
             # Convert between provided and desired units
-            row = self.convert_units(row)
+            row = self.convert_units(row, config)
+            # Delete fields marked skip=True
+            row = self.delete_skip_fields(row, config)
         return row
 
     def update_flight_end(self, end):
@@ -552,9 +579,9 @@ class CsvImporter(object):
         if self.flight:
             # Only set this default value if the model has this attribute
             the_model = getModelByName(self.config['class'])
-            if hasattr(the_model,'flight_id'):
+            if hasattr(the_model, 'flight_id'):
                 self.config['defaults']['flight_id'] = self.flight.id
-            
+
         first_row = None
         if csv_file_path is not None:
             self.open_csv(csv_file_path)
@@ -572,11 +599,27 @@ class CsvImporter(object):
             if self.flight:
                 self.config['defaults']['flight_id'] = self.flight.id
             else:
-                print " ABORTING: NO FLIGHT FOUND"
-                # TODO for subsea we will have new rows in existing files so we have to check each row
-                print first_row
-                raise Exception('No flight found but flight required', first_row)
+                # see if we can find the flight from a subsequent row
+                self.flight = self.get_flight_any_row()
+                if not self.flight:
+                    print " ABORTING: NO FLIGHT FOUND"
+                    print first_row
+                    raise Exception('No flight found but flight required', first_row)
         return self.config
+
+    def get_flight_any_row(self):
+        """ Loop through any and all rows and look for a matching flight
+        You must already have opened the csv_reader
+        """
+        flight = None
+        for row in self.csv_reader:
+            row_time = self.get_time(row)
+            if row_time:
+                flight = getFlight(row_time, self.vehicle)
+                if flight:
+                    break
+        self.reset_csv()
+        return flight
 
 
 class CsvSetImporter:
@@ -587,6 +630,7 @@ class CsvSetImporter:
     in lex order keeps them in chron order, and that when one file runs out the first line of the next
     file is the next telemetry value
     """
+
     def __init__(self, yaml_file_path, csv_file_list, vehicle_name=None, flight_name=None, timezone_name='UTC',
                  defaults=None, force=False, replace=False, skip_bad=False):
         """

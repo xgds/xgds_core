@@ -12,6 +12,7 @@
     "model": "xgds_core.vehicle",
     "fields": {
       "name": "Generic Vehicle",
+      "shortName": "generic",
       "type": "GenericVehicle",
       "primary": true
     }

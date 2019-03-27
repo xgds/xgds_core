@@ -74,10 +74,19 @@ $(document).ready( function () {
 		var name_index = undefined;
 		for (var i=0; i<headers.length; i++){
 			var heading = headers[i];
-			if  (heading == 'Started' || heading == 'Ended'){
-			    var index = i;
+			console.log(heading);
+			if  (heading == 'Started') {
+                var index = i;
+                result.push({
+                    render: function (data, type, row) {
+                        return getLocalTimeString(row[index]);
+                    },
+                    targets: i
+                });
+            } else if  (heading == 'Ended') {
+			    var ended_index = i;
 				result.push({ render: function ( data, type, row ) {
-					return getLocalTimeString(row[index]);
+					return getLocalTimeString(row[ended_index]);
 				},
 				targets: i
 				});
@@ -110,6 +119,7 @@ $(document).ready( function () {
 			}
 		}
 
+		console.log(result);
 		return result;
 	};
 
@@ -120,10 +130,6 @@ $(document).ready( function () {
     defaultOptions['processing'] = true;
     defaultOptions['serverSide'] = true;
     defaultOptions['ajax'] = "{% url 'group_flight_dt_list_json' %}";
-    //defaultOptions['rowCallback']= function (row, data, index){
-    //            	$(row).attr('id', data[0]);
-    //            };
-
     defaultOptions['columnDefs'] = getColumnDefs(column_headers);
 	var dataTable = $('#dataTable').dataTable(defaultOptions);
     $(window).resize(function(){
