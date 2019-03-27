@@ -28,7 +28,28 @@ VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 
 
 def getFlight(event_time, vehicle=None):
-    """ Returns the flight that contains that event_time """
+    """
+     Returns the flight that contains that event_time
+    If we are in live mode it first looks in the active table.
+    :param event_time: the event time to find a flight for
+    :param vehicle: the vehicle, will default to the default vehicle
+    :return: the flight that matches the time for the vehicle, or None
+    """
+
+    if settings.GEOCAM_UTIL_LIVE_MODE:
+        if not vehicle:
+            vehicle = get_default_vehicle()
+
+        # check active flights first if we are in live mode
+        active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
+
+        if active_flights:
+            active_flights.filter(flight__start_time__gte=event_time)
+
+        if active_flights:
+            return active_flights.last().flight
+
+    # if we are not in live mode then it should be from a completed flight
     if vehicle:
         found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(vehicle=vehicle,
                                                                                          start_time__lte=event_time,
@@ -37,18 +58,18 @@ def getFlight(event_time, vehicle=None):
         found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(start_time__lte=event_time,
                                                                                          end_time__gte=event_time)
 
-    if found_flights.count() == 0:
-        found_active_flight = getActiveFlight(vehicle)
-        if found_active_flight and found_active_flight.start_time:
-            if event_time >= found_active_flight.start_time:
-                return found_active_flight;
-        return None
-    else:
-        if found_flights.count() > 1:
-            filtered_flights = found_flights.filter(vehicle_id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
-            if filtered_flights:
-                return filtered_flights[0]
-        return found_flights[0]
+    # if found_flights.count() == 0:
+    #     found_active_flight = getActiveFlight(vehicle)
+    #     if found_active_flight and found_active_flight.start_time:
+    #         if event_time >= found_active_flight.start_time:
+    #             return found_active_flight;
+    #     return None
+    # else:
+    if found_flights.count() > 1:
+        filtered_flights = found_flights.filter(vehicle_id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
+        if filtered_flights:
+            return filtered_flights[0]
+    return found_flights[0]
 
 
 def getNextAlphabet(character):
@@ -73,14 +94,14 @@ def get_next_available_group_flight_name(prefix):
             return prefix + character
 
 
-def getActiveFlight(vehicle):
+def getActiveFlight(vehicle=None):
     if vehicle:
-        foundFlights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
+        found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
     else:
-        foundFlights = ACTIVE_FLIGHT_MODEL.get().objects.filter()
+        found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter()
 
-    if foundFlights:
-        return foundFlights.last().flight
+    if found_active_flights:
+        return found_active_flights.last().flight
     return None
 
 
