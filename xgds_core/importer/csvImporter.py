@@ -539,6 +539,9 @@ class CsvImporter(object):
         Get the first row of the csv
         :return: the first row
         """
+        if not self.csv_reader:
+            return None
+
         if not self.first_row:
             the_list = list(self.csv_reader)
             if the_list:
@@ -612,13 +615,14 @@ class CsvImporter(object):
         You must already have opened the csv_reader
         """
         flight = None
-        for row in self.csv_reader:
-            row_time = self.get_time(row)
-            if row_time:
-                flight = getFlight(row_time, self.vehicle)
-                if flight:
-                    break
-        self.reset_csv()
+        if self.csv_reader:
+            for row in self.csv_reader:
+                row_time = self.get_time(row)
+                if row_time:
+                    flight = getFlight(row_time, self.vehicle)
+                    if flight:
+                        break
+            self.reset_csv()
         return flight
 
 
