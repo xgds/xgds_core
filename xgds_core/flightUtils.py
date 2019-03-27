@@ -103,28 +103,55 @@ def get_vehicle(vehicle_name=None):
     return VEHICLE_MODEL.get().objects.get(name=vehicle_name)
 
 
-def create_group_flight(group_flight_name, notes=None, vehicles=None):
+def create_group_flight(group_flight_name, notes=None, vehicles=None, active=False, start_time=None):
     """
     Create a new group flight
     :param group_flight_name:
     :param notes:
     :param vehicles:
-    :return:
+    :param active: true to make the flights active
+    :param start_time: the start time for the group flight and flights
+    :return: the group flight
     """
     group_flight = GROUP_FLIGHT_MODEL.get()(name=group_flight_name, notes=notes)
     group_flight.save()
 
     if not vehicles:
-        vehicles = VEHICLE_MODEL.get().objects.all()
+        vehicles = VEHICLE_MODEL.get().objects.filter(primary=True)
     for vehicle in vehicles:
         new_flight = FLIGHT_MODEL.get()()
         new_flight.group = group_flight
         new_flight.vehicle = vehicle
         new_flight.name = group_flight_name + "_" + vehicle.name
         new_flight.uuid = uuid4()
+        new_flight.start_time = start_time
         new_flight.save()
 
+        if active:
+            af = ACTIVE_FLIGHT_MODEL.get()(flight=new_flight)
+            af.save()
+
     return group_flight
+
+
+def end_group_flight(group_flight_name, end_time=None):
+    """
+    Remove all the flights from active if they are, and mark their end times
+    :param group_flight_name:
+    :param end_time:
+    :return:
+    """
+    group_flight = GROUP_FLIGHT_MODEL.get()(name=group_flight_name)
+
+    for flight in group_flight.flights:
+        flight.end_time = end_time
+        flight.save()
+
+        try:
+            active_flight = ACTIVE_FLIGHT_MODEL.get().get(flight=flight)
+            active_flight.delete()
+        except:
+            pass
 
 
 def lookup_vehicle(vehicle_name):
