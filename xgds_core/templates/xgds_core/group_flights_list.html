@@ -60,10 +60,13 @@
 	<script language="javascript" type="text/javascript" src="{% static 'xgds_core/js/datatablesUtils.js' %}"></script>
 	<script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}jquery-ui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ EXTERNAL_URL }}datatables.net-plugins/sorting/datetime-moment.js"></script>
+    <script language="javascript" type="text/javascript" src="{% static 'xgds_core/js/sseUtils.js' %}"></script>
 <script type="text/javascript">
 
 
 $(document).ready( function () {
+
+	sse.initialize();
 
     var column_headers = {{ column_headers | safe }};
     var getColumnDefs = function(headers) {
