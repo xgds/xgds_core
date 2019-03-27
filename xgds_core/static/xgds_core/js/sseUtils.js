@@ -123,7 +123,7 @@ $.extend(sse, {
 				channels = [channels];
 			}
 			for (let channel of channels) {
-				console.log("[SSE Info] creating a new Event Source for channel with name:", channel);
+				console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
 				var source = new EventSource("/sse/stream?channel=" + channel);
 				source.addEventListener(event_type, callback, false);
 			}
