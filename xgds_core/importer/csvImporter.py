@@ -43,6 +43,8 @@ from geocamTrack.utils import getClosestPosition
 from dateutil.parser import parse as dateparser
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+
 
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
@@ -51,8 +53,11 @@ FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None):
     """ Utility method to help with looking up position"""
     track = None
-    if row['flight']:
-        track = row['flight'].track
+    try:
+        if row['flight']:
+            track = row['flight'].track
+    except ObjectDoesNotExist:
+        pass
     found_position = getClosestPosition(track=track,
                                         timestamp=row[timestamp_key])
 
