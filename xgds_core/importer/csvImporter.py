@@ -259,7 +259,11 @@ class CsvImporter(object):
             field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 # delete entry from row dictionary
-                del row[field_name]
+                try:
+                    del row[field_name]
+                except:
+                    # possibly the field name is not in this row
+                    pass
         return row
 
     def parse_regex(self, row, config=None):

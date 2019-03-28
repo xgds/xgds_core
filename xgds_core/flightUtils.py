@@ -140,7 +140,8 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None, active=Fal
     group_flight.save()
 
     if not vehicles:
-        vehicles = VEHICLE_MODEL.get().objects.filter(primary=True)
+        # TODO deal with generic vehicle better?
+        vehicles = VEHICLE_MODEL.get().objects.filter(primary=True).exclude(name='generic')
     for vehicle in vehicles:
         new_flight = FLIGHT_MODEL.get()()
         new_flight.group = group_flight
@@ -164,14 +165,14 @@ def end_group_flight(group_flight_name, end_time=None):
     :param end_time:
     :return:
     """
-    group_flight = GROUP_FLIGHT_MODEL.get()(name=group_flight_name)
+    group_flight = GROUP_FLIGHT_MODEL.get().objects.get(name=group_flight_name)
 
     for flight in group_flight.flights:
         flight.end_time = end_time
         flight.save()
 
         try:
-            active_flight = ACTIVE_FLIGHT_MODEL.get().get(flight=flight)
+            active_flight = ACTIVE_FLIGHT_MODEL.get().objects.get(flight=flight)
             active_flight.delete()
         except:
             pass
