@@ -254,7 +254,8 @@ class CsvImporter(object):
             field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 # delete entry from row dictionary
-                del row[field_name]
+                if field_name in row:
+                    del row[field_name]
         return row
 
     def parse_regex(self, row, config=None):
