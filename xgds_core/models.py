@@ -140,6 +140,28 @@ class HasDataFrame(object):
         pass
 
 
+class BroadcastMixin(object):
+
+    def getBroadcastChannel(self):
+        return 'sse'
+
+    def getSseType(self):
+        return self.__class__.cls_type().lower()
+
+    def broadcast(self):
+        # By the time you call this you know that this instance has been newly inserted into the database
+        # and needs to broadcast itself
+        try:
+            result = self.toMapDict()
+            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
+            if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+                publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
+                callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
+            return result
+        except:
+            traceback.print_exc()
+
+
 class SearchableModel(object):
     """
     Mixin this class to have your model get the methods it needs to be searchable and
@@ -528,7 +550,7 @@ class Condition(AbstractCondition):
 DEFAULT_CONDITION_FIELD = lambda: models.ForeignKey('xgds_core.Condition', null=True, blank=True)
 
 
-class AbstractConditionHistory(models.Model):
+class AbstractConditionHistory(models.Model, BroadcastMixin):
     condition = 'set to DEFAULT_CONDITION_FIELD() or similar in derived classes'
     source_time = models.DateTimeField(editable=False, null=False, blank=False, db_index=True,
                                        default=timezone.now)  # actual source time of the condition
@@ -536,6 +558,10 @@ class AbstractConditionHistory(models.Model):
                                          default=timezone.now)  # when was this modified in xGDS
     status = models.ForeignKey(ConditionStatus, null=True, blank=True)
     jsonData = ExtrasDotField(null=True, blank=True)  # dot dictionary to hold the raw data and any extra data
+
+    @classmethod
+    def cls_type(cls):
+        return 'condition'
 
     def toDict(self):
         result = modelToDict(self)
@@ -620,28 +646,6 @@ class DbServerInfo(models.Model):
     class Meta:
         db_table = 'global_variables'
         managed = False
-
-
-class BroadcastMixin(object):
-
-    def getBroadcastChannel(self):
-        return 'sse'
-
-    def getSseType(self):
-        return self.__class__.cls_type().lower()
-
-    def broadcast(self):
-        # By the time you call this you know that this instance has been newly inserted into the database
-        # and needs to broadcast itself
-        try:
-            result = self.toMapDict()
-            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
-            if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
-                publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
-                callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
-            return result
-        except:
-            traceback.print_exc()
 
 
 class State(models.Model):
