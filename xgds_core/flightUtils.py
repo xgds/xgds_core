@@ -36,6 +36,8 @@ def getFlight(event_time, vehicle=None):
     :return: the flight that matches the time for the vehicle, or None
     """
 
+    if not event_time:
+        return None
     if settings.GEOCAM_UTIL_LIVE_MODE:
         if not vehicle:
             vehicle = get_default_vehicle()
