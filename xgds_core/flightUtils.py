@@ -168,8 +168,9 @@ def end_group_flight(group_flight_name, end_time=None):
     group_flight = GROUP_FLIGHT_MODEL.get().objects.get(name=group_flight_name)
 
     for flight in group_flight.flights:
-        flight.end_time = end_time
-        flight.save()
+        if end_time:
+            flight.end_time = end_time
+            flight.save()
 
         try:
             active_flight = ACTIVE_FLIGHT_MODEL.get().objects.get(flight=flight)
