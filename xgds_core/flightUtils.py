@@ -97,10 +97,13 @@ def get_next_available_group_flight_name(prefix):
 
 
 def getActiveFlight(vehicle=None):
-    if vehicle:
+    if vehicle is not None:
         found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
     else:
-        found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter()
+        vehicle = get_default_vehicle()
+        found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
+        if found_active_flights.count()<1:
+            found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter()
 
     if found_active_flights:
         return found_active_flights.last().flight
