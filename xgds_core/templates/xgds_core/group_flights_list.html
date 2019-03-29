@@ -85,14 +85,22 @@ $(document).ready( function () {
                 });
             } else if  (heading == 'Ended') {
 			    var ended_index = i;
-				result.push({ render: function ( data, type, row ) {
+				result.push({
+                {% if settings.GEOCAM_UTIL_LIVE_MODE %}
+                    orderable: false,
+                {% endif %}
+                    render: function ( data, type, row ) {
 					return getLocalTimeString(row[ended_index]);
 				},
 				targets: i
 				});
 			} else if  (heading == 'Duration'){
 			        var duration_index = i;
-				result.push({ render: function ( data, type, row ) {
+				result.push({
+                {% if settings.GEOCAM_UTIL_LIVE_MODE %}
+                    orderable: false,
+                {% endif %}
+                    render: function ( data, type, row ) {
 				    return secondsToHMS(row[duration_index]);
 				},
 				targets: i

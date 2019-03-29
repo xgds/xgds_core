@@ -1119,9 +1119,17 @@ class AbstractGroupFlight(models.Model):
     def start_time(self):
         if not self.flights:
             return None
+
+        not_started_count = 0
+        for f in self.flights:
+            if not f.start_time:
+                not_started_count += 1
+        if not_started_count == len(self.flights):
+            return None
+
         min_start_time = timezone.now() + timedelta(days=1)
         for f in self.flights:
-            if f.start_time < min_start_time:
+            if f.start_time and f.start_time < min_start_time:
                 min_start_time = f.start_time
         return min_start_time
 
@@ -1129,9 +1137,15 @@ class AbstractGroupFlight(models.Model):
     def end_time(self):
         if not self.flights:
             return None
+        not_ended_count = 0
+        for f in self.flights:
+            if not f.end_time:
+                not_ended_count += 1
+        if not_ended_count == len(self.flights):
+            return None
         max_end_time = timezone.now() - timedelta(days=36500)
         for f in self.flights:
-            if f.start_time > max_end_time:
+            if f.end_time and f.end_time > max_end_time:
                 max_end_time = f.end_time
         return max_end_time
 
