@@ -102,7 +102,7 @@ def getActiveFlight(vehicle=None):
     else:
         vehicle = get_default_vehicle()
         found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
-        if found_active_flights.count()<1:
+        if found_active_flights.count() < 1:
             found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter()
 
     if found_active_flights:
