@@ -129,7 +129,7 @@ def get_vehicle(vehicle_name=None):
     return VEHICLE_MODEL.get().objects.get(name=vehicle_name)
 
 
-def create_group_flight(group_flight_name, notes=None, vehicles=None, active=False, start_time=None):
+def create_group_flight(group_flight_name, notes=None, vehicles=None, active=False, start_time=None, extras=None):
     """
     Create a new group flight
     :param group_flight_name:
@@ -137,6 +137,7 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None, active=Fal
     :param vehicles:
     :param active: true to make the flights active
     :param start_time: the start time for the group flight and flights
+    :param extras: extras dict
     :return: the group flight
     """
     group_flight = GROUP_FLIGHT_MODEL.get()(name=group_flight_name, notes=notes)
@@ -152,6 +153,9 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None, active=Fal
         new_flight.name = group_flight_name + "_" + vehicle.name
         new_flight.uuid = uuid4()
         new_flight.start_time = start_time
+        if extras:
+            for k, v in extras.iteritems():
+                new_flight.extras[k] = v
         new_flight.save()
 
         if active:

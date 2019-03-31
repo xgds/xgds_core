@@ -1127,11 +1127,18 @@ class AbstractGroupFlight(models.Model):
         if not_started_count == len(self.flights):
             return None
 
+        found = False
         min_start_time = timezone.now() + timedelta(days=1)
         for f in self.flights:
-            if f.start_time is not None and f.start_time < min_start_time:
-                min_start_time = f.start_time
-        return min_start_time
+            try:
+                if f.start_time is not None and f.start_time < min_start_time:
+                    min_start_time = f.start_time
+                    found = True
+            except:
+                pass
+        if found:
+            return min_start_time
+        return None
 
     @property
     def end_time(self):
@@ -1143,11 +1150,19 @@ class AbstractGroupFlight(models.Model):
                 not_ended_count += 1
         if not_ended_count == len(self.flights):
             return None
+
+        found = False
         max_end_time = timezone.now() - timedelta(days=36500)
         for f in self.flights:
-            if f.end_time is not None and f.end_time > max_end_time:
-                max_end_time = f.end_time
-        return max_end_time
+            try:
+                if f.end_time is not None and f.end_time > max_end_time:
+                    max_end_time = f.end_time
+                    found = True
+            except:
+                pass
+        if found:
+            return max_end_time
+        return None
 
     @property
     def duration(self):
