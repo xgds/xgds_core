@@ -180,3 +180,6 @@ XGDS_CORE_DATE_FORMATS = [
 
     '%Y-%m-%dT%H%M%S.%f',
 ]
+
+# If a group flight is not ended but users want to see it, we project out.
+XGDS_CORE_DEFAULT_GROUP_FLIGHT_DURATION_HOURS = 8

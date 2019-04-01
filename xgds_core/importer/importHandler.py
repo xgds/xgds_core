@@ -157,6 +157,7 @@ class ImportFinder:
             # Add or update metadata about this import in the database
             try:
                 connection.close()
+                connection.connect()
             except:
                 traceback.print_exc()
 
