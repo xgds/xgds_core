@@ -60,18 +60,18 @@ def getFlight(event_time, vehicle=None):
         found_flights = FLIGHT_MODEL.get().objects.exclude(end_time__isnull=True).filter(start_time__lte=event_time,
                                                                                          end_time__gte=event_time)
 
-    # if found_flights.count() == 0:
-    #     found_active_flight = getActiveFlight(vehicle)
-    #     if found_active_flight and found_active_flight.start_time:
-    #         if event_time >= found_active_flight.start_time:
-    #             return found_active_flight;
-    #     return None
-    # else:
-    if found_flights.count() > 1:
-        filtered_flights = found_flights.filter(vehicle_id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
-        if filtered_flights:
-            return filtered_flights[0]
-    return found_flights[0]
+    if found_flights.count() == 0:
+        found_active_flight = getActiveFlight(vehicle)
+        if found_active_flight and found_active_flight.start_time:
+            if event_time >= found_active_flight.start_time:
+                return found_active_flight;
+        return None
+    else:
+        if found_flights.count() > 1:
+            filtered_flights = found_flights.filter(vehicle_id=settings.XGDS_CORE_DEFAULT_VEHICLE_PK)
+            if filtered_flights:
+                return filtered_flights[0]
+        return found_flights[0]
 
 
 def getNextAlphabet(character):
