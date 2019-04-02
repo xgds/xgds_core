@@ -1,0 +1,21 @@
+<div class="controller_div" class="container-fluid">
+	<div class="d-flex flex-row justify-content-between">
+		<div id="control_buttons_time">
+			<a class="btn btn-primary" id="playbuttonLink" href="#" onclick="playback.playButtonCallback()">
+				<i id="playbutton" class="fa fa-play"></i>
+			</a> 
+			<a class="btn btn-primary" id="pausebuttonLink" href="#" onclick="playback.pauseButtonCallback()"> 
+				<i id="pausebutton" class="fa fa-pause active"></i>
+			</a>
+            <button id="nowbutton" class="btn btn-primary my-1" role="button" style="color:white; max-height:1.8rem; margin-left: 2px;"
+                    onclick="app.vent.trigger('now')">Now</button>
+			<span id="sliderTimeLabel">MM/DD/YY 00:00:00</span>
+		</div>
+		<div id="control_buttons_inputs" class="d-flex flex-row align-items-center" >
+			<label for="playbackSpeed">Speed:</label> <input id="playbackSpeed" type="text" name="text-input" value="1" style="max-width:40px"/>
+			<label for="seekTime">Jump to:</label> <input id="seekTime" type="text" name="text-input" placeholder="MM/DD/YY HH:mm:ss" style="max-width:140px" />
+			<button type="submit" class="btn btn-primary ml-1" id="seekButton">Go</button>
+		</div>
+	</div>
+	<div id="masterSlider" class="masterSlider m-2" ></div>
+</div>

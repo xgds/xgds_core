@@ -17,6 +17,7 @@
 $.extend(playback, {
 	listeners: [],
 	stopListeners: [],
+	playListeners: [],
 	playbackSpeed: 1,
 	endTime: undefined,
 	displayTZ : 'Etc/UTC',
@@ -69,7 +70,7 @@ $.extend(playback, {
 		playback.setupSpeedInput();
 		playback.setupSeekButton();
 		try {
-            app.listenTo(app.vent, 'playback:setCurrentTime', function (currentTime) {
+            app.vent.on('playback:setCurrentTime', function (currentTime) {
                 playback.setCurrentTime(currentTime);
             });
         } catch (error) {
@@ -88,6 +89,20 @@ $.extend(playback, {
 	},
 	callStopListeners: function(currentTime){
 		_.each(this.stopListeners, function(sl) {
+			sl(currentTime);
+		});
+	},
+	addPlayListener: function(playListener) {
+		playback.playListeners.push(playListener);
+		if (playback.playFlag) {
+			playListener(playback.currentTime);
+		}
+	},
+	removePlayListener: function(playListener) {
+		playback.playListeners = _.without(playback.playListeners, playListener);
+	},
+	callPlayListeners: function(currentTime){
+		_.each(this.playListeners, function(sl) {
 			sl(currentTime);
 		});
 	},
@@ -207,6 +222,7 @@ $.extend(playback, {
 		playback.startListeners(playback.getCurrentTime());
 		playback.timerWorker.postMessage(['setPaused',false]);
 		playback.timerWorker.postMessage(['runTime']);
+		playback.callPlayListeners(playback.currentTime);
 	},
 	
 	setPlaybackSpeed: function(speed) {
