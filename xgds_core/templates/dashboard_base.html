@@ -45,8 +45,9 @@
     		{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE%}
     			trackSse.initialize();
                 // this relies on notes, but we generally always include notes
+                //TODO Khaled fix
                 //notesSse.initialize();
-                notesSse.olInitialize();
+                //notesSse.olInitialize();
     		{% endif %}
     	
     		{% block otherJSInit %}
