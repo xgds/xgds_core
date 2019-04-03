@@ -17,8 +17,12 @@
 sse = {}; // namespace
 
 $.extend(sse, {
+	sources: {},
 	initialize: function () {
 		sse.heartbeat();
+	},
+	getSourcesKey: function (event_type, channel) {
+		return event_type + "_" + channel;
 	},
 	heartbeat: function () {
 		setInterval(sse.checkHeartbeat, 11000);
@@ -124,16 +128,30 @@ $.extend(sse, {
 			}
 			for (let channel of channels) {
 				console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
-				var source = new EventSource("/sse/stream?channel=" + channel);
-				source.addEventListener(event_type, callback, false);
+				let sourceKey = sse.getSourcesKey(event_type, channel);
+				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
+				sse.sources[sourceKey].addEventListener(event_type, callback, false);
 			}
 		} else {
 			console.log("[SSE Info] inside subscribe function and channels are undefined");
 			for (let channel of sse.getChannels()) {
-				console.log("[SSE Info] creating a new Event Source for channel with name:", channel);
-				var source = new EventSource("/sse/stream?channel=" + channel);
-				source.addEventListener(event_type, callback, false);
+				console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
+				let sourceKey = sse.getSourcesKey(event_type, channel);
+				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
+				sse.sources[sourceKey].addEventListener(event_type, callback, false);
 			}
+		}
+	},
+	unsubscribe: function (event_type, channels) {
+		if (!Array.isArray(channels)) {
+			channels = [channels];
+		}
+		for (let channel of channels) {
+			let sourceKey = sse.getSourcesKey(event_type, channel);
+			sse.sources[sourceKey].close();
+			sse.sources[sourceKey] = null;
+			delete sse.sources[sourceKey];
+			console.log("[SSE Info] deleted an existing Event Source for channel with name:", channel, "and event type:", event_type);
 		}
 	}
 });
