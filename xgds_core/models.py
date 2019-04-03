@@ -46,6 +46,9 @@ from xgds_core.redisUtil import callRemoteRebroadcast
 from fastkml import kml, styles
 from shapely.geometry import Point, LineString, Polygon
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
 
@@ -606,6 +609,11 @@ class AbstractConditionHistory(models.Model, BroadcastMixin):
 class ConditionHistory(AbstractConditionHistory):
     condition = DEFAULT_CONDITION_FIELD()
 
+@receiver(post_save, sender=ConditionHistory)
+def publishAfterSave(sender, instance, **kwargs):
+    if settings.XGDS_CORE_REDIS:
+        for channel in settings.XGDS_SSE_CONDITION_HISTORY_CHANNELS:
+            publishRedisSSE(channel, settings.XGDS_CONDITION_HISTORY_SSE_TYPE.lower(), json.dumps({}))
 
 class NameManager(models.Manager):
 

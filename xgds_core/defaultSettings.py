@@ -183,3 +183,6 @@ XGDS_CORE_DATE_FORMATS = [
 
 # If a group flight is not ended but users want to see it, we project out.
 XGDS_CORE_DEFAULT_GROUP_FLIGHT_DURATION_HOURS = 8
+
+XGDS_SSE_CONDITION_HISTORY_CHANNELS = []
+XGDS_CONDITION_HISTORY_SSE_TYPE = "condition_history"
