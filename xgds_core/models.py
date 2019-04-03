@@ -616,7 +616,7 @@ def publishAfterSave(sender, instance, **kwargs):
             publishRedisSSE(channel, settings.XGDS_CONDITION_HISTORY_SSE_TYPE.lower(),
                             json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
 
-g
+
 class NameManager(models.Manager):
 
     def get_by_natural_key(self, name):
