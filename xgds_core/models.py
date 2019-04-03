@@ -613,8 +613,10 @@ class ConditionHistory(AbstractConditionHistory):
 def publishAfterSave(sender, instance, **kwargs):
     if settings.XGDS_CORE_REDIS:
         for channel in settings.XGDS_SSE_CONDITION_HISTORY_CHANNELS:
-            publishRedisSSE(channel, settings.XGDS_CONDITION_HISTORY_SSE_TYPE.lower(), json.dumps({}))
+            publishRedisSSE(channel, settings.XGDS_CONDITION_HISTORY_SSE_TYPE.lower(),
+                            json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
 
+g
 class NameManager(models.Manager):
 
     def get_by_natural_key(self, name):
