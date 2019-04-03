@@ -237,6 +237,9 @@ $.extend(playback, {
 	}, 
 	
 	updateStartTime: function(newStartTime){
+		if (playback.startTime == newStartTime){
+			return false;
+		}
 		playback.startTime = moment(newStartTime).tz(playback.displayTZ);
 		if (playback.hasMasterSlider){
 			playback.setSliderStartTime(playback.startTime);
@@ -244,6 +247,7 @@ $.extend(playback, {
 		if (playback.currentTime.isBefore(playback.startTime)){
 			playback.currentTime = playback.startTime;
 		}
+		return true;
 
 	},
 	
