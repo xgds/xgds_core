@@ -15,9 +15,13 @@
 # __END_LICENSE__
 
 import os
+import sys
+import pytz
+import datetime
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import caches
 import urlparse
 import json
 import requests
@@ -134,3 +138,44 @@ def get_file_size(input_file):
     size = input_file.tell()
     input_file.seek(old_file_position, os.SEEK_SET)
     return size
+
+
+def persist_error(error, stacktrace=None):
+    cache = caches['default']
+    # Get current list of error keys or default to empty list
+    error_keys = cache.get('error_keys', [])
+    # Use the current process name as the key for this error
+    key = os.path.basename(sys.argv[0])
+    value = {'timestamp': datetime.datetime.utcnow().replace(tzinfo=pytz.UTC),
+             'error': error,
+             'stacktrace': stacktrace}
+    # Store the error
+    cache.set(key, value)
+    # If this is a new error key, update the error keys to include it
+    if key not in error_keys:
+        error_keys.append(key)
+        cache.set('error_keys', error_keys)
+
+
+def get_persisted_error_keys():
+    return caches['default'].get('error_keys', [])
+
+
+def get_persisted_error(key):
+    return caches['default'].get(key)
+
+
+def get_persisted_errors():
+    keys = get_persisted_error_keys()
+    errors = {}
+    for k in keys:
+        errors[k] = get_persisted_error(k)
+    return errors
+
+def delete_persisted_error(key):
+    cache = caches['default']
+    cache.delete(key)
+    error_keys = cache.get('error_keys', [])
+    if key in error_keys:
+        error_keys.remove(key)
+        cache.set('error_keys', error_keys)
