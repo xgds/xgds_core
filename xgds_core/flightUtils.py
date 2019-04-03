@@ -199,9 +199,9 @@ def end_group_flight(group_flight_name, end_time=None):
         result = {'status': 'ended',
                   'name': group_flight.name}
         if end_time:
-            result{'time': end_time}
+            result['time'] = end_time
         else:
-            result{'time': group_flight.end_time}
+            result['time'] = group_flight.end_time
         publishRedisSSE('sse', settings.XGDS_GROUP_FLIGHT_SSE_TYPE.lower(),
                         json.dumps(result, cls=DatetimeJsonEncoder))
 
