@@ -42,12 +42,14 @@ from geocamUtil.modelJson import modelToDict
 from geocamUtil import TimeUtil
 
 from xgds_core.util import get100Years, get_all_subclasses
-from xgds_core.redisUtil import callRemoteRebroadcast
 from fastkml import kml, styles
 from shapely.geometry import Point, LineString, Polygon
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+if settings.XGDS_CORE_REDIS:
+    from xgds_core.redisUtil import callRemoteRebroadcast
 
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     from xgds_core.redisUtil import publishRedisSSE
@@ -1218,6 +1220,14 @@ class GroupFlight(AbstractGroupFlight):
     @property
     def flights(self):
         return self.flight_set.all()
+
+
+@receiver(post_save, sender=GroupFlight)
+def publishAfterSave(sender, instance, **kwargs):
+    if settings.XGDS_CORE_REDIS:
+        for channel in settings.XGDS_SSE_GROUP_FLIGHT_CHANNELS:
+            publishRedisSSE(channel, settings.XGDS_GROUP_FLIGHT_SSE_TYPE.lower(),
+                            json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
 
 
 class RemoteRestService(models.Model):

@@ -16,10 +16,17 @@
 # pylint: disable=W0702
 
 import pytz
+import json
+from geocamUtil.datetimeJsonEncoder import DatetimeJsonEncoder
+
 from uuid import uuid4
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from geocamUtil.loader import LazyGetModelByName
+
+if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+    from xgds_core.redisUtil import publishRedisSSE
+
 
 ACTIVE_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
@@ -174,6 +181,7 @@ def end_group_flight(group_flight_name, end_time=None):
     """
     group_flight = GROUP_FLIGHT_MODEL.get().objects.get(name=group_flight_name)
 
+    found = False
     for flight in group_flight.flights:
         if end_time:
             flight.end_time = end_time
@@ -181,9 +189,21 @@ def end_group_flight(group_flight_name, end_time=None):
 
         try:
             active_flight = ACTIVE_FLIGHT_MODEL.get().objects.get(flight=flight)
+            found = True
             active_flight.delete()
         except:
             pass
+
+    if settings.XGDS_CORE_REDIS and settings.XGDS_SSE and found:
+        # publishing on sse with type group_flight
+        result = {'status': 'ended',
+                  'name': group_flight.name}
+        if end_time:
+            result{'time': end_time}
+        else:
+            result{'time': group_flight.end_time}
+        publishRedisSSE('sse', settings.XGDS_GROUP_FLIGHT_SSE_TYPE.lower(),
+                        json.dumps(result, cls=DatetimeJsonEncoder))
 
 
 def lookup_vehicle(vehicle_name):
