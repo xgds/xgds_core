@@ -189,21 +189,6 @@ class BroadcastMixin(object):
             traceback.print_exc()
         return broadcast_data
 
-    # if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
-    #     @receiver(post_save)
-    #     def publishAfterSave(sender, instance, **kwargs):
-    #         if hasattr(instance, 'broadcast'):
-    #             print('BROADCAST MIXIN POST SAVE')
-    #             instance.broadcast()
-
-
-# if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
-#     @receiver(post_save, sender=BroadcastMixin)
-#     def publishAfterSave(sender, instance, **kwargs):
-#         print('BROADCAST MIXIN POST SAVE')
-#         instance.broadcast()
-
-
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     @receiver(post_save)
     def publishAfterSave(sender, instance, created, **kwargs):
