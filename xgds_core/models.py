@@ -146,25 +146,68 @@ class HasDataFrame(object):
 
 
 class BroadcastMixin(object):
+    """
+    Mixin to your class to support broadcasting over sse
+    """
 
     def getBroadcastChannel(self):
         return 'sse'
 
     def getSseType(self):
-        return self.__class__.cls_type().lower()
+        if hasattr(self.__class__, 'cls_type'):
+            return self.__class__.cls_type().lower()
+        return self.__name__.lower
+
+    def getBroadcastData(self):
+        """
+        Return broadcastable data dictionary
+        :return:
+        """
+        if hasattr(self, 'toMapDict'):
+            return self.toMapDict()
+        elif hasattr(self, 'toDict'):
+            return self.toDict()
+        elif hasattr(self, 'to_dict'):
+            return self.to_dict()
+        return {}
 
     def broadcast(self):
         # By the time you call this you know that this instance has been newly inserted into the database
         # and needs to broadcast itself
         try:
-            result = self.toMapDict()
-            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
+            if
+            broadcast_data = self.getBroadcastData()
+            json_string = json.dumps(broadcast_data, cls=DatetimeJsonEncoder)
             if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
                 publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
                 callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
-            return result
+            return broadcast_data
         except:
             traceback.print_exc()
+
+    # if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+    #     @receiver(post_save)
+    #     def publishAfterSave(sender, instance, **kwargs):
+    #         if hasattr(instance, 'broadcast'):
+    #             print('BROADCAST MIXIN POST SAVE')
+    #             instance.broadcast()
+
+
+# if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+#     @receiver(post_save, sender=BroadcastMixin)
+#     def publishAfterSave(sender, instance, **kwargs):
+#         print('BROADCAST MIXIN POST SAVE')
+#         instance.broadcast()
+
+
+if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
+    @receiver(post_save)
+    def publishAfterSave(sender, instance, **kwargs):
+        if hasattr(instance, 'broadcast'):
+            print('BROADCAST MIXIN POST SAVE')
+            instance.broadcast()
+        else:
+            print 'NO BROADCAST METHOD FOR %s' % instance.__class__.__name__
 
 
 class SearchableModel(object):
@@ -611,12 +654,12 @@ class AbstractConditionHistory(models.Model, BroadcastMixin):
 class ConditionHistory(AbstractConditionHistory):
     condition = DEFAULT_CONDITION_FIELD()
 
-@receiver(post_save, sender=ConditionHistory)
-def publishAfterSave(sender, instance, **kwargs):
-    if settings.XGDS_CORE_REDIS:
-        for channel in settings.XGDS_SSE_CONDITION_HISTORY_CHANNELS:
-            publishRedisSSE(channel, settings.XGDS_CONDITION_HISTORY_SSE_TYPE.lower(),
-                            json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
+# @receiver(post_save, sender=ConditionHistory)
+# def publishAfterSave(sender, instance, **kwargs):
+#     if settings.XGDS_CORE_REDIS:
+#         for channel in settings.XGDS_SSE_CONDITION_HISTORY_CHANNELS:
+#             publishRedisSSE(channel, settings.XGDS_CONDITION_HISTORY_SSE_TYPE.lower(),
+#                             json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
 
 
 class NameManager(models.Manager):
@@ -1222,12 +1265,12 @@ class GroupFlight(AbstractGroupFlight):
         return self.flight_set.all()
 
 
-@receiver(post_save, sender=GroupFlight)
-def publishAfterSave(sender, instance, **kwargs):
-    if settings.XGDS_CORE_REDIS:
-        for channel in settings.XGDS_SSE_GROUP_FLIGHT_CHANNELS:
-            publishRedisSSE(channel, settings.XGDS_GROUP_FLIGHT_SSE_TYPE.lower(),
-                            json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
+# @receiver(post_save, sender=GroupFlight)
+# def publishAfterSave(sender, instance, **kwargs):
+#     if settings.XGDS_CORE_REDIS:
+#         for channel in settings.XGDS_SSE_GROUP_FLIGHT_CHANNELS:
+#             publishRedisSSE(channel, settings.XGDS_GROUP_FLIGHT_SSE_TYPE.lower(),
+#                             json.dumps(instance.toDict(), cls=DatetimeJsonEncoder))
 
 
 class RemoteRestService(models.Model):

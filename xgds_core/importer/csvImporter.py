@@ -22,6 +22,7 @@ see ../../docs/dataImportYml.rst
 import math
 import yaml
 import re
+import time
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -49,9 +50,18 @@ from django.core.exceptions import ObjectDoesNotExist
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
+POSITION_LOOKUP_DELAY = 1 # seconds
 
-def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None):
-    """ Utility method to help with looking up position"""
+def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None, retries=0):
+    """
+    Utility method to help with looking up position
+    :param row: the dictionary to use
+    :param timestamp_key: which key contains the timestamp
+    :param position_id_key: which key should contain the position id
+    :param position_found_key: if the row should store whether or not the position is found
+    :param retries: How many times to try if we don't have it.
+    :return: the row, with new data in it
+    """
     track = None
     try:
         if row['flight']:
@@ -60,6 +70,9 @@ def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id
         pass
     found_position = getClosestPosition(track=track,
                                         timestamp=row[timestamp_key])
+    if not found_position:
+        if retries:
+            time.sleep(POSITION_LOOKUP_DELAY)
 
     if found_position:
         row[position_id_key] = found_position.id
