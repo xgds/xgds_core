@@ -156,7 +156,7 @@ class BroadcastMixin(object):
     def getSseType(self):
         if hasattr(self.__class__, 'cls_type'):
             return self.__class__.cls_type().lower()
-        return self.__name__.lower
+        return self.__class__.__name__.lower()
 
     def getBroadcastData(self):
         """
@@ -208,12 +208,14 @@ class BroadcastMixin(object):
 
 if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     @receiver(post_save)
-    def publishAfterSave(sender, instance, **kwargs):
+    def publishAfterSave(sender, instance, created, **kwargs):
+        if not created:
+            return
         if hasattr(instance, 'broadcast'):
             print('BROADCAST MIXIN POST SAVE')
             instance.broadcast()
         else:
-            print 'NO BROADCAST METHOD FOR %s' % instance.__class__.__name__
+            print 'NO BROADCAST METHOD FOR %s %s' % (instance.__class__.__name__, str(instance))
 
 
 class SearchableModel(object):
@@ -632,7 +634,7 @@ class AbstractConditionHistory(models.Model, BroadcastMixin):
             self.save()
 
     def getBroadcastData(self):
-        return [self.condition, self]
+        return [self.condition.toDict(), self.toDict()]
 
     class Meta:
         abstract = True

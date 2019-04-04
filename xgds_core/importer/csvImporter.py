@@ -285,10 +285,14 @@ class CsvImporter(object):
                 continue
             # Extract desired value using defined regex
             if 'regex' in field_config:
-                match = re.search(field_config['regex'], row[field_name])
-                if match:
-                    row[field_name] = match.groups()[-1]
-                else:
+                regex_string = field_config['regex']
+                cell = row[field_name]
+                match = False
+                if regex_string and cell:
+                    match = re.search(regex_string, cell)
+                    if match:
+                        row[field_name] = match.groups()[-1]
+                if not match:
                     if 'required' in field_config and field_config['required']:
                         raise ValueError('No match for regex %s' % field_config['regex'])
                     else:
