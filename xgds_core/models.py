@@ -212,7 +212,6 @@ if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
         if not created:
             return
         if hasattr(instance, 'broadcast'):
-            print('BROADCAST MIXIN POST SAVE')
             instance.broadcast()
         else:
             print 'NO BROADCAST METHOD FOR %s %s' % (instance.__class__.__name__, str(instance))

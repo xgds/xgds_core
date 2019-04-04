@@ -32,7 +32,7 @@ if settings.XGDS_CORE_REDIS:
         rs.lpush(channel, json_string)
         
     def publishRedisSSE(channel, sse_type, json_string):
-        print('REDIS: %s %s %s' % (channel, sse_type, json_string))
+        # print('REDIS: %s %s %s' % (channel, sse_type, json_string))
         message_string = json.dumps({"type":sse_type, "data": json_string})
         rs.publish(channel, message_string)
         
