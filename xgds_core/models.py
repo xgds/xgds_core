@@ -181,10 +181,6 @@ class BroadcastMixin(object):
             channel = self.getBroadcastChannel()
             sse_type = self.getSseType()
             broadcast_data = self.getBroadcastData()
-
-            if not channel or not sse_type:
-                print 'BROADCAST ERROR missing channel %s or type %s for %s' % (channel, type, self.__class__.__name__)
-                return broadcast_data
             json_string = json.dumps(broadcast_data, cls=DatetimeJsonEncoder)
             if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
                 publishRedisSSE(channel, sse_type, json_string)
