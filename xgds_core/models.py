@@ -160,7 +160,7 @@ class BroadcastMixin(object):
 
     def getBroadcastData(self):
         """
-        Return broadcastable data dictionary
+        Return broadcastable data dictionary or list
         :return:
         """
         if hasattr(self, 'toMapDict'):
@@ -174,16 +174,22 @@ class BroadcastMixin(object):
     def broadcast(self):
         # By the time you call this you know that this instance has been newly inserted into the database
         # and needs to broadcast itself
+        broadcast_data = None
         try:
-            if
+            channel = self.getBroadcastChannel()
+            sse_type = self.getSseType()
             broadcast_data = self.getBroadcastData()
+
+            if not channel or not sse_type:
+                print 'BROADCAST ERROR missing channel %s or type %s for %s' % (channel, type, self.__class__.__name__)
+                return broadcast_data
             json_string = json.dumps(broadcast_data, cls=DatetimeJsonEncoder)
             if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
-                publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
-                callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
-            return broadcast_data
+                publishRedisSSE(channel, sse_type, json_string)
+                callRemoteRebroadcast(channel, sse_type, json_string)
         except:
             traceback.print_exc()
+        return broadcast_data
 
     # if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     #     @receiver(post_save)
@@ -625,26 +631,8 @@ class AbstractConditionHistory(models.Model, BroadcastMixin):
         if save:
             self.save()
 
-    def broadcast(self):
-        # By the time you call this you know that this instance has been newly inserted into the database and needs to broadcast itself
-        try:
-            json_condition_history = self.toJson()
-            result = {'status': 'success',
-                      'data': json_condition_history}
-            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
-            if settings.XGDS_SSE and settings.XGDS_CORE_REDIS:
-                publishRedisSSE(self.getBroadcastChannel(), self.getSseType(), json_string)
-                callRemoteRebroadcast(self.getBroadcastChannel(), self.getSseType(), json_string)
-                return json_string
-            else:
-                return json_string
-
-        except:
-            traceback.print_exc()
-            # TODO: discuss what to do with failures here
-            result = {'status': 'failure'}
-            json_string = json.dumps(result, cls=DatetimeJsonEncoder)
-            return json_string
+    def getBroadcastData(self):
+        return [self.condition, self]
 
     class Meta:
         abstract = True
