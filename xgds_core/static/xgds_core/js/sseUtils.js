@@ -129,6 +129,7 @@ $.extend(sse, {
 			for (let channel of channels) {
 				console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
 				let sourceKey = sse.getSourcesKey(event_type, channel);
+				if (sourceKey in sse.sources) continue;
 				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
 				sse.sources[sourceKey].addEventListener(event_type, callback, false);
 			}
@@ -137,6 +138,7 @@ $.extend(sse, {
 			for (let channel of sse.getChannels()) {
 				console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
 				let sourceKey = sse.getSourcesKey(event_type, channel);
+				if (sourceKey in sse.sources) continue;
 				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
 				sse.sources[sourceKey].addEventListener(event_type, callback, false);
 			}
@@ -148,10 +150,17 @@ $.extend(sse, {
 		}
 		for (let channel of channels) {
 			let sourceKey = sse.getSourcesKey(event_type, channel);
-			sse.sources[sourceKey].close();
-			sse.sources[sourceKey] = null;
-			delete sse.sources[sourceKey];
-			console.log("[SSE Info] deleted an existing Event Source for channel with name:", channel, "and event type:", event_type);
+			if (sourceKey in sse.sources)
+			{
+				sse.sources[sourceKey].close();
+				sse.sources[sourceKey] = null;
+				delete sse.sources[sourceKey];
+				console.log("[SSE Info] deleted an existing Event Source for channel with name:", channel, "and event type:", event_type);
+			}
+			else
+			{
+				console.log("[SSE Warning] can't unsubscribe from inexistant channel with name:", channel, "and event type:", event_type);
+			}
 		}
 	}
 });
