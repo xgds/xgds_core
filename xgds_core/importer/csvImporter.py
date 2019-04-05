@@ -22,6 +22,7 @@ see ../../docs/dataImportYml.rst
 import math
 import yaml
 import re
+import time
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -49,9 +50,19 @@ from django.core.exceptions import ObjectDoesNotExist
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
+POSITION_LOOKUP_DELAY = 1 # seconds
 
-def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None):
-    """ Utility method to help with looking up position"""
+
+def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None, retries=0):
+    """
+    Utility method to help with looking up position
+    :param row: the dictionary to use
+    :param timestamp_key: which key contains the timestamp
+    :param position_id_key: which key should contain the position id
+    :param position_found_key: if the row should store whether or not the position is found
+    :param retries: How many times to try if we don't have it.
+    :return: the row, with new data in it
+    """
     track = None
     try:
         if row['flight']:
@@ -60,6 +71,14 @@ def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id
         pass
     found_position = getClosestPosition(track=track,
                                         timestamp=row[timestamp_key])
+    if not found_position:
+        if retries:
+            count = 0
+            while not found_position and count < retries:
+                time.sleep(POSITION_LOOKUP_DELAY)
+                found_position = getClosestPosition(track=track,
+                                                    timestamp=row[timestamp_key])
+                count += 1
 
     if found_position:
         row[position_id_key] = found_position.id
@@ -272,10 +291,14 @@ class CsvImporter(object):
                 continue
             # Extract desired value using defined regex
             if 'regex' in field_config:
-                match = re.search(field_config['regex'], row[field_name])
-                if match:
-                    row[field_name] = match.groups()[-1]
-                else:
+                regex_string = field_config['regex']
+                cell = row[field_name]
+                match = False
+                if regex_string and cell:
+                    match = re.search(regex_string, cell)
+                    if match:
+                        row[field_name] = match.groups()[-1]
+                if not match:
                     if 'required' in field_config and field_config['required']:
                         raise ValueError('No match for regex %s' % field_config['regex'])
                     else:

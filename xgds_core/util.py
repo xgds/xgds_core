@@ -172,6 +172,7 @@ def get_persisted_errors():
         errors[k] = get_persisted_error(k)
     return errors
 
+
 def delete_persisted_error(key):
     cache = caches['default']
     cache.delete(key)

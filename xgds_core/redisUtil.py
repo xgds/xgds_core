@@ -28,17 +28,18 @@ if settings.XGDS_CORE_REDIS:
     import redis
     rs = redis.Redis(host=settings.XGDS_CORE_REDIS_HOST, port=settings.XGDS_CORE_REDIS_PORT)
 
-    def queueRedisData(channel, jsonString):
-        rs.lpush(channel, jsonString)
+    def queueRedisData(channel, json_string):
+        rs.lpush(channel, json_string)
         
-    def publishRedisSSE(channel, sse_type, jsonString):
-        message_string = json.dumps({"type":sse_type, "data": jsonString})
+    def publishRedisSSE(channel, sse_type, json_string):
+        # print('REDIS: %s %s %s' % (channel, sse_type, json_string))
+        message_string = json.dumps({"type":sse_type, "data": json_string})
         rs.publish(channel, message_string)
         
-    def publishRedisSSEAtTime(channel, sse_type, jsonString, publishTime):
+    def publishRedisSSEAtTime(channel, sse_type, json_string, publish_time):
         publish_info = {"channel": channel,
-                        "publishTime": publishTime.isoformat(),
-                        "messageString": {"type":sse_type, "data": jsonString}}
+                        "publishTime": publish_time.isoformat(),
+                        "messageString": {"type":sse_type, "data": json_string}}
         rebroadcastString = json.dumps(publish_info)
         rs.rpush(settings.XGDS_CORE_REDIS_REBROADCAST, rebroadcastString)
         
