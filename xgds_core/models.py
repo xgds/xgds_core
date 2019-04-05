@@ -965,13 +965,12 @@ class AbstractFlight(UuidModel, HasVehicle):
             stopPyraptordServiceIfRunning(pyraptord, serviceName)
 
         if hasattr(self, 'track'):
-            if self.track.currentposition_set:
-                try:
-                    position = self.track.currentposition_set.first()
-                    if position:
-                        position.delete()
-                except:
-                    pass
+            current_positions = self.track.getCurrentPositions()
+            try:
+                for p in current_positions:
+                    p.delete()
+            except:
+                pass
 
     def startTracking(self):
         # TODO define

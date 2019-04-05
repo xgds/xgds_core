@@ -52,6 +52,7 @@ FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
 POSITION_LOOKUP_DELAY = 1 # seconds
 
+
 def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None, retries=0):
     """
     Utility method to help with looking up position
@@ -72,7 +73,12 @@ def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id
                                         timestamp=row[timestamp_key])
     if not found_position:
         if retries:
-            time.sleep(POSITION_LOOKUP_DELAY)
+            count = 0
+            while not found_position and count < retries:
+                time.sleep(POSITION_LOOKUP_DELAY)
+                found_position = getClosestPosition(track=track,
+                                                    timestamp=row[timestamp_key])
+                count += 1
 
     if found_position:
         row[position_id_key] = found_position.id
