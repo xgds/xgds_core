@@ -1123,9 +1123,9 @@ class AbstractGroupFlight(models.Model):
             summary_dict = gf.get_summary_dict()
             result.extend(summary_dict.keys())
 
-        if 'xgds_video' in settings.INSTALLED_APPS:
-            if result:
-                result.append('Video')
+        # if 'xgds_video' in settings.INSTALLED_APPS:
+        #     if result:
+        #         result.append('Video')
         return result
 
     def toDict(self):
