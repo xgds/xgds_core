@@ -18,6 +18,7 @@ import os
 import sys
 import pytz
 import datetime
+import time
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
@@ -143,12 +144,22 @@ def get_file_size(input_file):
 def persist_error(error, stacktrace=None):
     cache = caches['default']
     # Get current list of error keys or default to empty list
-    error_keys = cache.get('error_keys', [])
+    error_keys = cache.get('error_keys', [])     
     # Use the current process name as the key for this error
     key = os.path.basename(sys.argv[0])
-    value = {'timestamp': datetime.datetime.utcnow().replace(tzinfo=pytz.UTC),
-             'error': error,
-             'stacktrace': stacktrace}
+    
+    timestamp = time.time()
+
+    if isinstance(error, Exception):
+        error_string = str(error.__class__.__name__) + " (" + str(error) + ")"
+    else:
+        error_string = str(error)
+
+    value = {
+        'timestamp': int(timestamp),
+        'error': str(error_string),
+        'stacktrace': str(stacktrace),
+    }
     # Store the error
     cache.set(key, value)
     # If this is a new error key, update the error keys to include it

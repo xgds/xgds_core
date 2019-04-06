@@ -138,6 +138,7 @@ $.extend(sse, {
 					console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
 				}
 				let sourceKey = sse.getSourcesKey(event_type, channel);
+				if (sourceKey in sse.sources) continue;
 				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
 				sse.sources[sourceKey].addEventListener(event_type, callback, false);
 			}
@@ -150,6 +151,7 @@ $.extend(sse, {
 					console.log("[SSE Info] creating a new Event Source for channel with name:", channel, "and event type:", event_type);
 				}
 				let sourceKey = sse.getSourcesKey(event_type, channel);
+				if (sourceKey in sse.sources) continue;
 				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
 				sse.sources[sourceKey].addEventListener(event_type, callback, false);
 			}
