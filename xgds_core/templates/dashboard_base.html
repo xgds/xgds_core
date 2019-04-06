@@ -41,16 +41,16 @@
 		{% block initGridstack %}
     		xgds_gridstack.initializeGridstack();
     		{% endblock initGridstack %}
-    	
+
+        {% block sse %}
     		{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE%}
-                if (!_.isUndefined(appOptions) && ('live' in appOptions) && appOptions.live) {
                     trackSse.initialize();
                     // this relies on notes, but we generally always include notes
                     //TODO Khaled fix
                     //notesSse.initialize();
                     //notesSse.olInitialize();
-                }
     		{% endif %}
+            {% endblock sse %}
     	
     		{% block otherJSInit %}
 		{% endblock otherJSInit %}
