@@ -32,6 +32,7 @@ ACTIVE_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_ACTIVE_FLIGHT_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 GROUP_FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_GROUP_FLIGHT_MODEL)
 VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
+GEOCAM_TRACK_POSITION_MODEL = LazyGetModelByName(settings.GEOCAM_TRACK_POSITION_MODEL)
 
 
 def getFlight(event_time, vehicle=None):
@@ -166,6 +167,7 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None, active=Fal
         new_flight.save()
 
         if active:
+            GEOCAM_TRACK_POSITION_MODEL.get().objects.all().delete()
             af = ACTIVE_FLIGHT_MODEL.get()(flight=new_flight)
             af.save()
 
@@ -193,6 +195,9 @@ def end_group_flight(group_flight_name, end_time=None):
             active_flight.delete()
         except:
             pass
+
+    if found:
+        GEOCAM_TRACK_POSITION_MODEL.get().objects.all().delete()
 
     if settings.XGDS_CORE_REDIS and settings.XGDS_SSE and found:
         # publishing on sse with type group_flight
