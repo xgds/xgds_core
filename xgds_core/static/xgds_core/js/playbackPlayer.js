@@ -202,11 +202,13 @@ $.extend(playback, {
 	playButtonCallback : function() {
 		try {
 			$('#playbutton').addClass("active");
+			$('#playbuttonLink').addClass("active");
 		} catch (err){
 			//pass;
 		}
 		try {
 			$('#pausebutton').removeClass("active");
+			$('#pausebuttonLink').removeClass("active");
 		} catch (err) {
 			//pass
 		}
@@ -216,11 +218,14 @@ $.extend(playback, {
 	pauseButtonCallback : function() {
 		try {
 			$('#pausebutton').addClass("active");
+			$('#pausebuttonLink').addClass("active");
 		} catch (err) {
 			//pass
 		}
 		try {
 			$('#playbutton').removeClass("active");
+			$('#playbuttonLink').removeClass("active");
+
 		} catch (err) {
 			//pass
 		}
