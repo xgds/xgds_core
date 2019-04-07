@@ -46,17 +46,17 @@ getLocalTimeString = function(utctime, destTimeZone, format) {
 	if (format === undefined){
 		format = DEFAULT_TIME_FORMAT;
 	}
-	if (_.isUndefined(utctime) || _.isNull(utctime)){
+	if (utctime === undefined || utctime === null){
 		return '';
 	}
 	var localTime = undefined;
-	if (!_.isUndefined(destTimeZone)) {
+	if (destTimeZone !== undefined) {
 		localTime = getLocalTime(utctime, destTimeZone);
 	} else {
 		// use utc time
 		localTime = getLocalTime(utctime, 'Etc/UTC');
 	}
-	if (!_.isUndefined(localTime) && !_.isNull(localTime)){
+	if (localTime !== undefined && localTime !== null){
 		return localTime.format(format);
 	} else {
 		alert("Tell the system administrators that something is wrong with moment timezone.");
