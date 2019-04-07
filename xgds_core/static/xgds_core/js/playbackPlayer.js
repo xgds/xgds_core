@@ -22,6 +22,8 @@ $.extend(playback, {
 	endTime: undefined,
 	displayTZ : 'Etc/UTC',
 	hasMasterSlider: true,
+	playFlag: false,
+	useTimerWorker:true,
 	initialize: function(options) {
 		// check for web workers
 		if (!window.Worker) { 
@@ -65,7 +67,12 @@ $.extend(playback, {
 			playback.playbackSpeed = options.playbackSpeed;
 		}
 
-		playback.setupTimer();
+		if ('useTimerWorker' in options) {
+			playback.useTimerWorker = options.useTimerWorker;
+		}
+		if (playback.useTimerWorker) {
+			playback.setupTimer();
+		}
 		playback.setTimeLabel(playback.currentTime);
 		playback.setupSpeedInput();
 		playback.setupSeekButton();
@@ -193,22 +200,42 @@ $.extend(playback, {
 	},
 
 	playButtonCallback : function() {
-		$('#playbutton').addClass("active");
-		$('#pausebutton').removeClass("active");
+		try {
+			$('#playbutton').addClass("active");
+		} catch (err){
+			//pass;
+		}
+		try {
+			$('#pausebutton').removeClass("active");
+		} catch (err) {
+			//pass
+		}
 		playback.doPlay();
 	},
 
 	pauseButtonCallback : function() {
-		$('#pausebutton').addClass("active");
-		$('#playbutton').removeClass("active");
+		try {
+			$('#pausebutton').addClass("active");
+		} catch (err) {
+			//pass
+		}
+		try {
+			$('#playbutton').removeClass("active");
+		} catch (err) {
+			//pass
+		}
 		playback.doPause();
 	}, 
-	
+	postTimerMessage: function(message){
+		if (!_.isUndefined(playback.timerWorker)){
+			playback.timerWorker.postMessage(message);
+		}
+	},
 	doPause: function() {
 		if (!playback.playFlag) {
 			return;
 		}
-		playback.timerWorker.postMessage(['setPaused', true]);
+		playback.postTimerMessage(['setPaused', true]);
 		playback.playFlag = false;
 		playback.pauseListeners();
 		playback.callStopListeners(playback.currentTime);
@@ -220,19 +247,19 @@ $.extend(playback, {
 		}
 		playback.playFlag = true;
 		playback.startListeners(playback.getCurrentTime());
-		playback.timerWorker.postMessage(['setPaused',false]);
-		playback.timerWorker.postMessage(['runTime']);
+		playback.postTimerMessage(['setPaused', false]);
+		playback.postTimerMessage(['runTime']);
 		playback.callPlayListeners(playback.currentTime);
 	},
 	
 	setPlaybackSpeed: function(speed) {
 		playback.playbackSpeed = speed;
-		playback.timerWorker.postMessage(['setPlaybackSpeed',speed]);
+		playback.postTimerMessage(['setPlaybackSpeed',speed]);
 	},
 	
 	setCurrentTime: function(currentTime){
-		playback.currentTime = moment(currentTime).tz(playback.displayTZ); 
-		playback.timerWorker.postMessage(['setCurrentTime',playback.currentTime.toISOString()]);
+		playback.currentTime = moment(currentTime).tz(playback.displayTZ);
+		playback.postTimerMessage(['setCurrentTime',playback.currentTime.toISOString()]);
 		playback.updateListeners(playback.currentTime);
 	}, 
 	
