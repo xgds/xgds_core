@@ -37,7 +37,7 @@ $.extend(condition, {
 		return this.activeChannels;
 	},
 	subscribe: function() {
-		sse.subscribe('condition', condition.handleConditionEvent, condition.getChannels());
+		sse.subscribe('condition', condition.handleConditionEvent, "handleConditionEvent", condition.getChannels());
 	},
 	handleConditionEvent: function(event){
 		try {
