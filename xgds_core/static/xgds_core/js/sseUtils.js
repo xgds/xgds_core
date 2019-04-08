@@ -96,6 +96,9 @@ $.extend(sse, {
 	// getChannels function will return the activeChannels array; if it is undefined,
 	// the function will request an array of channels from URL @ getChannelsUrl
 	getChannels: function (url) {
+		if (sse.DEBUG) {
+			console.log("[SSE Info] inside getChannels function");
+		}
 		// get the active channels over AJAX
 		if (sse.activeChannels === undefined) {
 			$.ajax({
@@ -158,16 +161,24 @@ $.extend(sse, {
 		}
 	},
 	unsubscribe: function (event_type, channels) {
+		if (!channels) {
+			channels = this.getChannels();
+		}
 		if (!Array.isArray(channels)) {
 			channels = [channels];
 		}
 		for (let channel of channels) {
 			let sourceKey = sse.getSourcesKey(event_type, channel);
-			sse.sources[sourceKey].close();
-			sse.sources[sourceKey] = null;
-			delete sse.sources[sourceKey];
 			if (sse.DEBUG) {
-				console.log("[SSE Info] deleted an existing Event Source for channel with name:", channel, "and event type:", event_type);
+				console.log("[SSE Info] attempting to unsubscribe from channel:", channel, "and event type:", event_type);
+			}
+			if (sourceKey in sse.sources) {
+				sse.sources[sourceKey].close();
+				sse.sources[sourceKey] = null;
+				delete sse.sources[sourceKey];
+				if (sse.DEBUG) {
+					console.log("[SSE Info] deleted an existing Event Source for channel with name:", channel, "and event type:", event_type);
+				}
 			}
 		}
 	}
