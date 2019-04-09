@@ -367,8 +367,8 @@ class OrderListJson(BaseDatatableView):
             qs = qs.filter(self.formQueries)
         elif self.filterDict:
             qs = qs.filter(**self.filterDict)
-        
-        todayOnly = self.request.POST.get(u'today', defaultToday)
+
+        todayOnly = self.request.POST.get(u'today', u'false')
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
             if timesearchField != None:
