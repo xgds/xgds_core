@@ -155,10 +155,9 @@ class BroadcastMixin(object):
             return self.flight.vehicle.name.lower()
         return 'sse'
 
-    def getSseType(self):
-        if hasattr(self.__class__, 'cls_type'):
-            return self.__class__.cls_type().lower()
-        return self.__class__.__name__.lower()
+    @classmethod
+    def getSseType(cls):
+        return cls.__name__.lower()
 
     def getBroadcastData(self):
         """
