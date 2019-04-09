@@ -368,7 +368,6 @@ class OrderListJson(BaseDatatableView):
         elif self.filterDict:
             qs = qs.filter(**self.filterDict)
         
-        defaultToday = u'true' if settings.GEOCAM_UTIL_LIVE_MODE else u'false'
         todayOnly = self.request.POST.get(u'today', defaultToday)
         if todayOnly == u'true':
             timesearchField = self.model.timesearchField()
