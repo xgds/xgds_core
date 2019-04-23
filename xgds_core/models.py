@@ -251,6 +251,7 @@ class SearchableModel(object):
         columns = settings.XGDS_MAP_SERVER_JS_MAP[self.cls_type()]['columns']
 
         # add the columns from the position class
+        position_columns = None
         try:
             PAST_POSITION_MODEL = LazyGetModelByName(settings.GEOCAM_TRACK_PAST_POSITION_MODEL)
             position_columns = PAST_POSITION_MODEL.get().getFlattenedFields()
@@ -261,6 +262,9 @@ class SearchableModel(object):
                 position_columns = position_columns + new_columns
         except:
             pass
+
+        if position_columns:
+            columns = list(set().union(columns, position_columns))
 
         if columns[0] == 'checkbox':
             columns = columns[1:]  # ignore the checkbox column
