@@ -1,0 +1,32 @@
+<html>
+  <!-- 
+       Simple example test page to test SSE service.
+       Specify redis SSE channel to listen to as a URL query parameter.  E.g. TestTornadoSSE.html?channel=sse
+    -->
+  <head>
+    <title>Tornado SSE Test Page</title>
+  </head>
+  <body>
+    <div id="label" style="font-family:arial,helvetica,sans-serif;font-size:16pt;"></div>
+    <div id="messages" style="font-family:arial,helvetica,sans-serif;font-size:14pt;"></div>
+
+    <script type="text/javascript">
+      var chan = new URL(window.location.href).searchParams.get("channel");
+      var sseUrl = chan ? "/sse/stream?channel="+chan : "/sse/stream"
+      console.log("MyUrl: " + sseUrl);
+      var source = new EventSource(sseUrl);
+      source.addEventListener("wordsalad", function(message) {
+        var div = document.getElementById("messages");
+        div.innerHTML = message.data;
+      });
+      source.addEventListener("titletext", function(message) {
+        var div = document.getElementById("label");
+        div.innerHTML = message.data;
+      });
+      source.addEventListener("thecount", function(message) {
+        var div = document.getElementById("label");
+        div.innerHTML = message.data;
+      });
+    </script>
+  </body>
+</html>
