@@ -1,0 +1,52 @@
+<html>
+  <!-- 
+       Simple example test page to test SSE service.
+       Specify redis SSE channel to listen to as a URL query parameter.  E.g. TestTornadoSSE.html?channel=sse
+    -->
+  <head>
+      <title>Tornado SSE Test Page</title>
+      <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+  </head>
+  <body>
+  <table>
+      <thead><td>Recv time</td><td>Event Time</td><td>Event Data</td></thead>
+      <tr><td><span id="posRecvTime"></span></td><td><span id="posEventTime"></span></td><td><span id="posData"></span></td></tr>
+      <tr><td><span id="eventRecvTime"></span></td><td><span id="eventEventTime"></span></td><td><span id="eventData"></span></td></tr>
+      <tr><td><span id="msgRecvTime"></span></td><td><span id="msgEventTime"></span></td><td><span id="msgData"></span></td></tr>
+  </table>
+
+    <script type="text/javascript">
+      var chan = new URL(window.location.href).searchParams.get("channel");
+      var sseUrl = chan ? "/sse/stream?channel="+chan : "/sse/stream"
+      console.log("MyUrl: " + sseUrl);
+      var source = new EventSource(sseUrl);
+      source.addEventListener("position", function(message) {
+        var cell = document.getElementById("posRecvTime");
+        cell.innerHTML = moment().format("YYYY-MM-DD HH:mm:ss");
+        dataObj = JSON.parse(message.data);
+        var cell = document.getElementById("posEventTime");
+        cell.innerHTML = dataObj.timestamp;
+        var cell = document.getElementById("posData");
+        cell.innerHTML = message.data;
+      });
+      source.addEventListener("message", function(message) {
+        var cell = document.getElementById("msgRecvTime");
+        cell.innerHTML = moment().format("YYYY-MM-DD HH:mm:ss");
+        dataObj = JSON.parse(message.data);
+        var cell = document.getElementById("msgEventTime");
+        cell.innerHTML = dataObj.timestamp;
+        var cell = document.getElementById("msgData");
+        cell.innerHTML = message.data;
+      });
+      source.addEventListener("event", function(message) {
+        var cell = document.getElementById("eventRecvTime");
+        cell.innerHTML = moment().format("YYYY-MM-DD HH:mm:ss");
+        dataObj = JSON.parse(message.data);
+        var cell = document.getElementById("eventEventTime");
+        cell.innerHTML = dataObj.timestamp;
+        var cell = document.getElementById("eventData");
+        cell.innerHTML = message.data;
+      });
+    </script>
+  </body>
+</html>
