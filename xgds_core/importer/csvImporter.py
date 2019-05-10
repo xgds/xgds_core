@@ -23,6 +23,7 @@ import math
 import yaml
 import re
 import time
+import traceback
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -38,6 +39,7 @@ from collections import OrderedDict
 from geocamUtil.loader import getModelByName
 from xgds_core.flightUtils import get_default_vehicle, getFlight, create_group_flight, \
     get_next_available_group_flight_name, lookup_vehicle, lookup_flight, get_or_create_flight
+from xgds_core.util import persist_error
 from geocamUtil.loader import LazyGetModelByName
 from geocamTrack.utils import getClosestPosition
 
@@ -299,18 +301,22 @@ class CsvImporter(object):
                     if match:
                         row[field_name] = match.groups()[-1]
                 if not match:
-                    if 'required' in field_config and field_config['required']:
+                    if 'required' not in field_config or field_config['required']:
                         raise ValueError('No match for regex %s' % field_config['regex'])
                     else:
-                        row[field_name] = None
+                        del row[field_name]
         return row
 
     def convert_type(self, row, config=None):
         if config is None:
             config = self.config
         for field_name in config['fields']:
-            if field_name not in row or not row[field_name]:
-                continue
+            if field_name not in row:
+                if 'required' not in field_config or field_config['required']:
+                    errstr = 'Required value %s is missing in %s' % (field_name, str(row))
+                    raise ValueError(errstr)
+                else:
+                    continue
             field_config = config['fields'][field_name]
             if 'skip' in field_config and field_config['skip']:
                 continue
@@ -329,27 +335,39 @@ class CsvImporter(object):
                 try:
                     row[field_name] = self.get_time(row, field_name)
                 except ValueError as e:
-                    if 'required' in field_config and field_config['required']:
+                    if 'required' not in field_config or field_config['required']:
                         raise e
+                    else:
+                        del row[field_name]
             elif field_config['type'] == 'integer':
                 try:
                     row[field_name] = int(row[field_name])
                 except ValueError as e:
-                    if 'required' in field_config and field_config['required']:
+                    if 'required' not in field_config or field_config['required']:
                         raise e
+                    else:
+                        del row[field_name]
             elif field_config['type'] == 'float':
                 try:
                     row[field_name] = float(row[field_name])
                 except ValueError as e:
-                    if 'required' in field_config and field_config['required']:
+                    if 'required' not in field_config or field_config['required']:
                         raise e
+                    else:
+                        del row[field_name]
             elif field_config['type'] == 'boolean':
                 if row[field_name].lower() == 'true':
                     row[field_name] = True
                 elif row[field_name].lower() == 'false':
                     row[field_name] = False
                 else:
-                    row[field_name] = int(row['field_name'])
+                    try:
+                        row[field_name] = int(row['field_name'])
+                    except ValueError as e:
+                        if 'required' not in field_config or field_config['required']:
+                            raise e
+                        else:
+                            del row[field_name]
             elif field_config['type'] == 'nullboolean':
                 if row[field_name].lower() == 'true':
                     row[field_name] = True
@@ -358,35 +376,50 @@ class CsvImporter(object):
                 elif row[field_name].lower() == 'null' or row[field_name].lower() == 'none':
                     row[field_name] = None
                 else:
-                    row[field_name] = int(row['field_name'])
+                    try:
+                        row[field_name] = int(row['field_name'])
+                    except ValueError as e:
+                        if 'required' not in field_config or field_config['required']:
+                            raise e
+                        else:
+                            del row[field_name]
             elif field_config['type'] == 'key_value':
                 if row[field_name] is None:
-                    if 'required' in field_config and field_config['required']:
+                    if 'required' not in field_config or field_config['required']:
+                        errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
                         raise ValueError(errstr)
                     else:
-                        continue
+                        del row[field_name]
                 # split the value into a dictionary
                 parts = row[field_name].split(':')
                 if len(parts) > 1:
                     row[field_name] = {parts[0]: ':'.join(parts[1:])}
                 else:
-                    errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
-                    if 'required' in field_config and field_config['required']:
+                    if 'required' not in field_config or field_config['required']:
+                        errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
                         raise ValueError(errstr)
+                    else:
+                        del row[field_name]
             elif field_config['type'] == 'delimited':
                 # This is for the case where for example the full row is tab delimited, and one entry
                 # is a comma separated list.
-                if 'delimiter' in field_config:
-                    parts = row[field_name].split(field_config['delimiter'])
-                else:
-                    parts = row[field_name].split()
-                partsdict = {k: v for k, v in zip(field_config['fields'], parts)}
-                # delete the formerly lumped together delimited string
-                del row[field_name]
-                # call update_row on the parts dict using the config for this field
-                self.update_row(partsdict, field_config)
-                # merge the separated and labeled values into the row dict
-                row.update(partsdict)
+                try:
+                    if 'delimiter' in field_config:
+                        parts = row[field_name].split(field_config['delimiter'])
+                    else:
+                        parts = row[field_name].split()
+                    partsdict = {k: v for k, v in zip(field_config['fields'], parts)}
+                    # delete the formerly lumped together delimited string
+                    del row[field_name]
+                    # call update_row on the parts dict using the config for this field
+                    self.update_row(partsdict, field_config)
+                    # merge the separated and labeled values into the row dict
+                    row.update(partsdict)
+                except Exception as e:
+                    if 'required' not in field_config or field_config['required']:
+                        raise e
+                    else:
+                        del row[field_name]
             else:
                 raise ValueError('%s is not a valid type identifier' % field_config['type'])
         return row
@@ -428,17 +461,20 @@ class CsvImporter(object):
         if config is None:
             config = self.config
         if config:
-            # Replace missing fields with default values
-            # TODO: resolve what happens or should happen if a value and default are both given
-            row = self.update_defaults(row, config)
-            # Parse any regexes
-            row = self.parse_regex(row, config)
-            # Cast strings to the specified types
-            row = self.convert_type(row, config)
-            # Convert between provided and desired units
-            row = self.convert_units(row, config)
-            # Delete fields marked skip=True
-            row = self.delete_skip_fields(row, config)
+            try:
+                # Replace missing fields with default values
+                # TODO: resolve what happens or should happen if a value and default are both given
+                row = self.update_defaults(row, config)
+                # Parse any regexes
+                row = self.parse_regex(row, config)
+                # Cast strings to the specified types
+                row = self.convert_type(row, config)
+                # Convert between provided and desired units
+                row = self.convert_units(row, config)
+                # Delete fields marked skip=True
+                row = self.delete_skip_fields(row, config)
+            except Exception as e:
+                persist_error(e, traceback.format_exc())
         return row
 
     def update_flight_end(self, end):
