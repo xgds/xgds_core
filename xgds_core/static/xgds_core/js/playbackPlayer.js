@@ -213,6 +213,7 @@ $.extend(playback, {
 			//pass
 		}
 		playback.doPlay();
+		analytics.trackAction('playback', 'play', document.title);
 	},
 
 	pauseButtonCallback : function() {
@@ -230,6 +231,7 @@ $.extend(playback, {
 			//pass
 		}
 		playback.doPause();
+		analytics.trackAction('playback', 'pause', document.title);
 	}, 
 	postTimerMessage: function(message){
 		if (!_.isUndefined(playback.timerWorker)){
