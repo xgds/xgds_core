@@ -461,20 +461,17 @@ class CsvImporter(object):
         if config is None:
             config = self.config
         if config:
-            try:
-                # Replace missing fields with default values
-                # TODO: resolve what happens or should happen if a value and default are both given
-                row = self.update_defaults(row, config)
-                # Parse any regexes
-                row = self.parse_regex(row, config)
-                # Cast strings to the specified types
-                row = self.convert_type(row, config)
-                # Convert between provided and desired units
-                row = self.convert_units(row, config)
-                # Delete fields marked skip=True
-                row = self.delete_skip_fields(row, config)
-            except Exception as e:
-                persist_error(e, traceback.format_exc())
+            # Replace missing fields with default values
+            # TODO: resolve what happens or should happen if a value and default are both given
+            row = self.update_defaults(row, config)
+            # Parse any regexes
+            row = self.parse_regex(row, config)
+            # Cast strings to the specified types
+            row = self.convert_type(row, config)
+            # Convert between provided and desired units
+            row = self.convert_units(row, config)
+            # Delete fields marked skip=True
+            row = self.delete_skip_fields(row, config)
         return row
 
     def update_flight_end(self, end):
