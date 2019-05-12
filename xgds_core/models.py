@@ -17,8 +17,10 @@
 from collections import OrderedDict
 import traceback
 import json
+import types
 from datetime import timedelta
 from dateutil.parser import parse as dateparser
+from inspect import getargspec
 
 from django.utils import timezone
 from django.db import models
@@ -194,8 +196,11 @@ if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
     def publishAfterSave(sender, instance, created, **kwargs):
         if not created:
             return
-        if hasattr(instance, 'broadcast'):
-            instance.broadcast()
+        if hasattr(instance, 'broadcast') and isinstance(instance.broadcast, types.MethodType):
+            args, dummy, dummy, dummy = getargspec(instance.broadcast)
+            if len(args) == 1:
+                #TODO: we could/should? get fancier and allow for optional args? which maybe ought to be OK.
+                instance.broadcast()  # Only call if no arguments except 'self' - that's why 1 not 0.
         else:
             print 'NO BROADCAST METHOD FOR %s %s' % (instance.__class__.__name__, str(instance))
 
