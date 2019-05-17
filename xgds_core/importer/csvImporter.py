@@ -311,13 +311,14 @@ class CsvImporter(object):
         if config is None:
             config = self.config
         for field_name in config['fields']:
-            if field_name not in row:
-                if 'required' not in field_config or field_config['required']:
-                    errstr = 'Required value %s is missing in %s' % (field_name, str(row))
-                    raise ValueError(errstr)
-                else:
-                    continue
             field_config = config['fields'][field_name]
+            if field_name not in row:
+                # default to required true
+                if 'required' in field_config and not field_config['required']:
+                    continue
+                else:
+                    error_string = 'Required value %s is missing in %s' % (field_name, str(row))
+                    raise ValueError(error_string)
             if 'skip' in field_config and field_config['skip']:
                 continue
             # Independent of type, if the value is the string 'None' convert to a python None
@@ -386,8 +387,8 @@ class CsvImporter(object):
             elif field_config['type'] == 'key_value':
                 if row[field_name] is None:
                     if 'required' not in field_config or field_config['required']:
-                        errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
-                        raise ValueError(errstr)
+                        error_string = 'Key value pair not found in %s: %s' % (field_name, str(row))
+                        raise ValueError(error_string)
                     else:
                         del row[field_name]
                 # split the value into a dictionary
@@ -396,8 +397,8 @@ class CsvImporter(object):
                     row[field_name] = {parts[0]: ':'.join(parts[1:])}
                 else:
                     if 'required' not in field_config or field_config['required']:
-                        errstr = 'Key value pair not found in %s: %s' % (field_name, str(row))
-                        raise ValueError(errstr)
+                        error_string = 'Key value pair not found in %s: %s' % (field_name, str(row))
+                        raise ValueError(error_string)
                     else:
                         del row[field_name]
             elif field_config['type'] == 'delimited':
