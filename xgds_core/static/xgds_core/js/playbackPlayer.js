@@ -217,6 +217,7 @@ $.extend(playback, {
 	},
 
 	pauseButtonCallback : function() {
+		app.vent.trigger("pauseButtonPressed");
 		try {
 			$('#pausebutton').addClass("active");
 			$('#pausebuttonLink').addClass("active");
