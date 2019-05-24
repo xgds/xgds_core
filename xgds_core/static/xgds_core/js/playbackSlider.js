@@ -59,6 +59,7 @@ $.extend(playback, {
 			}
 		}
 		playback.callStopListeners(currMoment);
+		analytics.trackAction('playback', 'slider', document.title);
 	},
 	
 	setSliderStartTime: function(startTime){

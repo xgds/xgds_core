@@ -33,10 +33,9 @@ var owaTrackAction = function(category, action, identifier) {
 	// Category = object type
 	// Action = action taken ie view details, edit
 	// Identifier == something to identify object, ie pk & name
-	OWATracker.trackAction(category, action,  identifier);
+	OWATracker.trackAction(category, action, identifier);
 	return true;
 }
-
-
+analytics.addTrackActionMethod(owaTrackAction);
 
 <!-- End Open Web Analytics Code -->

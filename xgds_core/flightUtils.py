@@ -149,6 +149,9 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None, active=Fal
     :return: the group flight
     """
     group_flight = GROUP_FLIGHT_MODEL.get()(name=group_flight_name, notes=notes)
+    if extras:
+        for k, v in extras.iteritems():
+            group_flight.extras[k] = v
     group_flight.save()
 
     if not vehicles:
