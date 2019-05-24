@@ -201,8 +201,8 @@ if settings.XGDS_CORE_REDIS and settings.XGDS_SSE:
             if len(args) == 1:
                 #TODO: we could/should? get fancier and allow for optional args? which maybe ought to be OK.
                 instance.broadcast()  # Only call if no arguments except 'self' - that's why 1 not 0.
-        else:
-            print 'NO BROADCAST METHOD FOR %s %s' % (instance.__class__.__name__, str(instance))
+        # else:
+        #     print 'NO BROADCAST METHOD FOR %s %s' % (instance.__class__.__name__, str(instance))
 
 
 class SearchableModel(object):
