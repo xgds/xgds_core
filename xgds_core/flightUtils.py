@@ -161,7 +161,7 @@ def create_group_flight(group_flight_name, notes=None, vehicles=None, active=Fal
         new_flight = FLIGHT_MODEL.get()()
         new_flight.group = group_flight
         new_flight.vehicle = vehicle
-        new_flight.name = group_flight_name + "_" + vehicle.name
+        new_flight.name = group_flight_name + "_" + vehicle.shortName
         new_flight.uuid = uuid4()
         new_flight.start_time = start_time
         if extras:
