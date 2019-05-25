@@ -18,9 +18,9 @@ while True:
     msgBody = {"count": count,
                'timestamp': datetime.datetime.now(pytz.utc).isoformat()}
     msg_json = json.dumps(msgBody)
-    dontSkip = (count % 4 == 0)
+    dont_skip = (count % 4 == 0)
     for channel in settings.XGDS_SSE_CHANNELS:
-        if channel == 'sse' or dontSkip:
+        if channel == 'sse' or dont_skip:
             publishRedisSSE(channel, 'heartbeat', msg_json)
     count += 1
     time.sleep(10)
