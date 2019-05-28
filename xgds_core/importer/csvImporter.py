@@ -44,6 +44,7 @@ from geocamUtil.loader import LazyGetModelByName
 from geocamTrack.utils import getClosestPosition
 
 from dateutil.parser import parse as dateparser
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -53,6 +54,31 @@ VEHICLE_MODEL = LazyGetModelByName(settings.XGDS_CORE_VEHICLE_MODEL)
 FLIGHT_MODEL = LazyGetModelByName(settings.XGDS_CORE_FLIGHT_MODEL)
 
 POSITION_LOOKUP_DELAY = 1 # seconds
+
+
+def clean_time(input_string):
+    """
+    Clean a time which may come in with invalid seconds, 60.000
+    Raises exception if there are any except handles the above
+    :param input_string: a time string including date to parse
+    :return: the parsed time
+    """
+    try:
+        result = dateparser(input_string)
+        return result
+    except Exception as e:
+        regex_pattern = '(.*\d{2}:\d{2})(:60\.?0*)(\s*\w*)'
+        match = re.search(regex_pattern, input_string)
+        if match:
+            # chop off the invalid seconds
+            clean_input = match.groups()[0] + match.groups()[2]
+            result = dateparser(clean_input)
+
+            # add a minute
+            result = result + timedelta(minutes=1)
+            return result
+        else:
+            raise e
 
 
 def lookup_position(row, timestamp_key='timestamp', position_id_key='position_id', position_found_key=None, retries=0):
