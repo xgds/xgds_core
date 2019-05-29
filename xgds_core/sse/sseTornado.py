@@ -75,6 +75,11 @@ class EventSource(web.RequestHandler):
             if not connectionLive:
                 print("Closing dead connection - channel:", channelName)
                 await rs.unsubscribe(channelName)
+                # We seem to be leaking connections even after unsubscribe, so make sure we close it.
+                print("Closing server connection...")
+                rs.close()
+                await rs.wait_closed()
+                print("Closed...")
                 break
 
 
