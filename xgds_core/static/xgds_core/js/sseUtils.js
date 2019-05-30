@@ -19,12 +19,31 @@ sse = {}; // namespace
 $.extend(sse, {
 	DEBUG: false,
 	sources: {},
+	eventSources: {},
+	callbacks: {},
 	initialize: function () {
 		sse.heartbeat();
 	},
 	getSourcesKey: function (event_type, channel, callback_key) {
-		if (!event_type || !channel || !callback_key) console.log("[SSE Error] one of the parameters to getSourcesKey was undefined!");
+		if (!event_type || !channel || !callback_key) console.error("[SSE Error] one of the parameters to getSourcesKey was undefined!");
 		return event_type + "_" + channel + "_" + callback_key;
+	},
+	getEventSource: function(channel) {
+		if (!channel) console.error("[SSE Error] undefined channel passed to getEventSourcesKey");
+		if (!(channel in sse.eventSources)) {
+			sse.eventSources[channel] = new EventSource("/sse/stream?channel=" + channel);
+		}
+		return sse.eventSources[channel];
+	},
+	getCallback: function(callback_key) {
+		if (callback_key in sse.callbacks) {
+			return sse.callbacks[callback_key];
+		}
+		console.error("[SSE Error] bad callback key given!");
+		return undefined;
+	},
+	addCallback: function(callback_key, callback) {
+		sse.callbacks[callback_key] = callback;
 	},
 	heartbeat: function () {
 		setInterval(sse.checkHeartbeat, 11000);
@@ -59,8 +78,8 @@ $.extend(sse, {
 			}
 		} catch (err) {
 			// in case there is no such page
-			console.log("[SSE Error] failiure in the connectedCallback function");
-			console.log("[SSE Error]", err);
+			console.error("[SSE Error] failiure in the connectedCallback function");
+			console.error("[SSE Error]", err);
 		}
 	},
 	// disconnectedCallback will trigger when the last SSE heartbeat was recieved more than
@@ -78,8 +97,8 @@ $.extend(sse, {
 			}
 		} catch (err) {
 			// in case there is no such page
-			console.log("[SSE Error] failiure in the disconnectedCallback function");
-			console.log("[SSE Error]", err);
+			console.error("[SSE Error] failiure in the disconnectedCallback function");
+			console.error("[SSE Error]", err);
 		}
 	},
 	// allChannels will loop over all our SSE channels, except the "sse" channel,
@@ -143,8 +162,9 @@ $.extend(sse, {
 				}
 				let sourceKey = sse.getSourcesKey(event_type, channel, callback_key);
 				if (sourceKey in sse.sources) continue;
-				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
+				sse.sources[sourceKey] = sse.getEventSource(channel);
 				sse.sources[sourceKey].addEventListener(event_type, callback, false);
+				sse.addCallback(callback_key, callback);
 			}
 		} else {
 			if (sse.DEBUG) {
@@ -156,8 +176,9 @@ $.extend(sse, {
 				}
 				let sourceKey = sse.getSourcesKey(event_type, channel, callback_key);
 				if (sourceKey in sse.sources) continue;
-				sse.sources[sourceKey] = new EventSource("/sse/stream?channel=" + channel);
+				sse.sources[sourceKey] = sse.getEventSource(channel);
 				sse.sources[sourceKey].addEventListener(event_type, callback, false);
+				sse.addCallback(callback_key, callback);
 			}
 		}
 	},
@@ -174,11 +195,10 @@ $.extend(sse, {
 				console.log("[SSE Info] attempting to unsubscribe from channel:", channel, "and event type:", event_type, "and callback key:", callback_key);
 			}
 			if (sourceKey in sse.sources) {
-				sse.sources[sourceKey].close();
-				sse.sources[sourceKey] = null;
-				delete sse.sources[sourceKey];
+				sse.sources[sourceKey].removeEventListener(event_type, sse.getCallback(callback_key), false);
+
 				if (sse.DEBUG) {
-					console.log("[SSE Info] deleted an existing Event Source for channel with name:", channel, "and event type:", event_type, "and callback key:", callback_key);
+					console.log("[SSE Info] removed an existing event listener for channel with name:", channel, "and event type:", event_type, "and callback key:", callback_key);
 				}
 			}
 		}
