@@ -104,6 +104,15 @@ def get_next_available_group_flight_name(prefix):
             return prefix + character
 
 
+def getActiveGroupFlights():
+    group_flights = []
+
+    for af in ACTIVE_FLIGHT_MODEL.get().objects.all():
+        if af.flight.group not in group_flights:
+            group_flights.append(af.flight.group)
+    return group_flights
+
+
 def getActiveFlight(vehicle=None):
     if vehicle is not None:
         found_active_flights = ACTIVE_FLIGHT_MODEL.get().objects.filter(flight__vehicle=vehicle)
