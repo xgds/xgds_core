@@ -29,11 +29,6 @@
     type_class_map['{{ type }}'] = '{{ class }}';
     {% endfor %}
 
-    get_js_class_for_type = function(the_type){
-        if (the_type in type_class_map){
-            return window[type_class_map.the_type];
-        }
-    }
 {%  endblock always %}
 {% block jsInit %}
 
