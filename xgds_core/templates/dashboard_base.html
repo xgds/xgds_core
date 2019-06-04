@@ -17,13 +17,26 @@
  </style>
  {% endblock cssExtras %}
 
-{% block jsInit %}
-
+{% block always %}
     current_user_pk = {{ user.id }};
  	{% if settings.XGDS_SSE and settings.GEOCAM_UTIL_LIVE_MODE %}
- 		var preloadImageList = {{ settings.GEOCAM_TRACK_PRELOAD_TRACK_IMAGES|safe }}; 
+ 		var preloadImageList = {{ settings.GEOCAM_TRACK_PRELOAD_TRACK_IMAGES|safe }};
     		trackSse.preloadedIcons = $.preloadImages(preloadImageList);
     	{% endif %}
+
+    var type_class_map = {};
+    {% for type, class in settings.XGDS_MAP_SERVER_TYPE_CLASS_MAP.items %}
+    type_class_map['{{ type }}'] = '{{ class }}';
+    {% endfor %}
+
+    get_js_class_for_type = function(the_type){
+        if (the_type in type_class_map){
+            return window[type_class_map.the_type];
+        }
+    }
+{%  endblock always %}
+{% block jsInit %}
+
     	
 	{% block jsInitPreApp %}
 	{% endblock jsInitPreApp %}
@@ -64,6 +77,8 @@
 	{% include "xgds_core/timeJS.html" %}
 	{% block preMapJS %}
 	<script type="text/javascript">
+
+
 	var appOptions = {
 		BODY_RADIUS_METERS: {{ settings.XGDS_MAP_SERVER_BODY_RADIUS_METERS }},
 		DEFAULT_COORD_SYSTEM: '{{ settings.XGDS_MAP_SERVER_DEFAULT_COORD_SYSTEM }}',
