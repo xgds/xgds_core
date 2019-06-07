@@ -89,7 +89,8 @@
 		dataUrl: '{{ settings.DATA_URL }}',
 		searchModels: {{ settings.XGDS_MAP_SERVER_JS_MAP|safe }},
         searchModelsKeys: {{ settings.XGDS_MAP_SERVER_SEARCH_MODELS|safe }},
-		settingsLive: {{ settings.GEOCAM_UTIL_LIVE_MODE|yesno:'true,false' }}
+		settingsLive: {{ settings.GEOCAM_UTIL_LIVE_MODE|yesno:'true,false' }},
+        hide_tracks: {{ settings.GEOCAM_TRACK_HIDE_TRACKS|safe }}
 	};
 	</script>
 	{% endblock preMapJS %}
@@ -140,6 +141,32 @@
 
     {% block post_layers %}
     {% endblock post_layers %}
+
+    {% block collection %}
+        <div id="save_selection_modal" class="modal hide fade" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Save Selection</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body mt-0 pt-0">
+                        <span class="save_selection_error"></span>
+                        <form id="save_selection_form" action="" method="POST">
+                            <table>
+                                <tr><td>Name</td><td><input id="save_selection_name"></td></tr>
+                                <tr><td>Description</td><td><input id="save_selection_description" type="textarea"></td></tr>
+                            </table>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="save_selection_save_button" >Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock collection %}
 
 
 	<div id="gridstack_buttonrow" class="d-flex justify-content-between mb-1">
